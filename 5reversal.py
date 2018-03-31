@@ -16,8 +16,6 @@ def get_rev():
     rev.index.names=['t','sid']
     rev.to_csv(os.path.join(DATA_PATH,'reversal.csv'))
 
-
-
 if __name__=='__main__':
     get_rev()
 
