@@ -301,6 +301,14 @@ def get_rpM():
     rpM=read_df('ff3M','M')[['rp']]
     rpM.to_csv(os.path.join(DATA_PATH,'rpM.csv'))
 
+def get_capmM():
+    '''
+    just as get_rpM()
+    :return:
+    '''
+    pass
+
+
 def get_rpD():
     rpD=read_df('ff3D','D')[['rp']]
     rpD.to_csv(os.path.join(DATA_PATH,'rpD.csv'))
