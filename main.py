@@ -6,13 +6,34 @@
 # NAME:assetPricing2-main.py
 
 from dataset import DATA
-from tool import adjust_with_riskModel
+from tool import adjust_with_riskModel, grouping
 from zht.utils import assetPricing
 from zht.utils.assetPricing import summary_statistics, cal_breakPoints, count_groups, famaMacBeth
 import os
 import pandas as pd
 import numpy as np
 from zht.utils.mathu import get_outer_frame
+
+
+def asign_port_id(s, q, labels, thresh=None):
+    '''
+    this function will first dropna and then asign porfolio id.
+
+    :param s: Series
+    :param q:
+    :param labels:
+    :param thresh:
+    :return:
+    '''
+    ns = s.dropna()
+    if thresh is None:
+        thresh = q * 10  # TODO: thresh self.q*10？
+
+    if ns.shape[0] > thresh:
+        result = pd.qcut(ns, q, labels)
+        return result
+    else:
+        return pd.Series(index=ns.index)
 
 
 class OneFactor:
@@ -36,7 +57,7 @@ class OneFactor:
         if not indicators:
             indicators=self.indicators
 
-        comb=DATA.get_by_indicators(indicators)
+        comb=DATA.by_indicators(indicators)
         def _spearman(df):
             df=df.dropna()
             if df.shape[0]>10:#TODO:thresh to choose
@@ -46,6 +67,7 @@ class OneFactor:
             df=df.dropna()
             if df.shape[0]>10:
                 return assetPricing.corr(df,'pearson',winsorize=True)
+
 
         corrs=comb.groupby('t').apply(_spearman)
         corrp=comb.groupby('t').apply(_pearson)
@@ -73,7 +95,7 @@ class OneFactor:
     def breakPoints_and_countGroups(self):
         for indicator in self.indicators:
             d=self.df[indicator].unstack()
-            d=d.dropna(axis=0,how='all')#there is no samples for some months due to festival
+            d=d.dropna(axis=0,how='all',thresh=self.q*10)#there is no samples for some months due to festival
             bps=cal_breakPoints(d,self.q)
             bps.to_csv(os.path.join(self.path,'breakPoints_%s.csv'%indicator))
             count=count_groups(d,self.q)
@@ -84,7 +106,7 @@ class OneFactor:
         # TODO:as some stocks will be deleted due to the missing of weights.
 
     def _get_port_data(self,indicator):
-        groupid=DATA.get_by_indicators([indicator])
+        groupid=DATA.by_indicators([indicator])
         groupid['g']=groupid.groupby('t',group_keys=False).apply(
             lambda df:pd.qcut(df[indicator],self.q,
                               labels=[indicator+str(i) for i in range(1,self.q+1)])
@@ -99,53 +121,63 @@ class OneFactor:
         :return:
         '''
         groupid=self._get_port_data(sortedIndicator)
-        comb=DATA.get_by_indicators(otherIndicators)
+        comb=DATA.by_indicators(otherIndicators)
         comb=pd.concat([groupid,comb],axis=1)
         characteristics_avg=comb.groupby(['t','g']).mean().groupby('g').mean()
         characteristics_avg.to_csv(os.path.join(self.path,'portfolio characteristics.csv'))
 
     #TODO: upgrade this function
     def _get_panel_stk_avg(self, comb, indicator, gcol):
-        panel_stk_eavg=comb.groupby(['t',gcol])['eret'].mean()
-
+        panel_stk_eavg=comb.groupby(['t',gcol])['eretM'].mean()
         if self.factor=='size':
             panel_stk_wavg=comb.groupby(['t',gcol]).apply(
-                lambda df:np.average(df['eret'],weights=df[indicator])
+                lambda df:np.average(df['eretM'],weights=df[indicator])
             )
         else:
             panel_stk_wavg = comb.groupby(['t', gcol]).apply(
-                lambda df: np.average(df['eret'], weights=df['mktCap'])
+                lambda df: np.average(df['eretM'], weights=df['capM'])
                 # TODO:how about the nan
             )
         return panel_stk_eavg,panel_stk_wavg
 
+    #TODO: something wrong!!!!!
     def portfolio_analysis(self):
         #TODO: add a parameter to declare what risk models will be used. [ff3,capm,ff5]
 
-        all_indicators = list(set(self.indicators + ['CapM', 'eretM', 'mktRetM']))
-        comb = DATA.get_by_indicators(all_indicators)
-        comb=comb.dropna()
+        all_indicators = list(set(self.indicators + ['capM', 'eretM', 'mktRetM']))
+        comb = DATA.by_indicators(all_indicators)
 
         result_eavg=[]
         result_wavg=[]
         for indicator in self.indicators:
             gcol='g_%s'%indicator
+            # comb[gcol]=comb.groupby('t').apply(
+            #     lambda df:grouping(df[indicator].reset_index(level='t'),self.q,labels=self.groupnames))
             comb[gcol]=comb.groupby('t',group_keys=False).apply(
-                lambda df:pd.qcut(df[indicator],self.q,labels=self.groupnames))
+                lambda df:asign_port_id(df[indicator],self.q,self.groupnames))
 
             panel_stk_eavg,panel_stk_wavg=self._get_panel_stk_avg(comb, indicator, gcol)
-
             for panel_stk in [panel_stk_eavg,panel_stk_wavg]:
                 panel=panel_stk.unstack(level=[gcol])
+                panel.columns=panel.columns.astype(str)
                 panel['_'.join([self.groupnames[-1],self.groupnames[0]])]=panel[self.groupnames[-1]]-panel[self.groupnames[0]]
-                panel['avg']=panel.mean(axis=0)
-
+                panel['avg']=panel.mean(axis=1)
                 #TODO: use the risk models declared above
-                a=panel.mean(axis=1)
-                b=adjust_with_riskModel(panel,None)
-                c=adjust_with_riskModel(panel,'capm')
 
-                if panel_stk==panel_stk_eavg:
+                a_data = comb.groupby(['t', gcol])[indicator].mean()
+                a_data = a_data.unstack()
+                a_data.columns = a_data.columns.astype(str)
+                a_data.index = a_data.index.astype(str)
+                a_data['_'.join([self.groupnames[-1], self.groupnames[0]])] = a_data[self.groupnames[-1]] - a_data[
+                    self.groupnames[0]]
+                a_data['avg']=a_data.mean(axis=1)
+                a = a_data.mean()
+                a.name='avg'
+                a=a.to_frame().T
+                b=adjust_with_riskModel(panel)
+                c=adjust_with_riskModel(panel,riskmodel='capm')
+
+                if panel_stk is panel_stk_eavg:
                     result_eavg.append(pd.concat([a,b,c],axis=0))
                 else:
                     result_wavg.append(pd.concat([a,b,c],axis=0))
@@ -155,10 +187,10 @@ class OneFactor:
         table_w.to_csv(os.path.join(self.path,'univariate portfolio analysis-value weighted.csv'))
 
     def fm(self):
-        comb=DATA.get_by_indicators(self.indicators+['eret'])
+        comb=DATA.by_indicators(self.indicators+['eretM'])
         data=[]
         for indicator in self.indicators:
-            subdf=comb[[indicator,'eret']]
+            subdf=comb[[indicator,'eretM']]
             subdf=subdf.dropna()
             subdf.columns=['y','x']
             subdf=subdf.reset_index()
@@ -172,6 +204,17 @@ class OneFactor:
                               columns=['slope', 't', 'Intercept', 'Intercept_t', 'adj_r2', 'n']).T
         result.to_csv(os.path.join(self.path, 'fama macbeth regression analysis.csv'))
 
+    def run(self):
+        self.summary()
+        self.correlation()
+        self.persistence()
+        self.breakPoints_and_countGroups()
+        # self.portfolio_characteristics()
+        self.portfolio_analysis()
+        self.fm()
+
+    def __call__(self):
+        pass
 
 class Bivariate:
     q=5
@@ -182,18 +225,27 @@ class Bivariate:
 
     def _get_independent_data(self):
         # TODO: add the method of ratios such as [0.3,0.7]
-        # sometimes the self.indicators and ['mktCap','eret'] may share some elements
-        comb=DATA.get_by_indicators([self.indicator1,self.indicator2,'mktCapM','eretM'])
+        # sometimes the self.indicators and ['capM','eretM'] may share some elements
+        comb=DATA.by_indicators([self.indicator1,self.indicator2,'capM','eretM'])
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
-            lambda df:pd.qcut(df[self.indicator1],self.q,
-                              labels=[self.indicator1+str(i) for i in range(1,self.q+1)])
-        )
+            lambda df:asign_port_id(df[self.indicator1],self.q,
+                                    [self.indicator1 + str(i) for i in range(1, self.q + 1)]))
 
         comb['g2']=comb.groupby('t',group_keys=False).apply(
-            lambda df:pd.qcut(df[self.indicator2],self.q,
-                              labels=[self.indicator2+str(i) for i in range(1,self.q+1)])
-        )
+            lambda df:asign_port_id(df[self.indicator2],self.q,
+                                    [self.indicator2 + str(i) for i in range(1,self.q + 1)]))
+
+        # comb['g1']=comb.groupby('t',group_keys=False).apply(
+        #     lambda df:pd.qcut(df[self.indicator1],self.q,
+        #                       labels=[self.indicator1+str(i) for i in range(1,self.q+1)])
+        # )
+        #
+        # comb['g2']=comb.groupby('t',group_keys=False).apply(
+        #     lambda df:pd.qcut(df[self.indicator2],self.q,
+        #                       labels=[self.indicator2+str(i) for i in range(1,self.q+1)])
+        # )
+
         return comb
 
     def _get_dependent_data(self,indicators):
@@ -204,24 +256,22 @@ class Bivariate:
         '''
 
         # sometimes the self.indicators and ['mktCap','eret'] may share some elements
-        comb=DATA.get_by_indicators(indicators+['mktCap','eret'])
+        comb=DATA.by_indicators(indicators+['capM','eretM'])
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
-            lambda df:pd.qcut(df[indicators[0]],self.q,
-                              labels=[indicators[0]+str(i) for i in range(1,self.q+1)])
-        )
+            lambda df:asign_port_id(df[indicators[0]],self.q,
+                                    [indicators[0] + str(i) for i in range(1,self.q + 1)]))
 
         comb['g2']=comb.groupby(['t','g1'],group_keys=False).apply(
-            lambda df:pd.qcut(df[indicators[1]],self.q,
-                              labels=[indicators[1]+str(i) for i in range(1,self.q+1)])
-        )
+            lambda df:asign_port_id(df[indicators[1]],self.q,
+                                    [indicators[1] + str(i) for i in range(1,self.q + 1)]))
 
         return comb
 
     def _get_eret(self,comb):
-        group_eavg_ts = comb.groupby(['g1', 'g2', 't'])['eret'].mean()
+        group_eavg_ts = comb.groupby(['g1', 'g2', 't'])['eretM'].mean()
         group_wavg_ts = comb.groupby(['g1', 'g2', 't']).apply(
-            lambda df: np.average(df['eret'], weights=df['mktCap']))
+            lambda df: np.average(df['eretM'], weights=df['capM']))
         return group_eavg_ts,group_wavg_ts
 
     def _dependent_portfolio_analysis(self, group_ts, controlGroup='g1', targetGroup='g2'):
@@ -337,8 +387,8 @@ class Bivariate:
 
         :return:
         '''
-        indicators = list(set(var for l_indeVars in ll_indeVars for var in l_indeVars)) + ['eret']
-        comb = DATA.get_by_indicators(indicators)
+        indicators = list(set(var for l_indeVars in ll_indeVars for var in l_indeVars)) + ['eretM']
+        comb = DATA.by_indicators(indicators)
         comb = comb.reset_index()
 
         stks = []
@@ -348,9 +398,9 @@ class Bivariate:
 
             '''
             newname = ['name' + str(i) for i in range(1, len(l_indeVars) + 1)]
-            df = comb[l_indeVars + ['t', 'eret']].dropna()
-            df.columns = newname + ['t', 'eret']
-            formula = 'eret ~ ' + ' + '.join(newname)
+            df = comb[l_indeVars + ['t', 'eretM']].dropna()
+            df.columns = newname + ['t', 'eretM']
+            formula = 'eretM ~ ' + ' + '.join(newname)
             # TODO:lags?
             r, adj_r2, n = famaMacBeth(formula, 't', df, lags=5)
             r = r.rename(index=dict(zip(newname, l_indeVars)))
@@ -370,3 +420,4 @@ class Bivariate:
         table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
 
 
+#TODO: something wrong with this version,it is obvious with the result in D:\zht\database\quantDb\researchTopics\assetPricing2\size_12M

@@ -55,22 +55,22 @@ def monthly_cal(comb, prefix, dict, type_func, fn):
     return result
 
 
-def to_2d(func):
+def apply_col_by_col(func):
     '''
     a decorator to augment the 1d function ot 1d or 2d function.
 
     :param func:
     :return:
     '''
-    def augmented(x):
+    def augmented(x,*args,**kwargs):
         if x.ndim == 1:
-            return func(x)
+            return func(x,*args,**kwargs)
         elif x.ndim == 2:
-            return x.apply(func)
+            return x.apply(lambda s:func(s,*args,**kwargs)) #TODO: how about apply row by row?
 
     return augmented
 
-@to_2d
+@apply_col_by_col
 def adjust_with_riskModel(x, riskmodel=None):
     '''
     use risk model to adjust the the alpha,
@@ -101,5 +101,38 @@ def adjust_with_riskModel(x, riskmodel=None):
         nw = assetPricing.newey_west(formula, df, lags)
         return nw['Intercept'].rename(index={'coef': 'excess return',
                                              't': 'excess return t'})
+
+
+def grouping(x,q,labels,axis=0,thresh=None):
+    '''
+    sort and name for series or dataframe,for dataframe,axis is required with 0 denoting row-by-row
+    and 1 denoting col-by-col
+    :param x:
+    :param q:
+    :param labels:
+    :param axis:
+    :param thresh:
+    :return:
+    '''
+
+    def _grouping_1d(series,q,labels,thresh=None):
+        if thresh==None:
+            thresh=q*10 #TODO:
+        series=series.dropna()
+        if series.shape[0]>thresh:
+            return pd.qcut(series,q,labels)
+
+    if x.ndim==1:
+        return _grouping_1d(x,q,labels,thresh)
+    else:
+        if axis==1:
+            return x.apply(lambda s:_grouping_1d(s,q,labels,thresh))
+        elif axis==0:
+            return x.T.apply(lambda s:_grouping_1d(s,q,labels,thresh))
+
+
+
+def monitor_process():
+    pass
 
 

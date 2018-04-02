@@ -53,6 +53,7 @@ class Unify_indicators():
         size_ff=size_ff.stack()
         size_ff.name='size_ff'
         comb=pd.concat([size,mktCap_ff,size_ff],axis=1)
+        comb.index.names=['t','sid']
         return comb
 
     def unify_value(self):
@@ -132,13 +133,20 @@ class Unify_base:
         eretM=read_df('eretM','M')
         eretM=eretM.stack().to_frame()
         eretM.columns=['eretM']
+        eretM.index.names=['t','sid']
         return eretM
 
     def unify_capM(self):
+        '''
+        market capitalization
+
+        :return:
+        '''
         capM=read_df('capM','M')
         capM=capM.stack().to_frame()
         capM.index.name='t'
         capM.columns=['capM']
+        capM.index.names=['t','sid']
         return capM
 
     #------------------------------
@@ -181,7 +189,7 @@ class Base:
     def __init__(self,cls):
         self.cls=cls
         self.name=cls.__name__
-        self.data,self.info=self.get_data_and_info()
+        self.data,self.info=self._combine_all_indicators()
 
     def _get_all_methods(self):
         return [x for x, y in self.cls.__dict__.items() if type(y) == FunctionType]
@@ -198,26 +206,18 @@ class Base:
         comb=join_dfs(_dfs)
         return comb,info
 
-    def get_data_and_info(self):
-        #TODO:clear the .pkl files before runing the program
-        p_data=os.path.join(TMP_PATH,self.name+'_data.pkl')
-        p_info=os.path.join(TMP_PATH,self.name+'_info.pkl')
-        if os.path.isfile(p_data) and os.path.isfile(p_info):
-            with open(p_data,'rb') as f:
-                data=pickle.load(f)
-            with open(p_info,'rb') as f:
-                info=pickle.load(f)
-            return data,info
-        else:
-            data,info=self._combine_all_indicators()
-            pickle.dump(data,open(p_data,'wb'))
-            pickle.dump(info,open(p_info,'wb'))
-            return self._combine_all_indicators()
-
-
 class Dataset:
     def __init__(self):
-        self.data,self.info=self._combine()
+        self.data,self.info=self.get_data_and_info()
+
+    def sample_control(self,df):
+        '''
+        this function is used to handle the sample problem,you can filter out financial stocks
+        or you can set the time limit.
+        :param df:
+        :return:
+        '''
+        return df[df.index.get_level_values('t').year>=1996]
 
     def _combine(self):
         factor=Base(Unify_indicators)
@@ -240,12 +240,29 @@ class Dataset:
         data=pd.concat([d_factor,d_base],axis=1)
         return data,info
 
+    def get_data_and_info(self):
+        # TODO:clear the .pkl files before runing the program
+        p_data = os.path.join(TMP_PATH,'data.pkl')
+        p_info = os.path.join(TMP_PATH,'info.pkl')
+        if os.path.isfile(p_data) and os.path.isfile(p_info):
+            with open(p_data, 'rb') as f:
+                data = pickle.load(f)
+            with open(p_info, 'rb') as f:
+                info = pickle.load(f)
+        else:
+            data, info = self._combine()
+            data=self.sample_control(data)
+            pickle.dump(data, open(p_data, 'wb'))
+            pickle.dump(info, open(p_info, 'wb'))
+
+        return data,info
+
     @property
     def all_indicators(self):
         return sum(self.info.values(),[])
 
     def by_factor(self,factorname):
-        return self.data[self.info[factorname]]
+        return self.data[self.info[factorname]].dropna(how='all')
 
     def by_indicators(self,indicators):
         '''
@@ -255,9 +272,9 @@ class Dataset:
         :return: DataFrame
         '''
         if isinstance(indicators,(list,tuple)):
-            return self.data[indicators]
+            return self.data[indicators].dropna(how='all')
         else:
-            return self.data[[indicators]]
+            return self.data[[indicators]].dropna(how='all')
 
 DATA=Dataset()
 

@@ -1,0 +1,55 @@
+# -*-coding: utf-8 -*-
+# Python 3.6
+# Author:Zhang Haitao
+# Email:13163385579@163.com
+# TIME:2018-04-01  11:31
+# NAME:assetPricing2-test_main.py
+
+from main import OneFactor, Bivariate
+
+
+def test_Onefactor():
+    # factor='beta'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
+    # beta=OneFactor(factor,path)
+    # beta.run()
+
+    # factor='idiosyncraticVolatility'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
+    # idiosyn=OneFactor(factor,path)
+    # idiosyn.run()
+
+    factor='skewness'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
+    skewness=OneFactor(factor,path)
+    skewness.run()
+
+def test_Bivariate():
+
+    class size_12M(Bivariate):
+        def __init__(self):
+            indicator1='size'
+            indicator2='D_12M'
+            path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\size_12M'
+            super().__init__(indicator1,indicator2,path)
+
+        #TODO: how to send paramters into a class method without inherit and overide the method
+        def fm(self):
+            ll_indeVars = [['bm'], ['bm', 'M_12M'], ['bm', 'size'], ['bm', 'M_12M', 'size'],
+                           ['logbm'], ['logbm', 'M_12M'], ['logbm', 'size'], ['logbm', 'M_12M', 'size']]
+            super()._fm(ll_indeVars)
+
+        def run(self):
+            self.dependent_portfolio_analysis()
+            self.independent_portfolio_analysis()
+            self.fm()
+
+        def __call__(self):
+            self.run()
+
+    size_12M()()
+
+
+if __name__=='__main__':
+    # test_Onefactor()
+    test_Bivariate()
