@@ -126,6 +126,8 @@ def get_eretD():
     stockRetD=read_df('stockRetD','D')
     rfD=read_df('rfD','D')
     eretD=stockRetD.sub(rfD['rfD'],axis=0)
+    # The date for stockRetD is buisiness date,but for rfD, it is calendar date.
+    eretD=eretD.dropna(axis=0,how='all')# use this to ajust the index from calendar date to buisiness date
     eretD.to_csv(os.path.join(DATA_PATH,'eretD.csv'))
 
 def get_stockRetM():
@@ -269,27 +271,17 @@ def get_hxz4M():
 
     :return:
     '''
-    direc=r'E:\a\quantDb\researchTopics\assetPricing\hxz4\factor'
 
-    fns=['rsmb','ria','rroe']
-
-    dfs=[]
-    for fn in fns:
-        df=pd.read_csv(os.path.join(direc,fn+'.csv'),index_col=0)
-        df.index.name='t'
-        df.columns=[fn]
-        dfs.append(df)
-    comb=pd.concat(dfs,axis=1)
-    comb.index=pd.to_datetime(comb.index)+MonthEnd()
-    ff3=read_df('ff3M','M')
-    comb['rp']=ff3['rp']
-    comb.to_csv(os.path.join(DATA_PATH,'hxz4M.csv'))
+    fp=r'D:\zht\database\quantDb\researchTopics\assetPricing\benchmarkModel\hxz4.csv'
+    df=pd.read_csv(fp,index_col=0)
+    df.index=pd.to_datetime(df.index)+MonthEnd(0)
+    df.to_csv(os.path.join(DATA_PATH,'hxz4M.csv'))
 
 def get_ff3D():
     tbname='STK_MKT_ThrfacDay'
     df=read_gta(tbname)
     condition1=df['MarkettypeID']=='P9707'
-    # P9709 全部A股市场包含沪深A股和创业板
+    # P9709 全部A股市场包含沪深A股和创业板.
     # 流通市值加权
     df = df[condition1][
         ['TradingDate', 'RiskPremium1', 'SMB1', 'HML1']]

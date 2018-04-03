@@ -8,11 +8,14 @@ from dataset import DATA
 from dout import *
 import numpy as np
 
-#TODO:upgrade this funcntion use rolling
 from zht.utils import assetPricing
 
 
-def _for_one_stock(x, months, history, thresh, type_func):
+
+#TODO: multiIndex span on the index and groupby
+
+
+def _rolling_for_series(x, months, history, thresh, type_func):
     '''
     calculate the indicator for one stock,and get a time series
 
@@ -23,7 +26,7 @@ def _for_one_stock(x, months, history, thresh, type_func):
     :param type_func:the function name from one of [_skew,_coskew,_idioskew]
     :return:time series
     '''
-    sid=x.index.get_level_values('sid')[0]
+    # sid=x.index.get_level_values('sid')[0]
     x=x.reset_index('sid',drop=True)
     values=[]
     for month in months:
@@ -33,31 +36,33 @@ def _for_one_stock(x, months, history, thresh, type_func):
             values.append(type_func(subx))
         else:
             values.append(np.nan)
-    print(sid)
     return pd.Series(values,index=months)
 
 def groupby_rolling(multiIndDF, prefix, dict, type_func):
     values = []
     names = []
+    #TODO:why not use map or other higher-order function
+
     for history, thresh in dict.items():
         days = multiIndDF.index.get_level_values('t').unique()
         months = days[days.is_month_end]
-        value = multiIndDF.groupby('sid').apply(lambda df: _for_one_stock(df, months, history, thresh, type_func))
+        value = multiIndDF.groupby('sid').apply(lambda df: _rolling_for_series(df, months, history, thresh, type_func))
         values.append(value.T)
         names.append(prefix + '_' + history)
     result = pd.concat(values, axis=0, keys=names)
     return result
 
 #TODO: use closures and decorator to handle this problem
+#TODO:upgrade this funcntion use rolling,rolling_apply
 def monthly_cal(comb, prefix, dict, type_func, fn):
     result=groupby_rolling(comb,prefix,dict,type_func)
     result.to_csv(os.path.join(DATA_PATH,fn+'.csv'))
     return result
 
-
 def apply_col_by_col(func):
     '''
-    a decorator to augment the 1d function ot 1d or 2d function.
+        A decorator to convert a function acting on series to a function acting
+    on DataFrame,the augmented function will run column by column on the DataFrame
 
     :param func:
     :return:
@@ -135,4 +140,24 @@ def grouping(x,q,labels,axis=0,thresh=None):
 def monitor_process():
     pass
 
+
+def assign_port_id(s, q, labels, thresh=None):
+    '''
+    this function will first dropna and then asign porfolio id.
+
+    :param s: Series
+    :param q:
+    :param labels:
+    :param thresh:
+    :return:
+    '''
+    ns = s.dropna()
+    if thresh is None:
+        thresh = q * 10  # TODO: thresh self.q*10？
+
+    if ns.shape[0] > thresh:
+        result = pd.qcut(ns, q, labels)
+        return result
+    else:
+        return pd.Series(index=ns.index)
 

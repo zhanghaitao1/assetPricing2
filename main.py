@@ -6,34 +6,13 @@
 # NAME:assetPricing2-main.py
 
 from dataset import DATA
-from tool import adjust_with_riskModel, grouping
+from tool import adjust_with_riskModel, assign_port_id
 from zht.utils import assetPricing
 from zht.utils.assetPricing import summary_statistics, cal_breakPoints, count_groups, famaMacBeth
 import os
 import pandas as pd
 import numpy as np
 from zht.utils.mathu import get_outer_frame
-
-
-def asign_port_id(s, q, labels, thresh=None):
-    '''
-    this function will first dropna and then asign porfolio id.
-
-    :param s: Series
-    :param q:
-    :param labels:
-    :param thresh:
-    :return:
-    '''
-    ns = s.dropna()
-    if thresh is None:
-        thresh = q * 10  # TODO: thresh self.q*10？
-
-    if ns.shape[0] > thresh:
-        result = pd.qcut(ns, q, labels)
-        return result
-    else:
-        return pd.Series(index=ns.index)
 
 
 class OneFactor:
@@ -140,11 +119,10 @@ class OneFactor:
             )
         return panel_stk_eavg,panel_stk_wavg
 
-    #TODO: something wrong!!!!!
     def portfolio_analysis(self):
         #TODO: add a parameter to declare what risk models will be used. [ff3,capm,ff5]
 
-        all_indicators = list(set(self.indicators + ['capM', 'eretM', 'mktRetM']))
+        all_indicators = list(set(self.indicators + ['capM', 'eretM']))
         comb = DATA.by_indicators(all_indicators)
 
         result_eavg=[]
@@ -154,7 +132,7 @@ class OneFactor:
             # comb[gcol]=comb.groupby('t').apply(
             #     lambda df:grouping(df[indicator].reset_index(level='t'),self.q,labels=self.groupnames))
             comb[gcol]=comb.groupby('t',group_keys=False).apply(
-                lambda df:asign_port_id(df[indicator],self.q,self.groupnames))
+                lambda df:assign_port_id(df[indicator], self.q, self.groupnames))
 
             panel_stk_eavg,panel_stk_wavg=self._get_panel_stk_avg(comb, indicator, gcol)
             for panel_stk in [panel_stk_eavg,panel_stk_wavg]:
@@ -229,12 +207,12 @@ class Bivariate:
         comb=DATA.by_indicators([self.indicator1,self.indicator2,'capM','eretM'])
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
-            lambda df:asign_port_id(df[self.indicator1],self.q,
-                                    [self.indicator1 + str(i) for i in range(1, self.q + 1)]))
+            lambda df:assign_port_id(df[self.indicator1], self.q,
+                                     [self.indicator1 + str(i) for i in range(1, self.q + 1)]))
 
         comb['g2']=comb.groupby('t',group_keys=False).apply(
-            lambda df:asign_port_id(df[self.indicator2],self.q,
-                                    [self.indicator2 + str(i) for i in range(1,self.q + 1)]))
+            lambda df:assign_port_id(df[self.indicator2], self.q,
+                                     [self.indicator2 + str(i) for i in range(1,self.q + 1)]))
 
         # comb['g1']=comb.groupby('t',group_keys=False).apply(
         #     lambda df:pd.qcut(df[self.indicator1],self.q,
@@ -259,12 +237,12 @@ class Bivariate:
         comb=DATA.by_indicators(indicators+['capM','eretM'])
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
-            lambda df:asign_port_id(df[indicators[0]],self.q,
-                                    [indicators[0] + str(i) for i in range(1,self.q + 1)]))
+            lambda df:assign_port_id(df[indicators[0]], self.q,
+                                     [indicators[0] + str(i) for i in range(1,self.q + 1)]))
 
         comb['g2']=comb.groupby(['t','g1'],group_keys=False).apply(
-            lambda df:asign_port_id(df[indicators[1]],self.q,
-                                    [indicators[1] + str(i) for i in range(1,self.q + 1)]))
+            lambda df:assign_port_id(df[indicators[1]], self.q,
+                                     [indicators[1] + str(i) for i in range(1,self.q + 1)]))
 
         return comb
 

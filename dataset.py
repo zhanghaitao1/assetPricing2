@@ -235,9 +235,23 @@ class Dataset:
         it was calcualted. If we shift back the base data in this place (rather than shift forward the
         indicators),we would have to shift forward eret again when we regress the portfolio eret on 
         benckmark model in the function _alpha in template.py
+        
+        For simply,we use the information at t to predict the eret of time t+1.In our DATA.data,the index
+        denotes time t,and the values for eretM,benchmark model and so on is from time t+1.
+        
+        Notice:
+            To calculate value-weighted result,we use the market capitalization of the time t (portfolio
+            formation period) as weight.So,in this place,we should shift the capM forward for one step
+            as well.For more details,refer to page 40 of Bali.
+        
         '''
+        #TODO: how about the reversal and momemtum that based ond return and eret? And how bout rf?
+
+
         d_base=base.data
         data=pd.concat([d_factor,d_base],axis=1)
+        data['capM']=data['capM'].shift(1)
+
         return data,info
 
     def get_data_and_info(self):

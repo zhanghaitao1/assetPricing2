@@ -37,3 +37,12 @@
 16. dissect the correlation for every year as page 10 of Pan, Tang, and Xu, “Speculative Trading and Stock Returns.”
 17. use dummy variable to test the asymmetrical effect of limits of arbitrage on stock returns as table 7 of Gu, Kang, and Xu, “Limits of Arbitrage and Idiosyncratic Volatility.”
 
+
+# The difference between assetPricing1 and assetPricing2
+1. the date in assetPricing2 seem to be calender date rather than buisiness
+date as assetPricing1.
+2. when calculate beta ,AP2 use eret but AP1 use ret.In the book of Bali,eret is used
+3.
+
+
+

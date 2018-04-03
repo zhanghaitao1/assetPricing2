@@ -32,9 +32,12 @@ def _beta(subx):
     return beta
 
 def cal_beta():
+    #TODO: name D1M D3M  M12M M36M
     dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}
     dictM = {'12M': 10, '24M': 20, '36M': 24, '60M': 24}
     combD,combM=_get_comb()
+    # combD=combD[-800000:]#TODO:
+    # combM=combM[-40000:]#TODO:
     monthly_cal(combD,'D',dictD,_beta,'betaD')
     monthly_cal(combM,'M',dictM,_beta,'betaM')
 
