@@ -24,8 +24,6 @@ def _get_comb():
     mktD = read_df('mktRetD', 'D')
     mktD.columns=['mkt']
     mktD['mkt_square']=mktD['mkt']**2
-    retD.head()
-    eretD.head()
     multi_comb_D=pd.concat([eretD,retD],axis=1)
     single_comb_D=pd.concat([mktD,ff3D],axis=1)
     combD=multi_comb_D.join(single_comb_D)
@@ -45,8 +43,6 @@ def _get_comb():
     mktM = read_df('mktRetM', 'M')
     mktM.columns = ['mkt']
     mktM['mkt_square'] = mktM['mkt'] ** 2
-    retM.head()
-    eretM.head()
     multi_comb_M = pd.concat([eretM, retM], axis=1)
     single_comb_M = pd.concat([mktM, ff3M], axis=1)
     combM = multi_comb_M.join(single_comb_M)

@@ -19,37 +19,47 @@ def test_Onefactor():
     # idiosyn=OneFactor(factor,path)
     # idiosyn.run()
 
-    factor='skewness'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
-    skewness=OneFactor(factor,path)
-    skewness.run()
+    # factor='skewness'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
+    # skewness=OneFactor(factor,path)
+    # skewness.run()
+
+    # factor='momentum'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
+    # mom=OneFactor(factor,path)
+    # mom()
+
+    factor='reversal'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\reversal'
+    rev=OneFactor(factor,path)
+    rev()
+
+
+
+class size_12M(Bivariate):
+    def __init__(self):
+        indicator1='size'
+        indicator2='D_12M'
+        path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\size_12M'
+        super().__init__(indicator1,indicator2,path)
+
+    #TODO: how to send paramters into a class method without inherit and overide the method
+    def fm(self):
+        ll_indeVars = [['bm'], ['bm', 'M_12M'], ['bm', 'size'], ['bm', 'M_12M', 'size'],
+                       ['logbm'], ['logbm', 'M_12M'], ['logbm', 'size'], ['logbm', 'M_12M', 'size']]
+        super()._fm(ll_indeVars)
+
+    def run(self):
+        self.dependent_portfolio_analysis()
+        self.independent_portfolio_analysis()
+        self.fm()
+
+    def __call__(self):
+        self.run()
 
 def test_Bivariate():
-
-    class size_12M(Bivariate):
-        def __init__(self):
-            indicator1='size'
-            indicator2='D_12M'
-            path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\size_12M'
-            super().__init__(indicator1,indicator2,path)
-
-        #TODO: how to send paramters into a class method without inherit and overide the method
-        def fm(self):
-            ll_indeVars = [['bm'], ['bm', 'M_12M'], ['bm', 'size'], ['bm', 'M_12M', 'size'],
-                           ['logbm'], ['logbm', 'M_12M'], ['logbm', 'size'], ['logbm', 'M_12M', 'size']]
-            super()._fm(ll_indeVars)
-
-        def run(self):
-            self.dependent_portfolio_analysis()
-            self.independent_portfolio_analysis()
-            self.fm()
-
-        def __call__(self):
-            self.run()
-
     size_12M()()
 
-
 if __name__=='__main__':
-    # test_Onefactor()
-    test_Bivariate()
+    test_Onefactor()
+    # test_Bivariate()

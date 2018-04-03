@@ -6,7 +6,7 @@
 # NAME:assetPricing2-main.py
 
 from dataset import DATA
-from tool import adjust_with_riskModel, assign_port_id
+from tool import adjust_with_riskModel, assign_port_id, risk_adjust
 from zht.utils import assetPricing
 from zht.utils.assetPricing import summary_statistics, cal_breakPoints, count_groups, famaMacBeth
 import os
@@ -120,6 +120,11 @@ class OneFactor:
         return panel_stk_eavg,panel_stk_wavg
 
     def portfolio_analysis(self):
+        '''
+        table 8.4
+
+        :return:
+        '''
         #TODO: add a parameter to declare what risk models will be used. [ff3,capm,ff5]
 
         all_indicators = list(set(self.indicators + ['capM', 'eretM']))
@@ -152,17 +157,73 @@ class OneFactor:
                 a = a_data.mean()
                 a.name='avg'
                 a=a.to_frame().T
-                b=adjust_with_riskModel(panel)
-                c=adjust_with_riskModel(panel,riskmodel='capm')
+                riskAdjusted=risk_adjust(panel)
 
                 if panel_stk is panel_stk_eavg:
-                    result_eavg.append(pd.concat([a,b,c],axis=0))
+                    result_eavg.append(pd.concat([a,riskAdjusted],axis=0))
                 else:
-                    result_wavg.append(pd.concat([a,b,c],axis=0))
+                    result_wavg.append(pd.concat([a,riskAdjusted],axis=0))
         table_e=pd.concat(result_eavg,axis=0,keys=self.indicators)
         table_w=pd.concat(result_wavg,axis=0,keys=self.indicators)
         table_e.to_csv(os.path.join(self.path,'univariate portfolio analysis-equal weighted.csv'))
         table_w.to_csv(os.path.join(self.path,'univariate portfolio analysis-value weighted.csv'))
+
+    def _one_indicator(self,indicator):
+        ns=range(0,12)
+        all_indicators=list(set([indicator]+['capM','eretM']))
+        comb=DATA.get_by_indicators(all_indicators)
+        comb=comb.dropna()
+        comb['g']=comb.groupby('t',group_keys=False).apply(
+            lambda df:pd.qcut(df[indicator],self.q,
+                              labels=[indicator+str(i) for i in range(1,self.q+1)])
+        )
+
+        def _one_indicator_one_weight_type(group_ts, indicator):
+            def _big_minus_small(s,indicator):
+                time=s.index.get_level_values('t')[0]
+                return s[(time,indicator+str(self.q))]-s[(time,indicator+'1')]
+
+            spread_data=group_ts.groupby('t').apply(lambda s:_big_minus_small(s,indicator))
+            s=risk_adjust(spread_data)
+            return s
+
+        eret=comb['eret'].unstack()
+
+        s_es=[]
+        s_ws=[]
+        eret_names=[]
+        for n in ns:
+            eret_name='eret_ahead%s'%(n+1)
+            comb[eret_name]=eret.shift(-n).stack()
+
+            group_eavg_ts=comb.groupby(['t','g'])[eret_name].mean()
+            group_wavg_ts=comb.groupby(['t','g']).apply(lambda df:np.average(df[eret_name],weights=df['mktCap']))
+
+            s_e=_one_indicator_one_weight_type(group_eavg_ts,indicator)
+            s_w=_one_indicator_one_weight_type(group_wavg_ts,indicator)
+            s_es.append(s_e)
+            s_ws.append(s_w)
+            eret_names.append(eret_name)
+        eq_table=pd.concat(s_es,axis=1,keys=eret_names)
+        vw_table=pd.concat(s_ws,axis=1,keys=eret_names)
+        return eq_table,vw_table
+
+
+    def portfolio_anlayse_with_k_month_ahead_returns(self):
+        '''table 11.4'''
+        eq_tables=[]
+        vw_tables=[]
+        for indicator in self.indicators:
+            eq_table,vw_table=self._one_indicator(indicator)
+            eq_tables.append(eq_table)
+            vw_tables.append(vw_table)
+            print(indicator)
+
+        eq=pd.concat(eq_tables,axis=0,keys=self.indicators)
+        vw=pd.concat(vw_tables,axis=0,keys=self.indicators)
+
+        eq.to_csv(os.path.join(self.path,'univariate portfolio analysis_k-month-ahead-returns-eq.csv'))
+        vw.to_csv(os.path.join(self.path,'univariate portfolio analysis_k-month-ahead-returns-vw.csv'))
 
     def fm(self):
         comb=DATA.by_indicators(self.indicators+['eretM'])
@@ -192,7 +253,8 @@ class OneFactor:
         self.fm()
 
     def __call__(self):
-        pass
+        self.run()
+
 
 class Bivariate:
     q=5
@@ -396,6 +458,5 @@ class Bivariate:
         table = table.reindex(index=newIndex)
 
         table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
-
 
 #TODO: something wrong with this version,it is obvious with the result in D:\zht\database\quantDb\researchTopics\assetPricing2\size_12M

@@ -21,6 +21,31 @@ columns=['type1','type2']
 type1,or type2 can be rfM,eretM,and size or idioskewD_12M
 '''
 
+def unify_df(df):
+    '''
+    This function has the following features:
+    1. detect the invalid index format and make them consistent with my standard
+
+    :param df:
+    :return:
+    '''
+    names=df.index.names
+
+    df=df.reset_index()
+    for name in names:
+        if name=='t':
+            v=df['t'][0]
+            if not isinstance(v,pd.Timestamp):
+                raise TypeError('The format of index for level t is not pd.Timesamp !! ')
+        if name=='sid':
+            v=df['sid'][0]
+            if not isinstance(v,str):
+                df['sid']=df['sid'].astype(str)
+                print('Converted the format of index for level "sid" from {} to "str"'.format(type(v)))
+    df=df.set_index(names,drop=True)
+    return df
+
+
 class Unify_indicators():
     def unify_beta(self):
         #beta
@@ -79,7 +104,7 @@ class Unify_indicators():
 
     def unify_liquidity(self):
         illiq=pd.read_csv(os.path.join(DATA_PATH,'illiq.csv'),index_col=[0,1],parse_dates=True)
-        illiq=illiq.stack().unstack('type').head()
+        illiq=illiq.stack().unstack('type')
         illiq.index.names=['t','sid']
 
         liqBeta=read_df('liqBeta','M')
@@ -87,7 +112,7 @@ class Unify_indicators():
         liqBeta.index.names=['t','sid']
         liqBeta.name='liqBeta'
 
-        comb=pd.concat([illiq,liqBeta],axis=1).head()
+        comb=pd.concat([illiq,liqBeta],axis=1)
         return comb
 
     def unify_skewness(self):
@@ -100,7 +125,6 @@ class Unify_indicators():
             df=df.unstack('type')
             df.columns=['_'.join([name,col]) for col in df.columns]
             dfs.append(df)
-            print(name)
         comb=pd.concat(dfs,axis=1)
         return comb
 
@@ -115,7 +139,6 @@ class Unify_indicators():
             df=df.unstack('type')
             df.columns=['_'.join([name,col]) for col in df.columns]
             dfs.append(df)
-            print(name)
         comb=pd.concat(dfs,axis=1)
         return comb
 
@@ -200,9 +223,9 @@ class Base:
         _dfs=[]
         for m in methods:
             df=getattr(self.cls(),m)()
+            df=unify_df(df) # some of the DataFrame do not share the same index format
             _dfs.append(df)
             info[m.split('_')[1]]=df.columns.tolist()
-
         comb=join_dfs(_dfs)
         return comb,info
 
@@ -245,12 +268,9 @@ class Dataset:
             as well.For more details,refer to page 40 of Bali.
         
         '''
-        #TODO: how about the reversal and momemtum that based ond return and eret? And how bout rf?
-
-
         d_base=base.data
         data=pd.concat([d_factor,d_base],axis=1)
-        data['capM']=data['capM'].shift(1)
+        data['capM']=data['capM'].shift(1) # usually the market capitalization used as weight,we use this value at time t
 
         return data,info
 
@@ -276,7 +296,7 @@ class Dataset:
         return sum(self.info.values(),[])
 
     def by_factor(self,factorname):
-        return self.data[self.info[factorname]].dropna(how='all')
+        return self.data[self.info[factorname]].copy(deep=True).dropna(how='all')
 
     def by_indicators(self,indicators):
         '''
@@ -285,10 +305,13 @@ class Dataset:
         :param indicators:
         :return: DataFrame
         '''
+        comb=self.data[list(indicators)].copy(deep=True).dropna(how='all')
+        comb.to_csv(r'e:\a\comb.csv')
+
         if isinstance(indicators,(list,tuple)):
-            return self.data[indicators].dropna(how='all')
+            return self.data[list(indicators)].copy(deep=True).dropna(how='all')
         else:
-            return self.data[[indicators]].dropna(how='all')
+            return self.data[[indicators]].copy(deep=True).dropna(how='all')
 
 DATA=Dataset()
 

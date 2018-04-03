@@ -12,12 +12,11 @@
 # functions to add
 1. show those significant result with bold characters as table A5 of Asness, Clifford S., Andrea Frazzini, and Lasse Heje Pedersen. “Quality Minus Junk.” SSRN Scholarly Paper. Rochester, NY: Social Science Research Network, June 5, 2017. https://papers.ssrn.com/abstract=2312432.
 2. D. The risk of quality stocks(Figure 4) in chapter 4 of Asness, Clifford S., Andrea Frazzini, and Lasse Heje Pedersen. “Quality Minus Junk.” SSRN Scholarly Paper. Rochester, NY: Social Science Research Network, June 5, 2017. https://papers.ssrn.com/abstract=2312432.
-
+3. table 5 of mispricing factors
 
 # TODO:
 1. Calculate indicators as other papers
 2. detect anomalies in A-share
-3. table 5 of mispricing factors
 4. read my notes and other papers about cross section
 5. D:\app\python27\zht\researchTopics\assetPricing
 5. refer to D:\app\python27\zht\researchTopics\assetPricing\regressionModels.py
@@ -36,7 +35,8 @@
     221 of Ellul and Panayides, “Do Financial Analysts Restrain Insiders’ Informational Advantage?”
 16. dissect the correlation for every year as page 10 of Pan, Tang, and Xu, “Speculative Trading and Stock Returns.”
 17. use dummy variable to test the asymmetrical effect of limits of arbitrage on stock returns as table 7 of Gu, Kang, and Xu, “Limits of Arbitrage and Idiosyncratic Volatility.”
-
+18. summary for each year as table 1 of Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
+19. analyse the annual return as figure 1 of Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
 
 # The difference between assetPricing1 and assetPricing2
 1. the date in assetPricing2 seem to be calender date rather than buisiness

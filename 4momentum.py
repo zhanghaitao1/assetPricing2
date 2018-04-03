@@ -24,7 +24,7 @@ def _before(s, interval, min_periods):
     :return:
     '''
     # In this place,s is an ndarray,it equals np.array(series.dropna()),
-    # we are not sure s[:-1] has deleted which value,it may be value of time t,and it can also
+    # we are not sure which value has been deleted by s[:-1],it may be value of time t,and it can also
     # be the value of time t-2
     return s.rolling(interval, min_periods=min_periods).apply(lambda s: __cal_cumulative_return(s[:-1]))
 

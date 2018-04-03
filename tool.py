@@ -9,11 +9,10 @@ from dout import *
 import numpy as np
 
 from zht.utils import assetPricing
-
+import time
 
 
 #TODO: multiIndex span on the index and groupby
-
 
 def _rolling_for_series(x, months, history, thresh, type_func):
     '''
@@ -107,6 +106,17 @@ def adjust_with_riskModel(x, riskmodel=None):
         return nw['Intercept'].rename(index={'coef': 'excess return',
                                              't': 'excess return t'})
 
+def risk_adjust(panel):
+    '''
+    risk adjusted alpha
+
+    :param panel:
+    :return:
+    '''
+    return pd.concat([adjust_with_riskModel(panel,riskmodel)
+                   for riskmodel in [None,'capm','ff3','ffc','ff5','hxz4']],
+                  axis=0)
+
 
 def grouping(x,q,labels,axis=0,thresh=None):
     '''
@@ -136,11 +146,6 @@ def grouping(x,q,labels,axis=0,thresh=None):
             return x.T.apply(lambda s:_grouping_1d(s,q,labels,thresh))
 
 
-
-def monitor_process():
-    pass
-
-
 def assign_port_id(s, q, labels, thresh=None):
     '''
     this function will first dropna and then asign porfolio id.
@@ -160,4 +165,14 @@ def assign_port_id(s, q, labels, thresh=None):
         return result
     else:
         return pd.Series(index=ns.index)
+
+
+def monitor_process(func):
+
+    def wrapper(*args,**kwargs):
+        func(*args,**kwargs)
+        print('{} finished at: {}'.format(func.__name__,time.time()))
+
+    return wrapper
+
 
