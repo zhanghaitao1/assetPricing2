@@ -4,7 +4,7 @@
 # Email:13163385579@163.com
 # TIME:2018-03-22  14:50
 # NAME:assetPricing2-8idiosyncraticVolatility.py
-
+from functools import partial
 
 from dout import *
 import numpy as np
@@ -23,6 +23,7 @@ def _get_comb():
     mktD.columns=['mkt']
     combD = retD.to_frame().join(ff3D)
     combD=combD.join(mktD)
+
     #TODO: use eretM
     retM = read_df('stockRetM', freq='M')
     retM = retM.stack()
@@ -35,23 +36,24 @@ def _get_comb():
     combM=combM.join(mktM)
     return combD,combM
 
-def _vol(df):
-    return df['ret'].std()*100*252**0.5
 
-def _volss(df):
-    return 100*((np.sum(df['ret']**2)/df.shape[0])**0.5)*(252**0.5)
+def _vol(df,square_m):
+    return df['ret'].std()*100*square_m
 
-def _idioVol_capm(df):
+def _volss(df,square_m):
+    return 100*((np.sum(df['ret']**2)/df.shape[0])**0.5)*square_m
+
+def _idioVol_capm(df,square_m):
     resid=sm.ols('ret ~ rp',data=df).fit().resid
-    return (np.sum(resid**2)/(resid.shape[0]-2))**0.5
+    return ((np.sum(resid**2)/(resid.shape[0]-2))**0.5)*100*square_m
 
-def _idioVol_ff3(df):
+def _idioVol_ff3(df,square_m):
     resid = sm.ols('ret ~ rp + smb + hml', data=df).fit().resid
-    return (np.sum(resid ** 2) / (resid.shape[0] - 2)) ** 0.5
+    return ((np.sum(resid ** 2) / (resid.shape[0] - 4)) ** 0.5)*100*square_m
 
-def _idioVol_ffc(df):
+def _idioVol_ffc(df,square_m):
     resid = sm.ols('ret ~ rp + smb + hml + mom', data=df).fit().resid
-    return (np.sum(resid ** 2) / (resid.shape[0] - 2)) ** 0.5
+    return ((np.sum(resid ** 2) / (resid.shape[0] - 5)) ** 0.5)*100*square_m
 
 def cal_volatility():
     dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}
@@ -59,16 +61,16 @@ def cal_volatility():
 
     combD,combM=_get_comb()
 
-    monthly_cal(combD, 'D', dictD, _vol, 'volD')
-    monthly_cal(combD, 'D', dictD, _volss, 'volssD')
-    monthly_cal(combD, 'D', dictD, _idioVol_capm, 'idioVol_capmD')
-    monthly_cal(combD,'D',dictD,_idioVol_ff3,'idioVol_ff3D')
+    monthly_cal(combD, 'D', dictD, partial(_vol,square_m=252**0.5), 'volD')
+    monthly_cal(combD, 'D', dictD, partial(_volss,square_m=252**0.5), 'volssD')
+    monthly_cal(combD, 'D', dictD, partial(_idioVol_capm,sqaure_m=252**0.5), 'idioVol_capmD')
+    monthly_cal(combD,'D',dictD,partial(_idioVol_ff3,square_m=252**0.5),'idioVol_ff3D')
 
-    monthly_cal(combM, 'M', dictM, _vol, 'volM')
-    monthly_cal(combM, 'M', dictM, _volss, 'volssM')
-    monthly_cal(combM, 'M', dictM, _idioVol_capm, 'idioVol_capmM')
-    monthly_cal(combM, 'M', dictM, _idioVol_ff3, 'idioVol_ff3M')
-    monthly_cal(combM, 'M', dictM, _idioVol_ffc, 'idioVol_ffcM')
+    monthly_cal(combM, 'M', dictM, partial(_vol,square_m=12**0.5), 'volM')
+    monthly_cal(combM, 'M', dictM, partial(_volss,square_m=12**0.5), 'volssM')
+    monthly_cal(combM, 'M', dictM, partial(_idioVol_capm,square_m=12**0.5), 'idioVol_capmM')
+    monthly_cal(combM, 'M', dictM, partial(_idioVol_ff3,square_m=12**0.5), 'idioVol_ff3M')
+    monthly_cal(combM, 'M', dictM, partial(_idioVol_ffc,square_m=12**0.5), 'idioVol_ffcM')
 
 
 if __name__=='__main__':

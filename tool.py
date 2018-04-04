@@ -11,9 +11,10 @@ import numpy as np
 from zht.utils import assetPricing
 import time
 
-
 #TODO: multiIndex span on the index and groupby
 
+
+#TODO: use s.rolling to upgrade this fuction as 4momentum.py
 def _rolling_for_series(x, months, history, thresh, type_func):
     '''
     calculate the indicator for one stock,and get a time series
@@ -167,12 +168,13 @@ def assign_port_id(s, q, labels, thresh=None):
         return pd.Series(index=ns.index)
 
 
-def monitor_process(func):
+def monitor(func):
 
     def wrapper(*args,**kwargs):
+        print('{} -> {}'.format(time.strftime('%Y-%m-%d %H:%M:%S'),func.__name__))
         func(*args,**kwargs)
-        print('{} finished at: {}'.format(func.__name__,time.time()))
 
     return wrapper
+
 
 

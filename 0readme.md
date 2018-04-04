@@ -37,6 +37,8 @@
 17. use dummy variable to test the asymmetrical effect of limits of arbitrage on stock returns as table 7 of Gu, Kang, and Xu, “Limits of Arbitrage and Idiosyncratic Volatility.”
 18. summary for each year as table 1 of Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
 19. analyse the annual return as figure 1 of Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
+20. test the factors worldwide as Han, Hu, and Lesmond, “Liquidity Biases and the Pricing of Cross-Sectional Idiosyncratic Volatility around the World.”
+21. use regression residual approach to 'orthogonalize' highly related variables as Han, Hu, and Lesmond, “Liquidity Biases and the Pricing of Cross-Sectional Idiosyncratic Volatility around the World.”
 
 # The difference between assetPricing1 and assetPricing2
 1. the date in assetPricing2 seem to be calender date rather than buisiness

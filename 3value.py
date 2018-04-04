@@ -50,7 +50,7 @@ def get_bm():
 
     newIndex=pd.date_range(bm.index[0],bm.index[-1],freq='M')
     bm=bm.reindex(index=newIndex)
-    bm=bm.fillna(method='ffill',limit=11)
+    bm=bm.fillna(method='ffill',limit=11) #TODO:some stock may have been delisted in the following year,so this method has some problems.
     bm.to_csv(os.path.join(DATA_PATH,'bm.csv'))
 
     logbm=np.log(bm)

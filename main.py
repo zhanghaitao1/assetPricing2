@@ -6,7 +6,7 @@
 # NAME:assetPricing2-main.py
 
 from dataset import DATA
-from tool import adjust_with_riskModel, assign_port_id, risk_adjust
+from tool import adjust_with_riskModel, assign_port_id, risk_adjust, monitor
 from zht.utils import assetPricing
 from zht.utils.assetPricing import summary_statistics, cal_breakPoints, count_groups, famaMacBeth
 import os
@@ -25,6 +25,7 @@ class OneFactor:
         self.df=DATA.data[self.indicators]#
         self.groupnames=[self.factor+str(i) for i in range(1,self.q+1)]
 
+    @monitor
     def summary(self):
         series=[]
         for indicator in self.indicators:
@@ -32,6 +33,7 @@ class OneFactor:
             series.append(s.mean())
         pd.concat(series,keys=self.indicators,axis=1).to_csv(os.path.join(self.path,'summary.csv'))
 
+    @monitor
     def correlation(self,indicators=None):
         if not indicators:
             indicators=self.indicators
@@ -61,6 +63,7 @@ class OneFactor:
         np.fill_diagonal(corr.values, np.NaN)
         corr.to_csv(os.path.join(self.path, 'corr.csv'))
 
+    @monitor
     def persistence(self):
         #TODO: Table II of Asness, Clifford S., Andrea Frazzini, and Lasse Heje Pedersen. “Quality Minus Junk.” SSRN Scholarly Paper. Rochester, NY: Social Science Research Network, June 5, 2017. https://papers.ssrn.com/abstract=2312432.
 
@@ -71,6 +74,7 @@ class OneFactor:
             perdf[indicator]=per
         perdf.to_csv(os.path.join(self.path,'persistence.csv'))
 
+    @monitor
     def breakPoints_and_countGroups(self):
         for indicator in self.indicators:
             d=self.df[indicator].unstack()
@@ -92,6 +96,7 @@ class OneFactor:
         )
         return groupid
 
+    @monitor
     def portfolio_characteristics(self,sortedIndicator,otherIndicators):
         '''
         as table 12.3 panel A
@@ -119,6 +124,7 @@ class OneFactor:
             )
         return panel_stk_eavg,panel_stk_wavg
 
+    @monitor
     def portfolio_analysis(self):
         '''
         table 8.4
@@ -208,7 +214,7 @@ class OneFactor:
         vw_table=pd.concat(s_ws,axis=1,keys=eret_names)
         return eq_table,vw_table
 
-
+    @monitor
     def portfolio_anlayse_with_k_month_ahead_returns(self):
         '''table 11.4'''
         eq_tables=[]
@@ -225,6 +231,7 @@ class OneFactor:
         eq.to_csv(os.path.join(self.path,'univariate portfolio analysis_k-month-ahead-returns-eq.csv'))
         vw.to_csv(os.path.join(self.path,'univariate portfolio analysis_k-month-ahead-returns-vw.csv'))
 
+    @monitor
     def fm(self):
         comb=DATA.by_indicators(self.indicators+['eretM'])
         data=[]
@@ -372,6 +379,7 @@ class Bivariate:
         table = table1.fillna(table2)
         return table
 
+    @monitor
     def independent_portfolio_analysis(self):
         comb = self._get_independent_data()
         group_eavg_ts, group_wavg_ts = self._get_eret(comb)
@@ -385,6 +393,7 @@ class Bivariate:
                                        'bivariate independent-sort portfolio analysis_value weighted_%s_%s.csv' % (
                                        self.indicator1, self.indicator2)))
 
+    @monitor
     def dependent_portfolio_analysis(self):
         def _f(indicators):
             comb = self._get_dependent_data(indicators)
@@ -402,6 +411,7 @@ class Bivariate:
         _f([self.indicator1,self.indicator2])
         _f([self.indicator2,self.indicator1])
 
+    @monitor
     def dependent_portfolio_analysis_twin(self):
         def _f(indicators):
             comb = self._get_dependent_data(indicators)

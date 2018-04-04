@@ -7,27 +7,26 @@
 
 from main import OneFactor, Bivariate
 
-
 def test_Onefactor():
-    # factor='beta'
-    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
-    # beta=OneFactor(factor,path)
-    # beta.run()
+    factor='beta'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
+    beta=OneFactor(factor,path)
+    beta.run()
 
-    # factor='idiosyncraticVolatility'
-    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
-    # idiosyn=OneFactor(factor,path)
-    # idiosyn.run()
+    factor='idiosyncraticVolatility'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
+    idiosyn=OneFactor(factor,path)
+    idiosyn.run()
 
-    # factor='skewness'
-    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
-    # skewness=OneFactor(factor,path)
-    # skewness.run()
+    factor='skewness'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
+    skewness=OneFactor(factor,path)
+    skewness.run()
 
-    # factor='momentum'
-    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
-    # mom=OneFactor(factor,path)
-    # mom()
+    factor='momentum'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
+    mom=OneFactor(factor,path)
+    mom()
 
     factor='reversal'
     path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\reversal'

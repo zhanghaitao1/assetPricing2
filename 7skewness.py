@@ -9,7 +9,11 @@ from tool import monthly_cal
 
 
 def _get_comb():
-    #TODO:use eretD
+    '''
+    page 321
+
+    :return:
+    '''
     retD=read_df('eretD','D')
     retD=retD.stack()
     retD.index.names=['t','sid']
