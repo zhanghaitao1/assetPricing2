@@ -33,7 +33,7 @@ def _beta(subx):
 
 def cal_beta():
     #TODO: name D1M D3M  M12M M36M
-    dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}
+    dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}#TODO: why so many months are lost? refer to betaD.csv
     dictM = {'12M': 10, '24M': 20, '36M': 24, '60M': 24}
     combD,combM=_get_comb()
     # combD=combD[-800000:]

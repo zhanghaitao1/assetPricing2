@@ -300,11 +300,9 @@ def get_capmM():
     '''
     pass
 
-
 def get_rpD():
     rpD=read_df('ff3D','D')[['rp']]
     rpD.to_csv(os.path.join(DATA_PATH,'rpD.csv'))
-
 
 
 if __name__=='__main__':

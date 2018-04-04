@@ -4,9 +4,9 @@
 # Email:13163385579@163.com
 # TIME:2018-03-22  15:09
 # NAME:assetPricing2-main.py
-
-from dataset import DATA
-from tool import adjust_with_riskModel, assign_port_id, risk_adjust, monitor
+import shutil
+from dataset import DATA, BENCH
+from tool import assign_port_id, monitor, apply_col_by_col, my_average
 from zht.utils import assetPricing
 from zht.utils.assetPricing import summary_statistics, cal_breakPoints, count_groups, famaMacBeth
 import os
@@ -14,6 +14,51 @@ import pandas as pd
 import numpy as np
 from zht.utils.mathu import get_outer_frame
 
+
+
+@apply_col_by_col
+def adjust_with_riskModel(x, riskmodel=None):
+    '''
+    use risk model to adjust the the alpha,
+    the risk model can be None (unadjusted) or one of [capm,ff3,ffc,ff5,hxz4]
+
+    :param x:
+    :param riskmodel:
+    :return:
+    '''
+    lags=5
+    d={'capm':'rpM',
+       'ff3':'ff3M',
+       'ffc':'ffcM',
+       'ff5':'ff5M',
+       'hxz4':'hxz4M'}
+
+    df = pd.DataFrame(x)
+    df.columns = ['y']
+
+    if riskmodel in d.keys():
+        bench=BENCH.data[riskmodel]
+        df=df.join(bench)
+        formula='y ~ '+' + '.join(bench.columns.tolist())
+        nw = assetPricing.newey_west(formula, df, lags)
+        return nw['Intercept'].rename(index={'coef': riskmodel+'_alpha',
+                                             't': riskmodel+'_alpha_t'})
+    else:
+        formula='y ~ 1'
+        nw = assetPricing.newey_west(formula, df, lags)
+        return nw['Intercept'].rename(index={'coef': 'excess return',
+                                             't': 'excess return t'})
+
+def risk_adjust(panel):
+    '''
+    risk adjusted alpha
+
+    :param panel:
+    :return:
+    '''
+    return pd.concat([adjust_with_riskModel(panel,riskmodel)
+                   for riskmodel in [None,'capm','ff3','ffc','ff5','hxz4']],
+                  axis=0)
 
 class OneFactor:
     q=10
@@ -24,6 +69,14 @@ class OneFactor:
         self.indicators=DATA.info[factor]
         self.df=DATA.data[self.indicators]#
         self.groupnames=[self.factor+str(i) for i in range(1,self.q+1)]
+        self._build_environment()
+
+    def _build_environment(self):
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path)
+
+        os.makedirs(self.path)
+
 
     @monitor
     def summary(self):
@@ -46,7 +99,7 @@ class OneFactor:
 
         def _pearson(df):
             df=df.dropna()
-            if df.shape[0]>10:
+            if df.shape[0]>10:#TODO: min_samples
                 return assetPricing.corr(df,'pearson',winsorize=True)
 
 
@@ -76,14 +129,22 @@ class OneFactor:
 
     @monitor
     def breakPoints_and_countGroups(self):
+        dfs_bp=[]
+        dfs_count=[]
         for indicator in self.indicators:
             d=self.df[indicator].unstack()
-            d=d.dropna(axis=0,how='all',thresh=self.q*10)#there is no samples for some months due to festival
+            #there is no samples for some months due to festival
+            #TODO: how to set the thresh?
+            d=d.dropna(axis=0,how='all',thresh=self.q*10)
             bps=cal_breakPoints(d,self.q)
-            bps.to_csv(os.path.join(self.path,'breakPoints_%s.csv'%indicator))
+            dfs_bp.append(bps)
             count=count_groups(d,self.q)
-            count.to_csv(os.path.join(self.path,'count_%s.csv'%indicator))
-        #TODO: put them in one csv (stacked)
+            dfs_count.append(count)
+        result_bp=pd.concat(dfs_bp,keys=self.indicators,axis=0)
+        result_count=pd.concat(dfs_count,keys=self.indicators,axis=0)
+
+        result_bp.to_csv(os.path.join(self.path,'breakPoints.csv'))
+        result_count.to_csv(os.path.join(self.path,'count.csv'))
 
         # TODO:In fact,the count is not exactly the number of stocks to calculate the weighted return
         # TODO:as some stocks will be deleted due to the missing of weights.
@@ -114,14 +175,23 @@ class OneFactor:
     def _get_panel_stk_avg(self, comb, indicator, gcol):
         panel_stk_eavg=comb.groupby(['t',gcol])['eretM'].mean()
         if self.factor=='size':
+            '''
+            when the factor is size,we also use the indicator to analyse (sort variable) as weight
+            Refer to page 159.
+            
+            '''
             panel_stk_wavg=comb.groupby(['t',gcol]).apply(
-                lambda df:np.average(df['eretM'],weights=df[indicator])
-            )
+                lambda df:my_average(df,'eretM',wname=indicator)
+                )
         else:
+            '''
+            the index denotes t+1,and the capM is from time t,
+            since we have shift capM forward in dataset.
+            '''
             panel_stk_wavg = comb.groupby(['t', gcol]).apply(
-                lambda df: np.average(df['eretM'], weights=df['capM'])
-                # TODO:how about the nan
+                lambda df:my_average(df,'eretM',wname='capM')
             )
+
         return panel_stk_eavg,panel_stk_wavg
 
     @monitor
@@ -251,17 +321,17 @@ class OneFactor:
         result.to_csv(os.path.join(self.path, 'fama macbeth regression analysis.csv'))
 
     def run(self):
-        self.summary()
-        self.correlation()
-        self.persistence()
-        self.breakPoints_and_countGroups()
-        # self.portfolio_characteristics()
+        #TODO:
+        # self.summary()
+        # self.correlation()
+        # self.persistence()
+        # self.breakPoints_and_countGroups()
+        ## self.portfolio_characteristics()
         self.portfolio_analysis()
         self.fm()
 
     def __call__(self):
         self.run()
-
 
 class Bivariate:
     q=5
@@ -269,6 +339,12 @@ class Bivariate:
         self.indicator1=indicator1
         self.indicator2=indicator2
         self.path=proj_path
+        self._build_environment()
+
+    def _build_environment(self):
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path)
+        os.makedirs(self.path)
 
     def _get_independent_data(self):
         # TODO: add the method of ratios such as [0.3,0.7]

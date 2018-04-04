@@ -6,7 +6,7 @@
 # NAME:assetPricing2-dataset.py
 from types import FunctionType
 
-from config import DATA_PATH, DATA_UNI_PATH, TMP_PATH
+from config import DATA_PATH, TMP_PATH
 from dout import read_df
 import pandas as pd
 import os
@@ -147,6 +147,57 @@ def _add_prefix(df,prefix):
     newCol=['__'.join([prefix,col]) for col in oldCol]
     df.columns=newCol
     return df
+
+
+class Benchmark:
+    def __init__(self):
+        self.data=self._get_data()
+        self.models=['capm','ff3','ffc','ff5','hxz4']
+
+    #--------------------------
+    #benchmark model with single index
+    def unify_capmM(self):
+        capmM=read_df('rpM','M')
+        capmM=_add_prefix(capmM,'capmM')
+        return capmM
+
+    def unify_ff3M(self):
+        ff3M=read_df('ff3M','M')
+        ff3M=_add_prefix(ff3M,'ff3M')
+        return ff3M
+
+    def unify_ffcM(self):
+        ffcM=read_df('ffcM','M')
+        ffcM=_add_prefix(ffcM,'ffcM')
+        return ffcM
+
+    def unify_ff5M(self):
+        ff5M=read_df('ff5M','M')
+        ff5M=_add_prefix(ff5M,'ff5M')
+        return ff5M
+
+    def unify_hxz4M(self):
+        hxz4M=read_df('hxz4M','M')
+        hxz4M=_add_prefix(hxz4M,'hxz4M')
+        return hxz4M
+
+    def _get_data(self):
+        capm=self.unify_capmM()
+        ff3=self.unify_ff3M()
+        ffc=self.unify_ffcM()
+        ff5=self.unify_ff5M()
+        hxz4=self.unify_hxz4M()
+
+        data={'capm':capm,
+              'ff3':ff3,
+              'ffc':ffc,
+              'ff5':ff5,
+              'hxz4':hxz4}
+
+        return data
+
+
+BENCH=Benchmark()
 
 class Unify_base:
     #------------------------
@@ -305,15 +356,17 @@ class Dataset:
         :param indicators:
         :return: DataFrame
         '''
-        comb=self.data[list(indicators)].copy(deep=True).dropna(how='all')
-        comb.to_csv(r'e:\a\comb.csv')
-
         if isinstance(indicators,(list,tuple)):
             return self.data[list(indicators)].copy(deep=True).dropna(how='all')
         else:
             return self.data[[indicators]].copy(deep=True).dropna(how='all')
 
 DATA=Dataset()
+
+#TODO: delete the benchmark models from database
+
+
+
 
 def save_info():
     ss=[pd.Series(v,name=k) for k,v in DATA.info.items()]

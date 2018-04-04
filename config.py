@@ -11,8 +11,6 @@ DATA_SRC=r'D:\zht\database\quantDb\sourceData\gta\data\csv'
 PROJECT_PATH=r'D:\zht\database\quantDb\researchTopics\assetPricing2'
 DATA_PATH=os.path.join(PROJECT_PATH, 'data')
 
-DATA_UNI_PATH=os.path.join(PROJECT_PATH,'data_unified')
-
 TMP_PATH=os.path.join(PROJECT_PATH,'tmp')
 
 

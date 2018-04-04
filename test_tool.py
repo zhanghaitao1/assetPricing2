@@ -1,11 +1,13 @@
 # -*-coding: utf-8 -*-
+# Python 3.6
 # Author:Zhang Haitao
 # Email:13163385579@163.com
-# TIME:2018-03-21  18:17
-# NAME:assetPricing2-7skewness.py
+# TIME:2018-04-04  11:14
+# NAME:assetPricing2-test_tool.py
+
 from dout import *
 import statsmodels.formula.api as sm
-from tool import monthly_cal
+from tool import monthly_cal,group_rolling
 
 
 def _get_comb():
@@ -66,23 +68,21 @@ def _idioskew(subx):
     return idioskew
 
 
-def cal_skewnewss():
+def compare_monthly_cal_with_group_rolling():
     dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}
     dictM = {'12M': 10, '24M': 20, '36M': 24, '60M': 24}
 
     combD,combM=_get_comb()
 
-    monthly_cal(combD, 'D', dictD, _skew, 'skewD')
-    monthly_cal(combD, 'D', dictD, _coskew, 'coskewD')
-    monthly_cal(combD, 'D', dictD, _idioskew, 'idioskewD')
+    result=group_rolling(_skew,combD,'sid','1M','M',15)
 
-    monthly_cal(combM, 'M', dictM, _skew, 'skewM')
-    monthly_cal(combM, 'M', dictM, _coskew, 'coskewM')
-    monthly_cal(combM, 'M', dictM, _idioskew, 'idioskewM')
+    print('test')
 
 
 
-if __name__=='__main__':
-    cal_skewnewss()
+if __name__=="__main__":
+    compare_monthly_cal_with_group_rolling()
+
+
 
 

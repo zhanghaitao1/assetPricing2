@@ -8,24 +8,24 @@
 from main import OneFactor, Bivariate
 
 def test_Onefactor():
+    factor='size'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\size'
+    size=OneFactor(factor,path)
+    size()
+
     factor='beta'
     path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
     beta=OneFactor(factor,path)
-    beta.run()
+    beta()
 
-    factor='idiosyncraticVolatility'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
-    idiosyn=OneFactor(factor,path)
-    idiosyn.run()
+    factor='value'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\value'
+    value=OneFactor(factor,path)
+    value()
 
-    factor='skewness'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
-    skewness=OneFactor(factor,path)
-    skewness.run()
-
-    factor='momentum'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
-    mom=OneFactor(factor,path)
+    factor = 'momentum'
+    path = r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
+    mom = OneFactor(factor, path)
     mom()
 
     factor='reversal'
@@ -33,6 +33,15 @@ def test_Onefactor():
     rev=OneFactor(factor,path)
     rev()
 
+    factor='skewness'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
+    skewness=OneFactor(factor,path)
+    skewness()
+
+    factor='idiosyncraticVolatility'
+    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
+    idiosyn=OneFactor(factor,path)
+    idiosyn()
 
 
 class size_12M(Bivariate):

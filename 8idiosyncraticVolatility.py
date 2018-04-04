@@ -29,7 +29,7 @@ def _get_comb():
     retM = retM.stack()
     retM.index.names = ['t', 'sid']
     retM.name = 'ret'
-    ffcM = read_df('ffc', freq='M')
+    ffcM = read_df('ffcM', freq='M')
     mktM = read_df('mktRetM', 'M')
     mktM.columns=['mkt']
     combM = retM.to_frame().join(ffcM)
@@ -63,7 +63,7 @@ def cal_volatility():
 
     monthly_cal(combD, 'D', dictD, partial(_vol,square_m=252**0.5), 'volD')
     monthly_cal(combD, 'D', dictD, partial(_volss,square_m=252**0.5), 'volssD')
-    monthly_cal(combD, 'D', dictD, partial(_idioVol_capm,sqaure_m=252**0.5), 'idioVol_capmD')
+    monthly_cal(combD, 'D', dictD, partial(_idioVol_capm,square_m=252**0.5), 'idioVol_capmD')
     monthly_cal(combD,'D',dictD,partial(_idioVol_ff3,square_m=252**0.5),'idioVol_ff3D')
 
     monthly_cal(combM, 'M', dictM, partial(_vol,square_m=12**0.5), 'volM')
