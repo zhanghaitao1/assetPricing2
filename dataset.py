@@ -46,7 +46,12 @@ def unify_df(df):
     return df
 
 
-class Unify_indicators():
+class T_indicators():
+    '''
+    the indicators in this class is the data we get in time t
+
+    '''
+
     def unify_beta(self):
         #beta
         betaD=pd.read_csv(os.path.join(DATA_PATH,'betaD.csv'),index_col=[0,1],parse_dates=True)
@@ -66,18 +71,21 @@ class Unify_indicators():
 
     def unify_size(self):
         #size
+        capM=read_df('capM','M')
         size=read_df('size','M')
         mktCap_ff=read_df('mktCap_ff','M')
         size_ff=read_df('size_ff','M')
         #index:t
         #columns:sid
+        capM=capM.stack()
+        capM.name='mktCap'
         size=size.stack()
         size.name='size'
         mktCap_ff=mktCap_ff.stack()
         mktCap_ff.name='mktCap_ff'
         size_ff=size_ff.stack()
         size_ff.name='size_ff'
-        comb=pd.concat([size,mktCap_ff,size_ff],axis=1)
+        comb=pd.concat([capM,size,mktCap_ff,size_ff],axis=1)
         comb.index.names=['t','sid']
         return comb
 
@@ -142,6 +150,21 @@ class Unify_indicators():
         comb=pd.concat(dfs,axis=1)
         return comb
 
+    def unify_capM(self):
+        '''
+        market capitalization
+
+        Usually,the market capitalization is used as weight and we use this value at time t
+
+        :return:
+        '''
+        capM=read_df('capM','M')
+        capM=capM.stack().to_frame()
+        capM.index.name='t'
+        capM.columns=['capM']
+        capM.index.names=['t','sid']
+        return capM
+
 def _add_prefix(df,prefix):
     oldCol=df.columns
     newCol=['__'.join([prefix,col]) for col in oldCol]
@@ -196,10 +219,16 @@ class Benchmark:
 
         return data
 
-
 BENCH=Benchmark()
 
-class Unify_base:
+class T1_indicators:
+    '''
+    This class contains the indicators related to prediction process.We can not get
+    these indicators in time t and we will use those indicators we can get in time
+    t (refer to class T_indicators) to predict these indicators,such as eretM.
+
+    '''
+
     #------------------------
     #multiIndex
     def unify_eretM(self):
@@ -209,19 +238,6 @@ class Unify_base:
         eretM.columns=['eretM']
         eretM.index.names=['t','sid']
         return eretM
-
-    def unify_capM(self):
-        '''
-        market capitalization
-
-        :return:
-        '''
-        capM=read_df('capM','M')
-        capM=capM.stack().to_frame()
-        capM.index.name='t'
-        capM.columns=['capM']
-        capM.index.names=['t','sid']
-        return capM
 
     #------------------------------
     #single index
@@ -236,28 +252,6 @@ class Unify_base:
     def unify_rpM(self):
         rpM=read_df('rpM','M')
         return rpM
-
-    #--------------------------
-    #benchmark model with single index
-    def unify_ff3M(self):
-        ff3M=read_df('ff3M','M')
-        ff3M=_add_prefix(ff3M,'ff3M')
-        return ff3M
-
-    def unify_ffcM(self):
-        ffcM=read_df('ffcM','M')
-        ffcM=_add_prefix(ffcM,'ffcM')
-        return ffcM
-
-    def unify_ff5M(self):
-        ff5M=read_df('ff5M','M')
-        ff5M=_add_prefix(ff5M,'ff5M')
-        return ff5M
-
-    def unify_hxz4M(self):
-        hxz4M=read_df('hxz4M','M')
-        hxz4M=_add_prefix(hxz4M,'hxz4M')
-        return hxz4M
 
 class Base:
     def __init__(self,cls):
@@ -294,11 +288,14 @@ class Dataset:
         return df[df.index.get_level_values('t').year>=1996]
 
     def _combine(self):
-        factor=Base(Unify_indicators)
-        base=Base(Unify_base)
+        factor=Base(T_indicators)
+        base=Base(T1_indicators)
         info={**factor.info,**base.info}
         d_factor=factor.data
-        d_factor=d_factor.shift(1)
+        # For multiIndex DataFrame,when we want to shift on a given index,we should
+        # use groupby(indexname).shift()
+        d_factor=d_factor.groupby('sid').shift(1)
+
         '''
             all the indicators are shift forward one month except for eret,rf and other base data,
         so the index denotes time t+1,and all the indicators are from time t,the base data are from 
@@ -321,8 +318,6 @@ class Dataset:
         '''
         d_base=base.data
         data=pd.concat([d_factor,d_base],axis=1)
-        data['capM']=data['capM'].shift(1) # usually the market capitalization used as weight,we use this value at time t
-
         return data,info
 
     def get_data_and_info(self):
@@ -342,10 +337,6 @@ class Dataset:
 
         return data,info
 
-    @property
-    def all_indicators(self):
-        return sum(self.info.values(),[])
-
     def by_factor(self,factorname):
         return self.data[self.info[factorname]].copy(deep=True).dropna(how='all')
 
@@ -362,10 +353,6 @@ class Dataset:
             return self.data[[indicators]].copy(deep=True).dropna(how='all')
 
 DATA=Dataset()
-
-#TODO: delete the benchmark models from database
-
-
 
 
 def save_info():

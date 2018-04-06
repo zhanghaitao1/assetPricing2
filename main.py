@@ -5,6 +5,8 @@
 # TIME:2018-03-22  15:09
 # NAME:assetPricing2-main.py
 import shutil
+
+import time
 from dataset import DATA, BENCH
 from tool import assign_port_id, monitor, apply_col_by_col, my_average
 from zht.utils import assetPricing
@@ -74,7 +76,7 @@ class OneFactor:
     def _build_environment(self):
         if os.path.exists(self.path):
             shutil.rmtree(self.path)
-
+            time.sleep(0.1)
         os.makedirs(self.path)
 
 
@@ -233,8 +235,9 @@ class OneFactor:
                 a = a_data.mean()
                 a.name='avg'
                 a=a.to_frame().T
-                riskAdjusted=risk_adjust(panel)
 
+                riskAdjusted=risk_adjust(panel)
+                #TODO:something must be wrong with size or portfolio_analysse.
                 if panel_stk is panel_stk_eavg:
                     result_eavg.append(pd.concat([a,riskAdjusted],axis=0))
                 else:
@@ -321,11 +324,10 @@ class OneFactor:
         result.to_csv(os.path.join(self.path, 'fama macbeth regression analysis.csv'))
 
     def run(self):
-        #TODO:
-        # self.summary()
-        # self.correlation()
-        # self.persistence()
-        # self.breakPoints_and_countGroups()
+        self.summary()
+        self.correlation()
+        self.persistence()
+        self.breakPoints_and_countGroups()
         ## self.portfolio_characteristics()
         self.portfolio_analysis()
         self.fm()
@@ -544,5 +546,3 @@ class Bivariate:
         table = table.reindex(index=newIndex)
 
         table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
-
-#TODO: something wrong with this version,it is obvious with the result in D:\zht\database\quantDb\researchTopics\assetPricing2\size_12M

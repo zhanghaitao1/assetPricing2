@@ -21,15 +21,12 @@ def cal_sizes():
     size.to_csv(os.path.join(DATA_PATH,'size.csv'))
 
     # junes=[m for m in mktCap.index.tolist() if m.split('-')[1]=='06']
-    mths=[m for m in mktCap.index.tolist() if m.month==6]+[mktCap.index[-1]]
-    junesDf=mktCap.loc[mths]
-    mktCap_ff=junesDf.resample('M').ffill()
-    mktCap_ff=mktCap_ff[:-1]
-    '''
-    delete the last month.If it is june,
-    there is no problem with it.But if it is,for example,Feb,then we
-    should use the value of last June.
-    '''
+    #-------
+    junes = [m for m in mktCap.index.tolist() if m.month == 6]
+    newIndex=pd.date_range(start=junes[0],end=mktCap.index[-1],freq='M')
+    junesDf = mktCap.loc[junes]
+    mktCap_ff=junesDf.reindex(index=newIndex)
+    mktCap_ff=mktCap_ff.ffill(limit=11)#limit=11 is required,or it will fill all NaNs forward.
     mktCap_ff.to_csv(os.path.join(DATA_PATH,'mktCap_ff.csv'))
 
     size_ff=np.log(mktCap_ff)

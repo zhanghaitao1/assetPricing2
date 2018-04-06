@@ -41,6 +41,15 @@
 19. analyse the annual return as figure 1 of Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
 20. test the factors worldwide as Han, Hu, and Lesmond, “Liquidity Biases and the Pricing of Cross-Sectional Idiosyncratic Volatility around the World.”
 21. use regression residual approach to 'orthogonalize' highly related variables as Han, Hu, and Lesmond, “Liquidity Biases and the Pricing of Cross-Sectional Idiosyncratic Volatility around the World.”
+22. Read the Notes in zotero to find new methods and inspirations.For example Bekaert, Hodrick, and Zhang, “Aggregate Idiosyncratic Volatility.” may give you the following inspirations:
+    1. international correlation
+    2. international evidence
+    3. regime switching
+    4. determinants of the factor dynamics
+    5. model selection or model reduction techniques (How to gauge the relative importance of the various variables)
+    6. business cycle
+
+
 
 # The difference between assetPricing1 and assetPricing2
 1. the date in assetPricing2 seem to be calender date rather than buisiness
