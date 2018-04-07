@@ -7,15 +7,16 @@
 import shutil
 
 import time
+
+from config import WINSORIZE_LIMITS
 from dataset import DATA, BENCH
-from tool import assign_port_id, monitor, apply_col_by_col, my_average
-from zht.utils import assetPricing
-from zht.utils.assetPricing import summary_statistics, cal_breakPoints, count_groups, famaMacBeth
+from tool import assign_port_id, monitor, apply_col_by_col, my_average, summary_statistics, \
+    cal_breakPoints, count_groups, famaMacBeth, newey_west, cal_corr, cal_persistence
+
 import os
 import pandas as pd
 import numpy as np
-from zht.utils.mathu import get_outer_frame
-
+from zht.utils.mathu import get_outer_frame, winsorize
 
 
 @apply_col_by_col
@@ -42,12 +43,12 @@ def adjust_with_riskModel(x, riskmodel=None):
         bench=BENCH.data[riskmodel]
         df=df.join(bench)
         formula='y ~ '+' + '.join(bench.columns.tolist())
-        nw = assetPricing.newey_west(formula, df, lags)
+        nw = newey_west(formula, df, lags)
         return nw['Intercept'].rename(index={'coef': riskmodel+'_alpha',
                                              't': riskmodel+'_alpha_t'})
     else:
         formula='y ~ 1'
-        nw = assetPricing.newey_west(formula, df, lags)
+        nw = newey_west(formula, df, lags)
         return nw['Intercept'].rename(index={'coef': 'excess return',
                                              't': 'excess return t'})
 
@@ -62,6 +63,8 @@ def risk_adjust(panel):
                    for riskmodel in [None,'capm','ff3','ffc','ff5','hxz4']],
                   axis=0)
 
+
+#TODO:reorder the column of result dataFrame
 class OneFactor:
     q=10
 
@@ -97,12 +100,12 @@ class OneFactor:
         def _spearman(df):
             df=df.dropna()
             if df.shape[0]>10:#TODO:thresh to choose
-                return assetPricing.corr(df,'spearman',winsorize=False)
+                return cal_corr(df,'spearman',winsorize=False)
 
         def _pearson(df):
             df=df.dropna()
             if df.shape[0]>10:#TODO: min_samples
-                return assetPricing.corr(df,'pearson',winsorize=True)
+                return cal_corr(df,'pearson',winsorize=True)
 
 
         corrs=comb.groupby('t').apply(_spearman)
@@ -124,7 +127,7 @@ class OneFactor:
 
         perdf=pd.DataFrame()
         for indicator in self.indicators:
-            per=assetPricing.persistence(self.df[indicator].unstack(),
+            per=cal_persistence(self.df[indicator].unstack(),
                                          offsets=[1, 3, 6, 12, 24, 36, 48, 60, 120])
             perdf[indicator]=per
         perdf.to_csv(os.path.join(self.path,'persistence.csv'))
@@ -305,16 +308,20 @@ class OneFactor:
         vw.to_csv(os.path.join(self.path,'univariate portfolio analysis_k-month-ahead-returns-vw.csv'))
 
     @monitor
-    def fm(self):
+    def fm(self,wsz=None):
         comb=DATA.by_indicators(self.indicators+['eretM'])
         data=[]
         for indicator in self.indicators:
             subdf=comb[[indicator,'eretM']]
             subdf=subdf.dropna()
             subdf.columns=['y','x']
+            # The independent variable is winsorized at a given level on a monthly basis. as page 141
+            subdf['x']=subdf.groupby('t')['x'].apply(lambda s:winsorize(s,limits=WINSORIZE_LIMITS))
             subdf=subdf.reset_index()
             formula='y ~ x'
             r,adj_r2,n=famaMacBeth(formula,'t',subdf,lags=5)
+            #TODO: why intercept tvalue is so large?
+            # TODO: why some fm regression do not have a adj_r2 ?
             data.append([r.loc['x', 'coef'], r.loc['x', 'tvalue'],
                          r.loc['Intercept', 'coef'], r.loc['Intercept', 'tvalue'],
                          adj_r2, n])
@@ -522,11 +529,14 @@ class Bivariate:
         stks = []
         for l_indeVars in ll_indeVars:
             '''
-            replace the olde name with new name,since patsy do not support name starts with number 
+            replace the old name with new name,since patsy do not support name starts with number 
 
             '''
             newname = ['name' + str(i) for i in range(1, len(l_indeVars) + 1)]
             df = comb[l_indeVars + ['t', 'eretM']].dropna()
+            # The independent variable is winsorized at a given level on a monthly basis. as page 170
+            df[l_indeVars]=df.groupby('t')[l_indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
+
             df.columns = newname + ['t', 'eretM']
             formula = 'eretM ~ ' + ' + '.join(newname)
             # TODO:lags?

@@ -8,15 +8,15 @@
 from main import OneFactor, Bivariate
 
 def test_Onefactor():
+    factor = 'beta'
+    path = r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
+    beta = OneFactor(factor, path)
+    beta()
+
     factor='size'
     path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\size'
     size=OneFactor(factor,path)
     size()
-
-    factor='beta'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
-    beta=OneFactor(factor,path)
-    beta()
 
     factor='value'
     path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\value'

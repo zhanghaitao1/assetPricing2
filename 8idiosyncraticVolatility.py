@@ -13,26 +13,24 @@ from tool import monthly_cal
 
 
 def _get_comb():
-    #TODO:use eretD rather than eretD
-    retD = read_df('stockRetD', freq='D')
-    retD = retD.stack()
-    retD.index.names = ['t', 'sid']
-    retD.name = 'ret'
+    eretD = read_df('eretD', freq='D')
+    eretD = eretD.stack()
+    eretD.index.names = ['t', 'sid']
+    eretD.name = 'ret'
     ff3D = read_df('ff3D', 'D')
     mktD = read_df('mktRetD', 'D')
     mktD.columns=['mkt']
-    combD = retD.to_frame().join(ff3D)
+    combD = eretD.to_frame().join(ff3D)
     combD=combD.join(mktD)
 
-    #TODO: use eretM
-    retM = read_df('stockRetM', freq='M')
-    retM = retM.stack()
-    retM.index.names = ['t', 'sid']
-    retM.name = 'ret'
+    eretM = read_df('eretM', freq='M')
+    eretM = eretM.stack()
+    eretM.index.names = ['t', 'sid']
+    eretM.name = 'ret'
     ffcM = read_df('ffcM', freq='M')
     mktM = read_df('mktRetM', 'M')
     mktM.columns=['mkt']
-    combM = retM.to_frame().join(ffcM)
+    combM = eretM.to_frame().join(ffcM)
     combM=combM.join(mktM)
     return combD,combM
 

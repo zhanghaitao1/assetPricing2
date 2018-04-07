@@ -7,8 +7,6 @@
 
 from config import *
 from dout import read_df
-from zht.data.gta.api import read_gta
-from zht.data.wind.api import read_wind
 from zht.utils.mathu import get_inter_frame
 import numpy as np
 import pandas as pd

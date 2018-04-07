@@ -361,3 +361,5 @@ def save_info():
     df.to_csv('info.csv')
 
 
+
+#TODO: set the order of indicators in DATA.info

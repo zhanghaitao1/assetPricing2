@@ -14,6 +14,9 @@ DATA_PATH=os.path.join(PROJECT_PATH, 'data')
 TMP_PATH=os.path.join(PROJECT_PATH,'tmp')
 
 
+WINSORIZE_LIMITS=(0.01,0.01)
+
+
 
 
 

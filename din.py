@@ -178,7 +178,7 @@ def get_capM():
     :return:
     '''
     tbname='TRD_Mnth'
-    varname='Msmvosd' #月个股流通市值，单位 人民币
+    varname='Msmvosd' #月个股流通市值，单位 千元 #TODO:the unit convert it to million as Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
     indname='Trdmnt'
     colname='Stkcd'
     fn='capM'
