@@ -15,6 +15,7 @@
 3. table 5 of mispricing factors
 
 # TODO:
+0. regime change (subsample,market status)
 0. move all the related function into the current project
 1. handle the TODOs one by one
 1. Calculate indicators as other papers

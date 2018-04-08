@@ -133,12 +133,6 @@ def get_eretD():
 def get_stockRetM():
     '''
     monthly stock return with dividend
-
-    Args:
-        recal: if True,recalculate the indicator
-
-    Returns:
-
     '''
     tbname = 'TRD_Mnth'
     varname='Mretwd'#考虑现金红利再投资的收益
@@ -310,3 +304,15 @@ if __name__=='__main__':
     for f in fstrs:
         eval(f)()
         print(f)
+
+
+#TODO:obsver the src
+'''
+#---------------------------
+def get_new_src():
+    p=r'E:\a\75_2612_STK_MKT_Dalyr\STK_MKT_Dalyr.txt'
+    df=pd.read_csv(p,sep='\t', encoding='ISO-8859-1', error_bad_lines=False, skiprows=[1, 2])
+    df.to_csv(r'E:\a\75_2612_STK_MKT_Dalyr\STK_MKT_Dalyr.csv',encoding='utf-8')
+
+#------------------------------------
+'''

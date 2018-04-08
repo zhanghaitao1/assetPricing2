@@ -285,6 +285,11 @@ class Dataset:
         :param df:
         :return:
         '''
+        '''
+        use truncating  & fancy indexing
+        refer to http://pandas.pydata.org/pandas-docs/stable/timeseries.html#
+        
+        '''
         return df[df.index.get_level_values('t').year>=1996]
 
     def _combine(self):

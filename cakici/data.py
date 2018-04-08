@@ -22,17 +22,17 @@ def get_size():
     size=read_df('capM','M')
     size=size/1000.0 #TODO:for din convert the size unit.
     size=size.stack()
-    size.names='size'
+    size.name='size'
     size.index.names=['t','sid']
-    size.to_csv(os.path.join(PATH,'size.csv'))
+    size.to_frame().to_csv(os.path.join(PATH,'size.csv'))
 
 def get_price():
     #price
     price=read_df('stockRetM','M')
     price=price.stack()
-    price.names='price'
+    price.name='price'
     price.index.names=['t','sid']
-    price.to_csv(os.path.join(PATH,'price.csv'))
+    price.to_frame().to_csv(os.path.join(PATH,'price.csv'))
 
 def get_beta():
     #beta
@@ -54,117 +54,34 @@ def get_beta():
         return result.sum()
 
     def _for_one_sid(x):
-        x=x.reset_index('sid')
-        sid=x['sid'][0]
-        days=x.index.get_level_values('t').unique()
-        months=pd.date_range(start=days[0],end=days[-1],freq='M')
-        values=[]
-        for month in months:
-            subx=x.loc[:month].last('1M')
-            subx=subx.dropna()
-            if subx.shape[0]>THRESH:
-                values.append(_cal_beta(subx))
-            else:
-                values.append(np.nan)
+        # x is multiIndex Dataframe
+        nx=x.reset_index('sid')
+        sid=nx['sid'][0]
         print(sid)
-        return pd.Series(values,index=months)
+        _get_monthend=lambda dt:dt+MonthEnd(0)
+        #filter out those months with observations less than THRESH
+        nx=nx.groupby(_get_monthend).filter(lambda a:a.dropna().shape[0]>=THRESH)
+        if nx.shape[0]>0:
+            result=nx.groupby(_get_monthend).apply(_cal_beta)
+            return result
 
     beta=df.groupby('sid').apply(_for_one_sid)
-    beta.to_csv(os.path.join(PATH,'beta.csv'))
+    beta.index.names=['sid','t']
+    beta=beta.reorder_levels(['t','sid']).sort_index(level='t')
+    beta.name='beta'
+    beta.to_frame().to_csv(os.path.join(PATH,'beta.csv'))
 
 def get_sd():
     #sd
     #TODO: bookmark this function and add it to my repository (pandas handbook),use this method to upgrade the relevant functions
     ri=read_df('stockRetD','D')
-    def _rolling_for_one_sid(s):
-        ns=s.dropna()
-        yearMonth=lambda x:x+MonthEnd(0)
-        filtered=ns.groupby(yearMonth).filter(lambda x: x.dropna().shape[0] > THRESH)
-        #group by month
-        return filtered.groupby(yearMonth).apply(lambda s:s.std())
 
-    sd=ri.apply(_rolling_for_one_sid)
-    #TODO: why apply? why not operator on all the columns at one time?
-
-
-    sd=sd.stack()
+    #TODO: use resampling
+    _get_monthend = lambda x: x + MonthEnd(0)
+    sd=ri.groupby(_get_monthend).apply(lambda df:df.dropna(axis=1,thresh=THRESH).std())
     sd.index.names=['t','sid']
     sd.name='sd'
-
-    sd.to_csv(os.path.join(PATH,'sd.csv'))
-
-get_sd()
-
-# speedup
-rf = read_df('rfD', 'D')
-rm = read_df('mktRetD', 'D')
-ri = read_df('stockRetD', 'D')
-df = ri.stack().to_frame()
-df.columns = ['ri']
-df = df.join(pd.concat([rf, rm], axis=1))
-df.columns = ['ri', 'rf', 'rm']
-df.index.names = ['t', 'sid']
-
-df['y'] = df['ri'] - df['rf']
-df['x2'] = df['rm'] - df['rf']
-df['x1'] = df.groupby('sid')['x2'].shift(1)
-df=df[['y','x1','x2']]
-df=df[-400000:]
-# operator on multiple columns
-data1=df.copy()
-##############
-# method 1
-df1=data1.copy()
-
-
-
-
-
-# operator on one column (or series).Take calculting std for example
-data2=df['y']
-
-#########################
-# method1:            unstack() then operator on dataframe
-df1=data2.unstack()
-#filter
-result1=df1.groupby(lambda dt: dt + MonthEnd(0)).apply(lambda x:x.dropna(axis=1, thresh=15).std())
-result1=result1.unstack()
-result1.to_csv(r'e:\a\std1.csv')
-
-######################
-# method 2: groupby and then apply on series
-df2=data2.copy()
-
-def _one_sid(s):
-    # s is multiIndex DataFrame
-    s=s.reset_index('sid',drop=True)
-    _get_monthend=lambda dt:dt+MonthEnd(0)
-    ns=s.groupby(_get_monthend).filter(lambda x:x.dropna().shape[0]>15)
-    result=ns.groupby(_get_monthend).apply(lambda x:x.std())
-    return result
-
-result2=df2.groupby('sid').apply(_one_sid)
-result2.index.names=['sid','t']
-result2=result2.reorder_levels(['t','sid'])
-result2.sort_index(level='t').head()
-result2=result2.unstack()
-result2.to_csv(r'e:\a\std2.csv')
-
-##########################################
-# method 3:
-df3=data2.unstack()
-def _one_col(s):
-    # s is singleIndex dataframe
-    _get_monthend=lambda dt:dt+MonthEnd(0)
-    ns=s.groupby(_get_monthend).filter(lambda x:x.dropna().shape[0]>15)
-    result=ns.groupby(_get_monthend).apply(lambda x:x.std())
-    return result
-
-result3=df3.apply(_one_col)
-result3.to_csv(r'e:\a\std3.csv')
-
-
-
+    sd.to_frame().to_csv(os.path.join(PATH,'sd.csv'))
 
 #see
 def get_see():
@@ -177,7 +94,7 @@ def get_see():
     see=see.stack()
     see.name='see'
     see.index.names=['t','sid']
-    see.to_csv(os.path.join(PATH,'see.csv'))
+    see.to_frame().to_csv(os.path.join(PATH,'see.csv'))
 
 def get_strev():
     #strev
@@ -197,20 +114,10 @@ def get_bkmt():
     bkmt=bkmt.stack()
     bkmt.name='bkmt'
     bkmt.index.names=['t','sid']
-    bkmt.to_csv(os.path.join(PATH,'bkmt.csv'))
-
-#---------------------------
-def get_new_src():
-    p=r'E:\a\75_2612_STK_MKT_Dalyr\STK_MKT_Dalyr.txt'
-    df=pd.read_csv(p,sep='\t', encoding='ISO-8859-1', error_bad_lines=False, skiprows=[1, 2])
-    df.to_csv(r'E:\a\75_2612_STK_MKT_Dalyr\STK_MKT_Dalyr.csv',encoding='utf-8')
-
-
-#------------------------------------
+    bkmt.to_frame().to_csv(os.path.join(PATH,'bkmt.csv'))
 
 
 def get_cfpr():
-    #TODO:
     df=pd.read_csv(r'D:\zht\database\quantDb\sourceData\gta\data\csv\STK_MKT_Dalyr.csv',encoding='gbk')
     # PCF is 市现率＝股票市值/去年经营现金流量净额
     df=df[['TradingDate','Symbol','PCF']]
@@ -220,25 +127,16 @@ def get_cfpr():
     df['pcf'][df['pcf']<=1]=np.nan #TODO:
     df['cfpr']=1.0/df['pcf']
     df=df.set_index(['t','sid'])
-
-    def _get_monthEnd(x):
-        #TODO: bookmark this function about groupby as_index,group_keys.
-        sid=x.index.get_level_values('sid')[0]
-        print(sid)
-        x=x.reset_index('sid',drop=True)
-        # we use df.sort_index.iloc[-1,:] to get a series rather than using df.sort_index()[-1:] to
-        # get a dataframe.In this way,lastrow will be a singleIndex dataframe and the index is monthend.
-        # If we use df.sort_index()[-1:],lastrow will be a multiIndex DataFrame with level(0) combine from monthend
-        # and level(1) coming from df.
-        lastrow=x.groupby(lambda t:t+MonthEnd(0)).apply(lambda df:df.sort_index().iloc[-1,:])
-        # The src is of poor quality and it contains some out-of-order samples.
-        #TODO:observe gta src data.especially the order of date.
-        return lastrow
-
-    result=df.groupby('sid').apply(_get_monthEnd)
-    result.index.names=['sid','t']
-    result=result['cfpr']
-    result.to_csv(os.path.join(PATH,'cfpr.csv'))
+    df=df['cfpr']
+    df=df.unstack()
+    # TODO:observe gta src data.especially the order of date.
+    # The src is of poor quality and it contains some out-of-order samples.
+    df=df.sort_index()
+    df=df.resample('M').agg(lambda x:x[-1])
+    df=df.stack()
+    df.index.names=['t','sid']
+    df.name='cfpr'
+    df.to_frame().to_csv(os.path.join(PATH,'cfpr.csv'))
 
 def get_ep():
     df=pd.read_csv(r'D:\zht\database\quantDb\sourceData\gta\data\csv\STK_MKT_Dalyr.csv',encoding='gbk')
@@ -259,16 +157,18 @@ def get_ep():
     #TODO: compare the groupby().apply with apply to test which one is faster.
     df=df.unstack()
     df=df.sort_index()
-    df=df.groupby(lambda dt:dt+MonthEnd(0)).apply(lambda x:x.iloc[-1,:])
+    df=df.resample('M').agg(lambda x:x[-1])
+    #TODO:this two method is equaly
+    # df2=df.groupby(lambda dt:dt+MonthEnd(0)).apply(lambda x:x.iloc[-1,:])
     df=df.stack()
-    df.to_csv(os.path.join(PATH,'ep.csv'))
+    df.to_frame().to_csv(os.path.join(PATH,'ep.csv'))
 
 def get_ret():
     ret=read_df('stockRetM','M')
     ret=ret.stack()
     ret.name='ret'
     ret.index.names=['t','sid']
-    ret.to_csv(os.path.join(PATH,'ret.csv'))
+    ret.to_frame().to_csv(os.path.join(PATH,'ret.csv'))
 
 def combine_all():
     fns=os.listdir(PATH)
@@ -277,13 +177,11 @@ def combine_all():
         df=pd.read_csv(os.path.join(PATH,fn),index_col=[0,1],parse_dates=True)
         dfs.append(df)
 
-        print(fn,df.shape)
     comb=pd.concat(dfs,axis=1)
+    comb=comb.dropna(axis=0,how='all')
+    comb.to_csv(os.path.join(PATH,'factors.csv'))
 
-    print(comb.shape)
 
-
-combine_all()
 
 
 
