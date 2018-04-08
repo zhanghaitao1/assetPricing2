@@ -49,7 +49,7 @@
     4. determinants of the factor dynamics
     5. model selection or model reduction techniques (How to gauge the relative importance of the various variables)
     6. business cycle
-
+23. add regression figure as [this one](https://github.com/nakulnayyar/FF3Factor/blob/master/FamaFrench3Factor.ipynb)
 
 
 # The difference between assetPricing1 and assetPricing2

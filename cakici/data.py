@@ -28,7 +28,8 @@ def get_size():
 
 def get_price():
     #price
-    price=read_df('stockRetM','M')
+    #TODO: stock close
+    price=read_df('stockCloseM','M')
     price=price.stack()
     price.name='price'
     price.index.names=['t','sid']
@@ -74,11 +75,28 @@ def get_beta():
 def get_sd():
     #sd
     #TODO: bookmark this function and add it to my repository (pandas handbook),use this method to upgrade the relevant functions
-    ri=read_df('stockRetD','D')
+    ri=read_df('stockRetD','D')*100 #TODO: the unit is percent (%)
 
+    #filter
+    '''
+    can not use 
+
+    sd=ri.resample('M').std()
+    
+    directly,since you need to filter out invalid samples before calculate std
+
+    def _cal_std(x):
+        if x.notnull().sum()>=THRESH: #TODO: compare with x.dropna().shape[0],which one is faster?
+            return x.std()
+
+    sd0=ri.resample('M').agg(_cal_std)
+
+    sometimes,groupby can be more flexible than resample
+    '''
     #TODO: use resampling
     _get_monthend = lambda x: x + MonthEnd(0)
     sd=ri.groupby(_get_monthend).apply(lambda df:df.dropna(axis=1,thresh=THRESH).std())
+
     sd.index.names=['t','sid']
     sd.name='sd'
     sd.to_frame().to_csv(os.path.join(PATH,'sd.csv'))
@@ -115,7 +133,6 @@ def get_bkmt():
     bkmt.name='bkmt'
     bkmt.index.names=['t','sid']
     bkmt.to_frame().to_csv(os.path.join(PATH,'bkmt.csv'))
-
 
 def get_cfpr():
     df=pd.read_csv(r'D:\zht\database\quantDb\sourceData\gta\data\csv\STK_MKT_Dalyr.csv',encoding='gbk')
@@ -183,5 +200,6 @@ def combine_all():
 
 
 
+combine_all()
 
 

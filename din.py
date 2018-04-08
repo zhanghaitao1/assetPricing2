@@ -141,6 +141,18 @@ def get_stockRetM():
     fn='stockRetM'
     _get_df(tbname, varname, indname, colname, fn)
 
+def get_stockCloseM():
+    '''
+    monthly stock close price
+    :return:
+    '''
+    tbname = 'TRD_Mnth'
+    varname='Mclsprc'#考虑现金红利再投资的收益
+    indname='Trdmnt'
+    colname='Stkcd'
+    fn='stockCloseM'
+    _get_df(tbname, varname, indname, colname, fn)
+
 def get_eretM():
     stockRetM=read_df('stockRetM','M')
     rfM=read_df('rfM','M')
@@ -297,6 +309,8 @@ def get_capmM():
 def get_rpD():
     rpD=read_df('ff3D','D')[['rp']]
     rpD.to_csv(os.path.join(DATA_PATH,'rpD.csv'))
+
+
 
 
 if __name__=='__main__':
