@@ -72,7 +72,7 @@ class OneFactor:
         self.factor=factor
         self.path=path
         self.indicators=DATA.info[factor]
-        self.df=DATA.data[self.indicators]#
+        self.df=DATA.data[self.indicators]
         self.groupnames=[self.factor+str(i) for i in range(1,self.q+1)]
         self._build_environment()
 
@@ -181,7 +181,7 @@ class OneFactor:
         panel_stk_eavg=comb.groupby(['t',gcol])['eretM'].mean()
         if self.factor=='size':
             '''
-            when the factor is size,we also use the indicator to analyse (sort variable) as weight
+            when the factor is size,we also use the indicator (sort variable) as weight
             Refer to page 159.
             
             '''
@@ -219,6 +219,7 @@ class OneFactor:
             #     lambda df:grouping(df[indicator].reset_index(level='t'),self.q,labels=self.groupnames))
             comb[gcol]=comb.groupby('t',group_keys=False).apply(
                 lambda df:assign_port_id(df[indicator], self.q, self.groupnames))
+            #TODO:Add an alternative sorting method,that is,updating yearly as page 9 of Chen et al., “On the Predictability of Chinese Stock Returns.”
 
             panel_stk_eavg,panel_stk_wavg=self._get_panel_stk_avg(comb, indicator, gcol)
             for panel_stk in [panel_stk_eavg,panel_stk_wavg]:
@@ -247,6 +248,12 @@ class OneFactor:
                     result_wavg.append(pd.concat([a,riskAdjusted],axis=0))
         table_e=pd.concat(result_eavg,axis=0,keys=self.indicators)
         table_w=pd.concat(result_wavg,axis=0,keys=self.indicators)
+        #reorder the columns
+        initialOrder=table_e.columns.tolist()
+        newOrder=self.groupnames+[col for col in initialOrder if col not in self.groupnames]
+        table_e=table_e.reindex(columns=newOrder)
+        table_w=table_w.reindex(columns=newOrder)
+
         table_e.to_csv(os.path.join(self.path,'univariate portfolio analysis-equal weighted.csv'))
         table_w.to_csv(os.path.join(self.path,'univariate portfolio analysis-value weighted.csv'))
 

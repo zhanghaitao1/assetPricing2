@@ -126,6 +126,7 @@ def groupby_rolling(multiIndDF, prefix, dict, type_func):
             lambda df: _rolling_for_series(df, months, history, thresh, type_func))
         values.append(value.T)
         names.append(prefix + '_' + history)
+        print(history,thresh)
     result = pd.concat(values, axis=0, keys=names)
     return result
 

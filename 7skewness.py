@@ -6,7 +6,7 @@
 from dout import *
 import statsmodels.formula.api as sm
 from tool import monthly_cal
-
+from collections import OrderedDict
 
 def _get_comb():
     '''
@@ -67,8 +67,8 @@ def _idioskew(subx):
 
 
 def cal_skewnewss():
-    dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}
-    dictM = {'12M': 10, '24M': 20, '36M': 24, '60M': 24}
+    dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
+    dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
 
     combD,combM=_get_comb()
 

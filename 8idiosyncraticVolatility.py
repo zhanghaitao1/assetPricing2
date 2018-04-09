@@ -4,6 +4,7 @@
 # Email:13163385579@163.com
 # TIME:2018-03-22  14:50
 # NAME:assetPricing2-8idiosyncraticVolatility.py
+from collections import OrderedDict
 from functools import partial
 
 from dout import *
@@ -54,8 +55,8 @@ def _idioVol_ffc(df,square_m):
     return ((np.sum(resid ** 2) / (resid.shape[0] - 5)) ** 0.5)*100*square_m
 
 def cal_volatility():
-    dictD = {'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450}
-    dictM = {'12M': 10, '24M': 20, '36M': 24, '60M': 24}
+    dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
+    dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
 
     combD,combM=_get_comb()
 

@@ -146,8 +146,7 @@ def get_cfpr():
     df=df.set_index(['t','sid'])
     df=df['cfpr']
     df=df.unstack()
-    # TODO:observe gta src data.especially the order of date.
-    # The src is of poor quality and it contains some out-of-order samples.
+    # TODO:observe gta src data.especially the order of date.The src is of poor quality and it contains some out-of-order samples.
     df=df.sort_index()
     df=df.resample('M').agg(lambda x:x[-1])
     df=df.stack()
@@ -166,16 +165,10 @@ def get_ep():
     df['ep']=1.0/df['pe']
     df=df.set_index(['t','sid'])
     df=df[['ep']]
-    #------------------
-    #TODO:bookmark
-    #TODO: usually,it may same much time to unstack(),do something on dataframe and then stack(),
-    #TODO: rather than groupby and operator on series,groupby should be used to store panel data,rather than
-    #TODO: speedup the calculation.
-    #TODO: compare the groupby().apply with apply to test which one is faster.
     df=df.unstack()
     df=df.sort_index()
     df=df.resample('M').agg(lambda x:x[-1])
-    #TODO:this two method is equaly
+    # this two method is equaly
     # df2=df.groupby(lambda dt:dt+MonthEnd(0)).apply(lambda x:x.iloc[-1,:])
     df=df.stack()
     df.to_frame().to_csv(os.path.join(PATH,'ep.csv'))

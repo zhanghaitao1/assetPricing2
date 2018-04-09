@@ -8,9 +8,11 @@ import pandas as pd
 import os
 import statsmodels.formula.api as sm
 import numpy as np
+from collections import OrderedDict
 from dout import read_df
 from config import DATA_PATH
 from tool import groupby_rolling
+
 
 from zht.data.gta.api import read_gta
 from zht.utils.dateu import convert_freq
@@ -29,7 +31,7 @@ def get_amihud_illiq():
     df.columns=['sid','t','ret','volume']
     df['t']=convert_freq(df['t'],'D')
     df=df.set_index(['t','sid'])
-    dict={'1M':15,'3M':50,'6M':100,'12M':200}
+    dict=OrderedDict({'1M':15,'3M':50,'6M':100,'12M':200})
 
     result=groupby_rolling(df,'illiq',dict,_amihud)
     result.index.names=['type','t']
