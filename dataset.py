@@ -11,6 +11,8 @@ from dout import read_df
 import pandas as pd
 import os
 import pickle
+from pandas.tseries.offsets import MonthEnd
+import datetime
 
 from zht.utils.dfu import join_dfs
 
@@ -274,6 +276,97 @@ class Base:
         comb=join_dfs(_dfs)
         return comb,info
 
+def stock_control(condition):
+    '''
+    is_sz
+    is_sh
+    is_gem 创业板
+    is_cross
+    not_financial
+    is_industry
+
+    :param condition:
+    :return:stock code
+    '''
+    df=pd.read_csv(os.path.join(DATA_PATH,'ipoInfo.csv'),index_col=0,parse_dates=True)
+    if condition in ['is_sz','is_sh','is_cross','not_financial']:
+        return df.index[df[condition]]
+
+
+def time_control(df,condition):
+    '''
+    start
+    end
+
+    is_bear
+    is_bull
+    is_downside?
+
+    :param condition:
+    :return:
+    '''
+    if isinstance(start,str):
+        start=pd.to_datetime(start)
+    if isinstance(end,str):
+        end=pd.to_datetime(end)
+
+    if 't' in df.index.names:
+        return df[start<=df.index.get_level_values('t')<=end]
+    elif 't' in df.columns:
+        return df[start<=df['t']<=end]
+    else:
+        raise ValueError('There is no index or column named "t" !')
+
+
+def cross_control(multiDf,condition,freq='M'):
+    '''
+    listed at list 1 year
+    closePrice>=5
+    is_in_event_window
+
+    ST
+
+    :param condition:
+    :return:
+    '''
+    ipoInfo=pd.read_csv(os.path.join(DATA_PATH,'ipoInfo.csv'),index_col=0)
+    ipoInfo['ipoDate']=pd.to_datetime(ipoInfo['ipoDate'])
+    ipoInfo['year_later']=ipoInfo['ipoDate']+pd.offsets.DateOffset(years=1)
+    if freq=='M':
+        ipoInfo['year_later']=ipoInfo['year_later']+MonthEnd(1)
+        #1 rather than 0,exclude the first month,since most of
+        # year_later won't be monthend.
+    elif freq=='D':
+        ipoInfo['year_later']=ipoInfo['year_later']+pd.offsets.DateOffset(days=1)
+
+    sids=multiDf.index.get_level_values('t').unique()
+    valid=pd.DataFrame(columns=sids,index=pd.date_range(
+        start='1990-01-01',end=datetime.datetime.today().strftime('%Y-%m-%d'),freq=freq))
+    d=ipoInfo['year_later']
+    for d,sid in zip(d.values,d.index):
+        valid.loc[d,sid]=True
+    valid=valid.fillna(method='ffill')
+    valid=valid.stack()
+
+    #TODO: st stocks
+
+
+def control_sample(condition):
+    '''
+    start
+    end
+    is_financial
+    is_sz
+    is_sh
+    is_cross
+    is_bear
+    is_
+    :param condition:
+    :return:
+    '''
+    pass
+
+
 class Dataset:
     def __init__(self):
         self.data,self.info=self.get_data_and_info()
@@ -366,7 +459,14 @@ def save_info():
     df.to_csv('info.csv')
 
 
-
-
-
-#TODO: set the order of indicators in DATA.info
+#TODO:The 10% limit policy took effect at the beginning of 1997.We exclude stocks that have been listed for less than one year and returns on the first day after the initial public offering.
+#TODO: as robustness check in Long, Jiang, and Zhu, “Idiosyncratic Tail Risk and Expected Stock Returns: Evidence from the Chinese Stock Markets.”
+'''
+Delete ST (special treatment) and firms in financial industry.
+    How to delete ST,delete from the ST date or delete the ST stocks from the whole sample?
+    
+susamples,before and after December 2006.
+subsamples with returns higher and lower than the median index return
+subsamples before and after March 2010 when Chinese stock markets partially allowed short sales.
+calculate portfolio returns with different holding epriods of 2,6,and 12 months
+'''

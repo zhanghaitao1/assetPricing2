@@ -310,14 +310,24 @@ def get_rpD():
     rpD=read_df('ff3D','D')[['rp']]
     rpD.to_csv(os.path.join(DATA_PATH,'rpD.csv'))
 
+def get_ipoInfo():
+    df=pd.read_csv(os.path.join(DATA_SRC,'IPO_Cobasic.csv'),encoding='gbk')
+    df=df.set_index('Stkcd')
+    df.index.name='sid'
+    df['not_financial']=df['Indcd']!=1 #financial stocks
+    df['is_cross']=df['Indcd'].notnull()#stocks listed on multiple stock markets
+    df['is_sh']=df['Listexg']==1#listed on shanghai
+    df['is_sz']=df['Listexg']==2#listed on shenzhen
+    df['ipoDate']=pd.to_datetime(df['Ipodt'])
+    df=df[['ipoDate','not_financial','is_cross','is_sh','is_sz']]
+    df.to_csv(os.path.join(DATA_PATH,'ipoInfo.csv'))
 
 
-
-if __name__=='__main__':
-    fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
-    for f in fstrs:
-        eval(f)()
-        print(f)
+# if __name__=='__main__':
+#     fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
+#     for f in fstrs:
+#         eval(f)()
+#         print(f)
 
 
 #TODO:obsver the src
@@ -330,3 +340,9 @@ def get_new_src():
 
 #------------------------------------
 '''
+# TODO: gta's data is not monotonic_increasing ,add this two row to other scripts
+'''
+if not df.index.is_monotonic_increasing:
+    df = df.sort_index(level='t')  
+'''
+

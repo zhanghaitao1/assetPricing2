@@ -31,6 +31,9 @@ def get_amihud_illiq():
     df.columns=['sid','t','ret','volume']
     df['t']=convert_freq(df['t'],'D')
     df=df.set_index(['t','sid'])
+    if not df.index.is_monotonic_increasing:
+        df=df.sort_index(level='t')#TODO: gta's data is not monotonic_increasing ,add this two row to other scripts
+
     dict=OrderedDict({'1M':15,'3M':50,'6M':100,'12M':200})
 
     result=groupby_rolling(df,'illiq',dict,_amihud)
@@ -38,7 +41,7 @@ def get_amihud_illiq():
 
     ln_result=np.log(result)
     ln_result=ln_result.reset_index()
-    ln_result['type']='ln_'+ln_result['type']
+    ln_result['type']='ln_'+ln_result['type'].astype(str)
     ln_result=ln_result.set_index(['type','t'])
     illiq=pd.concat([result,ln_result],axis=0)
     #TODO:use valid observation for the whole project as page 276

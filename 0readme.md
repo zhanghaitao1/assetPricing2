@@ -50,6 +50,9 @@
     5. model selection or model reduction techniques (How to gauge the relative importance of the various variables)
     6. business cycle
 23. add regression figure as [this one](https://github.com/nakulnayyar/FF3Factor/blob/master/FamaFrench3Factor.ipynb)
+24. add a trading strategy for the new factors as page 9 of Lao, Tian, and Zhao, “Will Order Imbalances Predict Stock Returns in Extreme Market Situations? Evidence from China.”
+25. add quantile regression as the papers shown in zotero by searching quantile.
+    draw fig as fig3 and fig4 in  Xue and Zhang, “Stock Return Autocorrelations and Predictability in the Chinese Stock Market-Evidence from Threshold Quantile Autoregressive Models.”
 
 
 # The difference between assetPricing1 and assetPricing2

@@ -44,13 +44,17 @@ def adjust_with_riskModel(x, riskmodel=None):
         df=df.join(bench)
         formula='y ~ '+' + '.join(bench.columns.tolist())
         nw = newey_west(formula, df, lags)
-        return nw['Intercept'].rename(index={'coef': riskmodel+'_alpha',
-                                             't': riskmodel+'_alpha_t'})
+
+        # return nw['Intercept'].rename(index={'coef': riskmodel+'_alpha',
+        #                                      't': riskmodel+'_alpha_t'})
+
+        return nw['Intercept'].rename(index={'coef':'alpha_'+riskmodel,
+                                             't': 't_alpha'+riskmodel})
     else:
         formula='y ~ 1'
         nw = newey_west(formula, df, lags)
         return nw['Intercept'].rename(index={'coef': 'excess return',
-                                             't': 'excess return t'})
+                                             't': 't excess return'})
 
 def risk_adjust(panel):
     '''
@@ -64,7 +68,6 @@ def risk_adjust(panel):
                   axis=0)
 
 
-#TODO:reorder the column of result dataFrame
 class OneFactor:
     q=10
 

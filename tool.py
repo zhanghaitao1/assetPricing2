@@ -275,6 +275,8 @@ def summary_statistics(data,percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),axis=1):
     References:
         pandas.DataFrame.describe()
     '''
+    #TODO: upgrade this function,refer to https://pandas.pydata.org/pandas-docs/stable/basics.html#custom-describe
+
     def describe_1d(series,percentiles):
         stat_index=(['mean','std','skew','kurt','min']+
                     format_percentiles(percentiles)+['max','n'])
