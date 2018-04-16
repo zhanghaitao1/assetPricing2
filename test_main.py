@@ -8,40 +8,40 @@
 from main import OneFactor, Bivariate
 
 def test_Onefactor():
-    factor = 'beta'
-    path = r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
-    beta = OneFactor(factor, path)
-    beta()
+    # factor = 'beta'
+    # path = r'D:\zht\database\quantDb\researchTopics\assetPricing2\beta'
+    # beta = OneFactor(factor, path)
+    # beta()
 
     factor='size'
     path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\size'
     size=OneFactor(factor,path)
     size()
 
-    factor='value'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\value'
-    value=OneFactor(factor,path)
-    value()
-
-    factor = 'momentum'
-    path = r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
-    mom = OneFactor(factor, path)
-    mom()
-
-    factor='reversal'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\reversal'
-    rev=OneFactor(factor,path)
-    rev()
-
-    factor='skewness'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
-    skewness=OneFactor(factor,path)
-    skewness()
-
-    factor='idiosyncraticVolatility'
-    path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
-    idiosyn=OneFactor(factor,path)
-    idiosyn()
+    # factor='value'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\value'
+    # value=OneFactor(factor,path)
+    # value()
+    #
+    # factor = 'momentum'
+    # path = r'D:\zht\database\quantDb\researchTopics\assetPricing2\mom'
+    # mom = OneFactor(factor, path)
+    # mom()
+    #
+    # factor='reversal'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\reversal'
+    # rev=OneFactor(factor,path)
+    # rev()
+    #
+    # factor='skewness'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\skewness'
+    # skewness=OneFactor(factor,path)
+    # skewness()
+    #
+    # factor='idiosyncraticVolatility'
+    # path=r'D:\zht\database\quantDb\researchTopics\assetPricing2\idiosyncraticVolatility'
+    # idiosyn=OneFactor(factor,path)
+    # idiosyn()
 
 
 class size_12M(Bivariate):
@@ -58,8 +58,8 @@ class size_12M(Bivariate):
         super()._fm(ll_indeVars)
 
     def run(self):
-        self.dependent_portfolio_analysis()
-        self.independent_portfolio_analysis()
+        # self.dependent_portfolio_analysis()
+        # self.independent_portfolio_analysis()
         self.fm()
 
     def __call__(self):
@@ -69,5 +69,5 @@ def test_Bivariate():
     size_12M()()
 
 if __name__=='__main__':
-    test_Onefactor()
-    # test_Bivariate()
+    # test_Onefactor()
+    test_Bivariate()

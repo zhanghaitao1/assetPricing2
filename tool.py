@@ -423,7 +423,6 @@ def famaMacBeth(formula, time_label, df, lags=5):
             number of lags to use when performing the adjustment.
             If lags==0,it will forgo the Newey-West correction.
 
-    Returns:DataFrame
 
     References:
         1.http://www.kellogg.northwestern.edu/faculty/petersen/htm/papers/se/se_programming.htm
@@ -451,7 +450,7 @@ def famaMacBeth(formula, time_label, df, lags=5):
 
     res = df.groupby(time_label).apply(lambda x: sm.ols(
         formula, data=x).fit())
-    p=pd.DataFrame([x.params for x in res])
+    p=pd.DataFrame([x.params for x in res],index=df[time_label].unique())
 
     N=np.mean([x.nobs for x in res])
     adj_r2=np.mean([x.rsquared_adj for x in res])
@@ -488,7 +487,7 @@ def famaMacBeth(formula, time_label, df, lags=5):
     result.loc[result.pvalue < 0.05, 'stars'] = '**'
     result.loc[result.pvalue < 0.01, 'stars'] = '***'
 
-    return result,adj_r2,N
+    return result,adj_r2,N,p
 
 def newey_west(formula,df,lags=5):
     #TODO: other t values such as bootstrapped standard errors of Murphy and Topel, “Estimation and Inference in Two-Step Econometric Models.”

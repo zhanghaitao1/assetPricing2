@@ -17,6 +17,8 @@
 
 # TODO:
 0. multiprocessing
+1. change the frequency,weekly
+2. principal component analysis
 
 0. regime change (subsample,market status)
 0. move all the related function into the current project
@@ -69,6 +71,8 @@
     1. Cheema and Nartea, “Momentum Returns, Market States, and Market Dynamics.”
     2. Li and Galvani, “Market States, Sentiment, and Momentum in the Corporate Bond Market.”
     3. NVIX (or VIX) Manela and Moreira, “News Implied Volatility and Disaster Concerns.”
+
+34. compare with the new method in Safdar and Yan, “Information Risk, Stock Returns, and Asset Pricing: Evidence from China.”
 
 
 # The difference between assetPricing1 and assetPricing2

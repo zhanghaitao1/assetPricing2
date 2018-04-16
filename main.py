@@ -271,11 +271,11 @@ class OneFactor:
         )
 
         def _one_indicator_one_weight_type(group_ts, indicator):
-            def _big_minus_small(s,indicator):
+            def _big_minus_small(s, ind):
                 time=s.index.get_level_values('t')[0]
-                return s[(time,indicator+str(self.q))]-s[(time,indicator+'1')]
+                return s[(time, ind + str(self.q))] - s[(time, ind + '1')]
 
-            spread_data=group_ts.groupby('t').apply(lambda s:_big_minus_small(s,indicator))
+            spread_data=group_ts.groupby('t').apply(lambda series:_big_minus_small(series, indicator))
             s=risk_adjust(spread_data)
             return s
 
@@ -321,6 +321,7 @@ class OneFactor:
     def fm(self,wsz=None):
         comb=DATA.by_indicators(self.indicators+['eretM'])
         data=[]
+        ps=[]
         for indicator in self.indicators:
             subdf=comb[[indicator,'eretM']]
             subdf=subdf.dropna()
@@ -329,25 +330,48 @@ class OneFactor:
             subdf['x']=subdf.groupby('t')['x'].apply(lambda s:winsorize(s,limits=WINSORIZE_LIMITS))
             subdf=subdf.reset_index()
             formula='y ~ x'
-            r,adj_r2,n=famaMacBeth(formula,'t',subdf,lags=5)
+            r,adj_r2,n,p=famaMacBeth(formula,'t',subdf,lags=5)
             #TODO: why intercept tvalue is so large?
             # TODO: why some fm regression do not have a adj_r2 ?
             data.append([r.loc['x', 'coef'], r.loc['x', 'tvalue'],
                          r.loc['Intercept', 'coef'], r.loc['Intercept', 'tvalue'],
                          adj_r2, n])
+            ps.append(p['x'])
+            print(indicator)
 
         result = pd.DataFrame(data, index=self.indicators,
                               columns=['slope', 't', 'Intercept', 'Intercept_t', 'adj_r2', 'n']).T
         result.to_csv(os.path.join(self.path, 'fama macbeth regression analysis.csv'))
 
+        parameters=pd.concat(ps,axis=1,keys=self.indicators)
+        parameters.to_csv(os.path.join(self.path,'fama macbeth regression parameters in first stage.csv'))
+
+    @monitor
+    def parameter_ts_fig(self):
+        '''
+        田利辉 and 王冠英, “我国股票定价五因素模型.”
+
+        :return:
+        '''
+        parameters=pd.read_csv(os.path.join(self.path,'fama macbeth regression parameters in first stage.csv'),
+                               index_col=[0],parse_dates=True)
+        parameters['zero']=0.0
+        for indicator in self.indicators:
+            fig=parameters[[indicator,'zero']].plot().get_figure()
+            fig.savefig(os.path.join(self.path,'fm parameter ts fig-{}.png'.format(indicator)))
+
+
     def run(self):
-        self.summary()
-        self.correlation()
-        self.persistence()
-        self.breakPoints_and_countGroups()
+        # self.summary()
+        # self.correlation()
+        # self.persistence()
+        # self.breakPoints_and_countGroups()
+
         ## self.portfolio_characteristics()
-        self.portfolio_analysis()
+        # self.portfolio_analysis()
         self.fm()
+        self.parameter_ts_fig()
+
 
     def __call__(self):
         self.run()
@@ -532,10 +556,12 @@ class Bivariate:
 
         :return:
         '''
-        indicators = list(set(var for l_indeVars in ll_indeVars for var in l_indeVars)) + ['eretM']
+        indeVars=list(set(var for l_indeVars in ll_indeVars for var in l_indeVars))
+        indicators = indeVars + ['eretM']
         comb = DATA.by_indicators(indicators)
+        # The independent variable is winsorized at a given level on a monthly basis. as page 170
+        comb[indeVars]=comb.groupby('t')[indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
         comb = comb.reset_index()
-
         stks = []
         for l_indeVars in ll_indeVars:
             '''
@@ -544,14 +570,14 @@ class Bivariate:
             '''
             newname = ['name' + str(i) for i in range(1, len(l_indeVars) + 1)]
             df = comb[l_indeVars + ['t', 'eretM']].dropna()
-            # The independent variable is winsorized at a given level on a monthly basis. as page 170
-            df[l_indeVars]=df.groupby('t')[l_indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
-
             df.columns = newname + ['t', 'eretM']
             formula = 'eretM ~ ' + ' + '.join(newname)
             # TODO:lags?
-            r, adj_r2, n = famaMacBeth(formula, 't', df, lags=5)
+            r, adj_r2, n,p = famaMacBeth(formula, 't', df, lags=5)#TODO:
             r = r.rename(index=dict(zip(newname, l_indeVars)))
+            #save the first stage regression parameters
+            p=p.rename(columns=dict(zip(newname,l_indeVars)))
+            p.to_csv(os.path.join(self.path,'first stage parameters '+'_'.join(l_indeVars)+'.csv'))
             stk = r[['coef', 'tvalue']].stack()
             stk.index = stk.index.map('{0[0]} {0[1]}'.format)
             stk['adj_r2'] = adj_r2

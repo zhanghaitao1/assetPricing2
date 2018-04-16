@@ -368,7 +368,7 @@ def save_info():
 
 
 #--------------------------------------------sample control----------------------------------------------
-def only_financial(df, condition):
+def control_stock_sample(df, condition):
     '''
     is_sz
     is_sh
@@ -382,7 +382,7 @@ def only_financial(df, condition):
     :return:stock code
     '''
     #TODO: not_financial 保险？
-    conditions=['is_sz','is_sh','is_cross','not_financial']
+    conditions=['is_sz','is_sh','not_cross','not_financial']
 
     info=pd.read_csv(os.path.join(DATA_PATH,'listInfo.csv'),index_col=0,parse_dates=True)
     info.index=info.index.astype(str)
@@ -399,6 +399,9 @@ def only_financial(df, condition):
 
 def start_end(df, start='1996-01-01', end=None):
     '''
+
+
+
     start
     end
 
@@ -452,10 +455,6 @@ def floor_price(df,clsPrice=5.0):
     valid=stockCloseM[stockCloseM>=5.0].stack()
     df=filter_multiIndex(df,valid.index)
     return df
-
-
-
-
 
 
 def roof_price(df,price):
@@ -524,24 +523,36 @@ def delete_st(df,freq='M'):
     df=filter_multiIndex(df,stInfo.index)
     return df
 
-def get_DATA():
+def _get_DATA():
     DATA=Dataset()
     #TODO: use pipe
     print(DATA.data.shape)
-    # DATA.data=only_financial(DATA.data, 'not_financial')
-    # print(DATA.data.shape)
-    # DATA.data=start_end(DATA.data, start='2001-01-01')
-    # print(DATA.data.shape)
-    # DATA.data=year_after_list(DATA.data,freq='M')
-    # print(DATA.data.shape)
-    # DATA.data=delete_st(DATA.data,freq='M')
-    # print(DATA.data.shape)
-
+    DATA.data=control_stock_sample(DATA.data, 'not_financial')
+    print(DATA.data.shape)
+    DATA.data=control_stock_sample(DATA.data,'not_cross')
+    print(DATA.data.shape)
+    DATA.data=start_end(DATA.data, start='2001-01-01')
+    print(DATA.data.shape)
+    DATA.data=year_after_list(DATA.data,freq='M')
+    print(DATA.data.shape)
+    DATA.data=delete_st(DATA.data,freq='M')
+    print(DATA.data.shape)
     DATA.data=floor_price(DATA.data,5.0)
+    print(DATA.data.shape)
+    return DATA
 
+def get_DATA():
+    p_tmp_DATA=os.path.join(TMP_PATH,'tmp_DATA.pkl')
+    if os.path.isfile(p_tmp_DATA):
+        with open(p_tmp_DATA,'rb') as f:
+            DATA=pickle.load(f)
+    else:
+        DATA=_get_DATA()
+        pickle.dump(DATA,open(p_tmp_DATA,'wb'))
     return DATA
 
 DATA=get_DATA()
+
 
 
 

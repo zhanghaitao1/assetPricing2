@@ -331,13 +331,13 @@ def get_listInfo():
     df.index.name='sid'
     #TODO: refer to page12 of 动量因子_164.pdf   ' 1 代表剔除金融、保险、 ST 类股票'
     df['not_financial']=df['Indcd']!=1 #financial stocks
-    df['is_cross']=df['Crcd'].notnull()#stocks listed on multiple stock markets
+    df['not_cross']=~df['Crcd'].notnull()#crosss means stocks listed on multiple stock markets
     df['is_sh']=df['Listexg']==1#listed on shanghai
     df['is_sz']=df['Listexg']==2#listed on shenzhen
     # Listdt denotes listed date ,'Ipodt' denotes IPO date
     df['Listdt']=df['Listdt'].replace(['0000-00-00','2100-01-01'],np.nan) #there is some invalid data in column 'Listdt
     df['listDate']=pd.to_datetime(df['Listdt'])
-    df=df[['listDate','not_financial','is_cross','is_sh','is_sz']]
+    df=df[['listDate','not_financial','not_cross','is_sh','is_sz']]
     df=df[~df.index.duplicated(False)] #there are some duplicated items such as '600018
     df=df.dropna()
     df.to_csv(os.path.join(DATA_PATH,'listInfo.csv'))
