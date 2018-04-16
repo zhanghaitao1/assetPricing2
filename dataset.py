@@ -48,7 +48,7 @@ def unify_df(df):
     return df
 
 
-class T_indicators():
+class T_indicators:
     '''
     the indicators in this class is the data we get in time t
 
@@ -276,96 +276,6 @@ class Base:
         comb=join_dfs(_dfs)
         return comb,info
 
-def stock_control(condition):
-    '''
-    is_sz
-    is_sh
-    is_gem 创业板
-    is_cross
-    not_financial
-    is_industry
-
-    :param condition:
-    :return:stock code
-    '''
-    df=pd.read_csv(os.path.join(DATA_PATH,'ipoInfo.csv'),index_col=0,parse_dates=True)
-    if condition in ['is_sz','is_sh','is_cross','not_financial']:
-        return df.index[df[condition]]
-
-
-def time_control(df,condition):
-    '''
-    start
-    end
-
-    is_bear
-    is_bull
-    is_downside?
-
-    :param condition:
-    :return:
-    '''
-    if isinstance(start,str):
-        start=pd.to_datetime(start)
-    if isinstance(end,str):
-        end=pd.to_datetime(end)
-
-    if 't' in df.index.names:
-        return df[start<=df.index.get_level_values('t')<=end]
-    elif 't' in df.columns:
-        return df[start<=df['t']<=end]
-    else:
-        raise ValueError('There is no index or column named "t" !')
-
-
-def cross_control(multiDf,condition,freq='M'):
-    '''
-    listed at list 1 year
-    closePrice>=5
-    is_in_event_window
-
-    ST
-
-    :param condition:
-    :return:
-    '''
-    ipoInfo=pd.read_csv(os.path.join(DATA_PATH,'ipoInfo.csv'),index_col=0)
-    ipoInfo['ipoDate']=pd.to_datetime(ipoInfo['ipoDate'])
-    ipoInfo['year_later']=ipoInfo['ipoDate']+pd.offsets.DateOffset(years=1)
-    if freq=='M':
-        ipoInfo['year_later']=ipoInfo['year_later']+MonthEnd(1)
-        #1 rather than 0,exclude the first month,since most of
-        # year_later won't be monthend.
-    elif freq=='D':
-        ipoInfo['year_later']=ipoInfo['year_later']+pd.offsets.DateOffset(days=1)
-
-    sids=multiDf.index.get_level_values('t').unique()
-    valid=pd.DataFrame(columns=sids,index=pd.date_range(
-        start='1990-01-01',end=datetime.datetime.today().strftime('%Y-%m-%d'),freq=freq))
-    d=ipoInfo['year_later']
-    for d,sid in zip(d.values,d.index):
-        valid.loc[d,sid]=True
-    valid=valid.fillna(method='ffill')
-    valid=valid.stack()
-
-    #TODO: st stocks
-
-
-def control_sample(condition):
-    '''
-    start
-    end
-    is_financial
-    is_sz
-    is_sh
-    is_cross
-    is_bear
-    is_
-    :param condition:
-    :return:
-    '''
-    pass
-
 
 class Dataset:
     def __init__(self):
@@ -375,7 +285,7 @@ class Dataset:
         '''
         this function is used to handle the sample problem,you can filter out financial stocks
         or you can set the time limit.
-        :param df:
+        :param df:multiIndex DataFrame
         :return:
         '''
         '''
@@ -450,13 +360,193 @@ class Dataset:
         else:
             return self.data[[indicators]].copy(deep=True).dropna(how='all')
 
-DATA=Dataset()
-
-
 def save_info():
+    DATA=Dataset()
     ss=[pd.Series(v,name=k) for k,v in DATA.info.items()]
     df=pd.concat(ss,axis=1)
     df.to_csv('info.csv')
+
+
+#--------------------------------------------sample control----------------------------------------------
+def only_financial(df, condition):
+    '''
+    is_sz
+    is_sh
+    is_gem 创业板
+    is_cross
+    not_financial
+    is_industry
+
+    :param df:
+    :param condition:
+    :return:stock code
+    '''
+    #TODO: not_financial 保险？
+    conditions=['is_sz','is_sh','is_cross','not_financial']
+
+    info=pd.read_csv(os.path.join(DATA_PATH,'listInfo.csv'),index_col=0,parse_dates=True)
+    info.index=info.index.astype(str)
+
+    if condition in conditions:
+        validSids=info.index[info[condition]]
+    else:
+        raise ValueError('The "condition" should be one of {}'.format(repr(conditions)))
+
+    newdf=df.loc[pd.IndexSlice[:,validSids],:]
+
+    return newdf
+
+
+def start_end(df, start='1996-01-01', end=None):
+    '''
+    start
+    end
+
+    is_bear
+    is_bull
+    is_downside?
+
+    :return:
+    '''
+    if isinstance(start,str):
+        start=pd.to_datetime(start)
+
+    if not end:
+        end=datetime.datetime.today()
+
+    if isinstance(end,str):
+        end=pd.to_datetime(end)
+
+    if 't' in df.index.names:
+        return df[(start<=df.index.get_level_values('t')) &(df.index.get_level_values('t')<=end)]
+    elif 't' in df.columns:
+        return df[(start<=df['t'])&(df['t']<=end)]
+    else:
+        raise ValueError('There is no index or column named "t" !')
+
+
+
+def sample_data_optimization():
+    '''
+
+    '''
+    pass
+
+
+def filter_multiIndex(df,inter_index):
+    df=df.reindex(inter_index)
+    df=df.dropna(how='all')
+    return df
+
+def floor_price(df,clsPrice=5.0):
+    '''
+    the minimum close price is 5
+
+    :param df:
+    :param clsPrice:
+    :return:
+    '''
+    stockCloseM=read_df('stockCloseM','M')
+    stockCloseM.columns=stockCloseM.columns.astype(str)
+
+    valid=stockCloseM[stockCloseM>=5.0].stack()
+    df=filter_multiIndex(df,valid.index)
+    return df
+
+
+
+
+
+
+def roof_price(df,price):
+    pass
+
+def in_event_window(df):
+    pass
+
+
+#TODO: refer to readme.md to find more controling methods.
+def year_after_list(df,freq):
+    '''
+    listed at list 1 year
+
+    :return:
+    '''
+    listInfo=pd.read_csv(os.path.join(DATA_PATH,'listInfo.csv'),index_col=0)
+    listInfo.index=listInfo.index.astype(str) #TODO: delete
+    listInfo['listDate']=pd.to_datetime(listInfo['listDate'])
+    listInfo['year_later']=listInfo['listDate']+pd.offsets.DateOffset(years=1)
+    if freq=='M':
+        listInfo['year_later']=listInfo['year_later']+MonthEnd(1)
+        # 1 rather than 0,exclude the first month,since most of
+        # year_later won't be monthend.
+    elif freq=='D':
+        listInfo['year_later']=listInfo['year_later']+pd.offsets.DateOffset(days=1)
+
+    sids=df.index.get_level_values('sid').unique()
+    start=df.index.get_level_values('t').min()
+
+    yearlater=listInfo['year_later']
+
+    sid_inter=list(set(sids).intersection(set(yearlater.index.tolist())))
+    valid=pd.DataFrame(columns=sid_inter,index=pd.date_range(
+        start=start,end=datetime.datetime.today().strftime('%Y-%m-%d'),freq=freq))
+
+    yearlater=listInfo['year_later']
+    for sid,d in yearlater.iteritems():
+        if d<start:
+            d=start
+        valid.at[d,sid]=True
+
+    valid=valid.fillna(method='ffill')
+    valid=valid.stack()
+    valid.index.names=['t','sid']
+
+    df=filter_multiIndex(df,valid.index)
+    return df
+
+#TODO: din.py get_sid_suffix()
+
+def delete_st(df,freq='M'):
+    if freq=='M':
+        stInfo=pd.read_csv(os.path.join(DATA_PATH,'stInfoM.csv'),index_col=[0,1],parse_dates=True)
+    elif freq=='M':
+        stInfo=pd.read_csv(os.path.join(DATA_PATH,'stInfoD.csv'),index_col=[0,1],parse_dates=True)
+    else:
+        raise ValueError('freq must be "M" or "D"!')
+
+    stInfo=stInfo.reset_index()
+
+    stInfo['sid']=stInfo['sid'].astype(str)
+    stInfo=stInfo.set_index(['t','sid'])
+
+    # filter
+    df=filter_multiIndex(df,stInfo.index)
+    return df
+
+def get_DATA():
+    DATA=Dataset()
+    #TODO: use pipe
+    print(DATA.data.shape)
+    # DATA.data=only_financial(DATA.data, 'not_financial')
+    # print(DATA.data.shape)
+    # DATA.data=start_end(DATA.data, start='2001-01-01')
+    # print(DATA.data.shape)
+    # DATA.data=year_after_list(DATA.data,freq='M')
+    # print(DATA.data.shape)
+    # DATA.data=delete_st(DATA.data,freq='M')
+    # print(DATA.data.shape)
+
+    DATA.data=floor_price(DATA.data,5.0)
+
+    return DATA
+
+DATA=get_DATA()
+
+
+
+
+#TODO: sid add suffix
 
 
 #TODO:The 10% limit policy took effect at the beginning of 1997.We exclude stocks that have been listed for less than one year and returns on the first day after the initial public offering.
@@ -470,3 +560,4 @@ subsamples with returns higher and lower than the median index return
 subsamples before and after March 2010 when Chinese stock markets partially allowed short sales.
 calculate portfolio returns with different holding epriods of 2,6,and 12 months
 '''
+

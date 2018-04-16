@@ -4,6 +4,18 @@
 # TIME:2018-03-20  19:36
 # NAME:assetPricing2-din.py
 
+'''
+The standards for din.py:
+1. all the data save as DataFrame even the series should be converted into DataFrame
+2. The index of dataframe should be named
+3. do not save the data with stacked multiIndex Dataframethe data unless you have to
+4. for multiIndex dataframe,the first index should be named 't' and 'sid' for the second
+5. notice the time index
+
+'''
+
+
+
 import pandas as pd
 import os
 
@@ -15,6 +27,9 @@ from zht.data.wind.api import read_wind
 from zht.utils.dateu import convert_freq
 
 from config import DATA_SRC, DATA_PATH
+import numpy as np
+
+
 
 def _readFromSrc(tbname):
     df=pd.read_csv(os.path.join(DATA_SRC,tbname+'.csv'))
@@ -310,17 +325,51 @@ def get_rpD():
     rpD=read_df('ff3D','D')[['rp']]
     rpD.to_csv(os.path.join(DATA_PATH,'rpD.csv'))
 
-def get_ipoInfo():
+def get_listInfo():
     df=pd.read_csv(os.path.join(DATA_SRC,'IPO_Cobasic.csv'),encoding='gbk')
     df=df.set_index('Stkcd')
     df.index.name='sid'
+    #TODO: refer to page12 of 动量因子_164.pdf   ' 1 代表剔除金融、保险、 ST 类股票'
     df['not_financial']=df['Indcd']!=1 #financial stocks
-    df['is_cross']=df['Indcd'].notnull()#stocks listed on multiple stock markets
+    df['is_cross']=df['Crcd'].notnull()#stocks listed on multiple stock markets
     df['is_sh']=df['Listexg']==1#listed on shanghai
     df['is_sz']=df['Listexg']==2#listed on shenzhen
-    df['ipoDate']=pd.to_datetime(df['Ipodt'])
-    df=df[['ipoDate','not_financial','is_cross','is_sh','is_sz']]
-    df.to_csv(os.path.join(DATA_PATH,'ipoInfo.csv'))
+    # Listdt denotes listed date ,'Ipodt' denotes IPO date
+    df['Listdt']=df['Listdt'].replace(['0000-00-00','2100-01-01'],np.nan) #there is some invalid data in column 'Listdt
+    df['listDate']=pd.to_datetime(df['Listdt'])
+    df=df[['listDate','not_financial','is_cross','is_sh','is_sz']]
+    df=df[~df.index.duplicated(False)] #there are some duplicated items such as '600018
+    df=df.dropna()
+    df.to_csv(os.path.join(DATA_PATH,'listInfo.csv'))
+
+
+def get_stInfo():
+    '''
+    for freq='M',delete all the months as long as ST or *ST appear in any day of that month,
+    for freq='D',we only delete the current day with ST or *ST
+    :return:
+    '''
+    df=pd.read_csv(os.path.join(DATA_SRC,'TRD_Dalyr.csv'),encoding='gbk')
+    df=df[['Trddt','Stkcd','Trdsta']]
+    df.columns=['t','sid','status']
+    df['t']=pd.to_datetime(df['t'])
+    def func(df):
+        # for information about the status refer to the documents
+        result=(2.0 not in df['status'].values) & (3.0 not in df['status'].values)
+        return result
+
+    df1=df.groupby([pd.Grouper(key='t',freq='M'),'sid']).filter(func)
+
+    dfM=df1.groupby([pd.Grouper(key='t',freq='M'),'sid']).sum()
+    dfM['not_st']=True
+    dfM=dfM[['not_st']]
+
+    df['not_st']=True
+    dfD=df.set_index(['t','sid'])[['not_st']]
+    dfD=dfD.sort_index(level='t')
+
+    dfD.to_csv(os.path.join(DATA_PATH,'stInfoD.csv'))
+    dfM.to_csv(os.path.join(DATA_PATH,'stInfoM.csv'))
 
 
 # if __name__=='__main__':
@@ -330,7 +379,7 @@ def get_ipoInfo():
 #         print(f)
 
 
-#TODO:obsver the src
+#TODO:obeserver the src
 '''
 #---------------------------
 def get_new_src():

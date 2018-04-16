@@ -2,7 +2,18 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="PyAbstractClassInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyAssignmentToLoopOrWithParameterInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyAttributeOutsideInitInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyBroadExceptionInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyCallByClassInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyChainedComparisonsInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PyClassHasNoInitInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyComparisonWithNoneInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyDictCreationInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyDocstringTypesInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyGlobalUndefinedInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="PyListCreationInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyMethodMayBeStaticInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PyMethodParametersInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PyNestedDecoratorsInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="PyNoneFunctionAssignmentInspection" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -12,6 +23,15 @@
     <inspection_tool class="PyRedundantParenthesesInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PyShadowingBuiltinsInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PyShadowingNamesInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="PySimplifyBooleanCheckInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PySingleQuotedDocstringInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="ERROR" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="dataset.validSid" />
+        </list>
+      </option>
+    </inspection_tool>
     <inspection_tool class="PyUnusedLocalInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreTupleUnpacking" value="true" />
       <option name="ignoreLambdaParameters" value="true" />

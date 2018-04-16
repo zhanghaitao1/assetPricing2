@@ -491,6 +491,9 @@ def famaMacBeth(formula, time_label, df, lags=5):
     return result,adj_r2,N
 
 def newey_west(formula,df,lags=5):
+    #TODO: other t values such as bootstrapped standard errors of Murphy and Topel, “Estimation and Inference in Two-Step Econometric Models.”
+    #TODO: Shanken corrected t-statistics
+
     reg=sm.ols(formula,df).fit(cov_type='HAC',
                                   cov_kwds={'maxlags':lags},
                                   use_t=True)
@@ -509,7 +512,8 @@ def observe_df(df):
     4. shape[0],shape[1]
     5. duplicated value
     6. 't' MonthEnd(0)
-    7.
+    7. max and min
+    8. duplicated index?
     :param df:
     :return:
     '''

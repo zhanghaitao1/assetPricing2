@@ -8,6 +8,7 @@
 2. At time t,we calculate the indicators and use this indicators to get sorted-portfolios
     then use these portfolio to calculate the mimicking portfolio returns(long-short factors) in time t+1.So the
     time corresponding to indicators are t,the time for factors are time t+1.
+3. 
 
 # functions to add
 1. show those significant result with bold characters as table A5 of Asness, Clifford S., Andrea Frazzini, and Lasse Heje Pedersen. “Quality Minus Junk.” SSRN Scholarly Paper. Rochester, NY: Social Science Research Network, June 5, 2017. https://papers.ssrn.com/abstract=2312432.
@@ -15,6 +16,8 @@
 3. table 5 of mispricing factors
 
 # TODO:
+0. multiprocessing
+
 0. regime change (subsample,market status)
 0. move all the related function into the current project
 1. handle the TODOs one by one
@@ -53,6 +56,19 @@
 24. add a trading strategy for the new factors as page 9 of Lao, Tian, and Zhao, “Will Order Imbalances Predict Stock Returns in Extreme Market Situations? Evidence from China.”
 25. add quantile regression as the papers shown in zotero by searching quantile.
     draw fig as fig3 and fig4 in  Xue and Zhang, “Stock Return Autocorrelations and Predictability in the Chinese Stock Market-Evidence from Threshold Quantile Autoregressive Models.”
+26. how about analyse industry-by-industry?
+27. stocks with high analyst-coverage and low analyst-coverage
+28. stocks with high trading volume and low trading volume
+29. stocks with low institutional ownership and high....
+30. small stocks and high stocks
+31. Any indicators (or anomalies,whatever) can be used to create subsamples or subperiods
+32. investor sentiment,...findout all possible asymmetrical controling variable in zotero.
+33. FF sort stocks on size (univariate or bivariate) to test the predictability of factors on stock returns.We can sort market status,
+    high or low institutional ownership (univariate or bivariate) to test the predictability of factors (indicators,whatever) on factors
+    refer to
+    1. Cheema and Nartea, “Momentum Returns, Market States, and Market Dynamics.”
+    2. Li and Galvani, “Market States, Sentiment, and Momentum in the Corporate Bond Market.”
+    3. NVIX (or VIX) Manela and Moreira, “News Implied Volatility and Disaster Concerns.”
 
 
 # The difference between assetPricing1 and assetPricing2
@@ -62,4 +78,5 @@ date as assetPricing1.
 3.
 
 
-
+# factor zoo
+1. Winner-minus-loser (WML) portfolios, following Carhart (1997) and Fama and French (2012), we also construct Winner-minus-Loser (WML) portfolios. 
