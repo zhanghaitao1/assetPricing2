@@ -62,6 +62,7 @@
 27. stocks with high analyst-coverage and low analyst-coverage
 28. stocks with high trading volume and low trading volume
 29. stocks with low institutional ownership and high....
+30. in the releasing window of policy or not? refer to 田利辉, 王冠英, and 张伟, “三因素模型定价.”
 30. small stocks and high stocks
 31. Any indicators (or anomalies,whatever) can be used to create subsamples or subperiods
 32. investor sentiment,...findout all possible asymmetrical controling variable in zotero.
@@ -71,7 +72,7 @@
     1. Cheema and Nartea, “Momentum Returns, Market States, and Market Dynamics.”
     2. Li and Galvani, “Market States, Sentiment, and Momentum in the Corporate Bond Market.”
     3. NVIX (or VIX) Manela and Moreira, “News Implied Volatility and Disaster Concerns.”
-
+    
 34. compare with the new method in Safdar and Yan, “Information Risk, Stock Returns, and Asset Pricing: Evidence from China.”
 
 
