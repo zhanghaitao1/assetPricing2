@@ -75,6 +75,7 @@
     
 34. compare with the new method in Safdar and Yan, “Information Risk, Stock Returns, and Asset Pricing: Evidence from China.”
 
+35. 流通A股占总股本比例 statistic,thresh
 
 # The difference between assetPricing1 and assetPricing2
 1. the date in assetPricing2 seem to be calender date rather than buisiness
