@@ -5,25 +5,37 @@
 # TIME:2018-04-08  10:57
 # NAME:assetPricing2-a.py
 
-import pandas as pd
 import numpy as np
-
-index=pd.date_range('1/1/2000',periods=8,freq='T')
-
-#TODO:how about np.nan
-df=pd.DataFrame({'s':[0.0,None,2.0,3.0,np.nan,np.nan,6.0,7.0]},index=index)
+import matplotlib.pyplot as plt
 
 
+X = np.random.rand(100, 1000)
+xs = np.mean(X, axis=1)
+ys = np.std(X, axis=1)
 
-df.asfreq(freq='30S')
+fig, ax = plt.subplots()
+ax.set_title('click on point to plot time series')
+line, = ax.plot(xs, ys, 'o', picker=5)  # 5 points tolerance
 
-df.asfreq(freq='30S',fill_value=9.0)
-df.asfreq(freq='30S',method='bfill')
 
-df.resample('2T').last()
-df.resample('2T').agg(lambda x:x[-1])
+def onpick(event):
 
-df.resample('2T').agg(lambda x:x[0])
-df.resample('2T').mean()
+    if event.artist != line:
+        return True
 
-df.asfreq(freq='2T')
+    N = len(event.ind)
+    if not N:
+        return True
+
+    figi, axs = plt.subplots(N, squeeze=False)
+    for ax, dataind in zip(axs.flat, event.ind):
+        ax.plot(X[dataind])
+        ax.text(.05, .9, 'mu=%1.3f\nsigma=%1.3f' % (xs[dataind], ys[dataind]),
+                transform=ax.transAxes, va='top')
+        ax.set_ylim(-0.5, 1.5)
+    figi.show()
+    return True
+
+fig.canvas.mpl_connect('pick_event', onpick)
+
+plt.show()
