@@ -17,6 +17,7 @@
 
 # TODO:
 0. multiprocessing
+1. use line_profiler to do line-by-line profiling and speedup the project.
 1. change the frequency,weekly
 2. principal component analysis
 3. for any model involved 'BP' or 'EP',we have to delete those stocks with negative value in these fields.

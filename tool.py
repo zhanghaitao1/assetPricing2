@@ -521,44 +521,7 @@ def observe_df(df):
     pass
 
 
-def detect_outliers(x, name=None):
-    '''
 
-    :param x:DataFrame of Series
-    :param name:
-    :return:
-    '''
-    def _for_series(s,name):
-        avg = s.mean()
-        std = s.std()
-        length = s.shape[0]
-
-        plt.figure()
-        plt.plot(s.index, s, 'ro', markersize=1)
-        plt.plot(s.index, [0.0] * length, 'b--', linewidth=0.5)
-
-        plt.plot(s.index, [avg] * length, 'r--', linewidth=1)
-        
-        plt.plot(s.index, [avg - 2 * std] * length, 'r--', linewidth=0.5)
-        plt.plot(s.index, [avg + 2 * std] * length, 'r--', linewidth=0.5)
-        
-        plt.plot(s.index, [avg - 3 * std] * length, 'r--', linewidth=0.5)
-        plt.plot(s.index, [avg + 3 * std] * length, 'r--', linewidth=0.5)
-        
-        plt.plot(s.index, [avg - 4 * std] * length, 'r--', linewidth=0.5)
-        plt.plot(s.index, [avg + 4 * std] * length, 'r--', linewidth=0.5)
-        
-        plt.plot(s.index, [avg - 5 * std] * length, 'r--', linewidth=0.5)
-        plt.plot(s.index, [avg + 5 * std] * length, 'r--', linewidth=0.5)
-        
-        
-        savefig(r'e:\a\{}.png'.format(name))
-
-    if x.ndim==1:
-        _for_series(x,name)
-    else:
-        for colname,s in x.iteritems():
-            _for_series(s,colname)
 
 
 #detect outliers

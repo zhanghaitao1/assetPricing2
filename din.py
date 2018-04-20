@@ -342,6 +342,13 @@ def get_listInfo():
     df=df.dropna()
     df.to_csv(os.path.join(DATA_PATH,'listInfo.csv'))
 
+def get_listInfo1():
+    fp=r'E:\a\gta20180412\txt\STK_ListedCoInfoAnl.txt'
+    df = pd.DataFrame([row.split('\t') for row in open(fp, encoding='ISO-8859-1', newline='\r').readlines()])
+    df=df[2:]
+
+    #TODO: wrong!  find stock code online,the table only contains information from 2010.
+
 
 def get_stInfo():
     '''

@@ -342,6 +342,7 @@ class Dataset:
             data=self.sample_control(data)
             pickle.dump(data, open(p_data, 'wb'))
             pickle.dump(info, open(p_info, 'wb'))
+            #TODO: use df.to_pickle and pd.read_pickle
 
         return data,info
 
@@ -565,7 +566,7 @@ DATA=get_DATA()
 '''
 Delete ST (special treatment) and firms in financial industry.
     How to delete ST,delete from the ST date or delete the ST stocks from the whole sample?
-    
+
 susamples,before and after December 2006.
 subsamples with returns higher and lower than the median index return
 subsamples before and after March 2010 when Chinese stock markets partially allowed short sales.
