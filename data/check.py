@@ -17,9 +17,6 @@ def identify_axis(axis):
 
     pass
 
-def series_or_df(x):
-    if x.ndim==2 and x.shape[1]==1:
-        raise MyError('For DataFrame with only one column,we should convert them to Series!')
 
 def analyse_freqency(axis):
     delta=axis[2]-axis[1]
@@ -45,27 +42,28 @@ def _check_axis(axis):
             raise MyError('The data type of "sid" should be str rather than {}!'.format(type(axis[0])))
         #TODO:unify the sid add suffix for sid
 
-    if not axis.is_monotonic_increasing:
-        raise MyError('The axis "{}" is not monotonical increasing'.format(axis.name))
-
     if axis.has_duplicates:
         raise MyError('The axis "{}" has duplicates'.format(axis.name))
 
 
-def check_saving_name_for_series(s, name):
+def check_s_for_saving_name(s, name):
     if not s.name:
         raise MyError('No name for Series')
     elif s.name!=name:
         raise MyError('The file name "{}" to save is different with the name of Series "{}"'.format(name,s.name))
 
+def check_s(s, name):
+    _check_axis(s.index)
+    check_s_for_saving_name(s, name)
 
-def check_df(x, name):
-    series_or_df(x)
+def check_df(df):
+    _check_axis(df.index)
+    _check_axis(df.columns)
 
+def check(x,name):
     if x.ndim==1:
-        _check_axis(x.index)
-        check_saving_name_for_series(x, name)
+        check_s(x,name)
     elif x.ndim==2:
-        _check_axis(x.index)
-        _check_axis(x.columns)
-
+        check_df(x)
+    else:
+        raise NotImplementedError

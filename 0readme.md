@@ -22,7 +22,8 @@
 2. principal component analysis
 3. for any model involved 'BP' or 'EP',we have to delete those stocks with negative value in these fields.
     refer to page 6 of 20170313-华泰证券-华泰证券五因子模型A股实证研究：Fama-French 五因子模型实证.pdf
-    
+4. VIF>2.5? multicollearity
+
 
 0. regime change (subsample,market status)
 0. move all the related function into the current project

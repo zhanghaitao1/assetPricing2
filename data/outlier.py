@@ -12,57 +12,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# def detect_outliers1(s,thresh=2):
-#     s=s.dropna()
-#     n=s.shape[0]
-#     avg=s.mean() #TODO: how about median?
-#     std=s.std()
-#     up=(s>avg+thresh*std).sum()*100/n
-#     down=(s<avg-thresh*std).sum()*100/n
-#     return n,avg,s.max(),s.min(),up,down
-
-# def show_outliers(x, name=None):
-#     '''
-# 
-#     :param x:DataFrame of Series
-#     :param name:
-#     :return:
-#     '''
-# 
-#     def _for_series(s, name):
-#         avg = s.mean()
-#         std = s.std()
-#         length = s.shape[0]
-# 
-#         plt.figure()
-#         plt.plot(s.index, s, 'ro', markersize=1)
-#         plt.plot(s.index, [0.0] * length, 'b--', linewidth=0.5)
-# 
-#         plt.plot(s.index, [avg] * length, 'r--', linewidth=1)
-# 
-#         plt.plot(s.index, [avg - 2 * std] * length, 'r--', linewidth=0.5)
-#         plt.plot(s.index, [avg + 2 * std] * length, 'r--', linewidth=0.5)
-# 
-#         plt.plot(s.index, [avg - 3 * std] * length, 'r--', linewidth=0.5)
-#         plt.plot(s.index, [avg + 3 * std] * length, 'r--', linewidth=0.5)
-# 
-#         plt.plot(s.index, [avg - 4 * std] * length, 'r--', linewidth=0.5)
-#         plt.plot(s.index, [avg + 4 * std] * length, 'r--', linewidth=0.5)
-# 
-#         plt.plot(s.index, [avg - 5 * std] * length, 'r--', linewidth=0.5)
-#         plt.plot(s.index, [avg + 5 * std] * length, 'r--', linewidth=0.5)
-# 
-#         plt.show()
-# 
-#         # savefig(r'e:\a\{}.png'.format(name))
-# 
-#     if x.ndim == 1:
-#         _for_series(x, name)
-#     else:
-#         for colname, s in x.iteritems():
-#             _for_series(s, colname)
-
-
 #TODO: detect outliers in src
 #TODO: detect outliers in indicators
 #TODO: detect outliers in factors
@@ -130,21 +79,25 @@ def _for_2d(df,by='rbr'):
     else:
         raise MyError('by should be "rbr" or "cbc"!')
 
-def _for_1d(x):
-    x=x.dropna().values
-    fig, axes = plt.subplots(nrows=2,figsize=(20,12))
-    kwargs = dict(y=0.95, x=0.05, ha='left', va='top')
-    for ax, func ,type in zip(axes, [percentile_based_outlier, mad_based_outlier],['percentile_based','mad_based']):
-        sns.distplot(x, ax=ax, rug=True, hist=False)
-        outliers = x[func(x)]
-        ax.plot(outliers, np.zeros_like(outliers), 'ro', clip_on=False)
-        ax.set_title('{};outliers:{}'.format(type,len(outliers)),kwargs)
-
-    fig.suptitle('sample:{},mean:{:.6f},median:{:.6f}'.format(len(x),np.mean(x),np.median(x)), size=14)
-
-
+def _for_1d(s):
+    s=s.dropna()
+    fig,axes=plt.subplots(nrows=2,figsize=(20,12))
+    for ax,func,type in zip(axes,[mad_based_outlier,percentile_based_outlier],['mad_badsed','percentile_based']):
+        outliers=s[func(s)]
+        ax.plot(s.index,s,'o',markersize=1)
+        ax.plot(outliers.index,outliers,'ro',markersize=3)
+        ax.set_title('{};outliers:{}'.format(type,len(outliers)))
+    fig.suptitle('sample:{},mean:{:.6f},median:{:.6f}'.format(len(s),np.mean(s),np.median(s)), size=14)
 
 def detect_outliers(x, fn, by='rbr'):
+    '''
+    detect outliers
+
+    :param x:Series or DataFrame
+    :param fn:
+    :param by:
+    :return:
+    '''
     if x.ndim==1:
         _for_1d(x)
     elif x.ndim==2:

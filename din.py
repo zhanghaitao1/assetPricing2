@@ -356,6 +356,7 @@ def get_stInfo():
     for freq='D',we only delete the current day with ST or *ST
     :return:
     '''
+    #TODO: how about PT
     df=pd.read_csv(os.path.join(DATA_SRC,'TRD_Dalyr.csv'),encoding='gbk')
     df=df[['Trddt','Stkcd','Trdsta']]
     df.columns=['t','sid','status']
