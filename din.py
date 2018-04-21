@@ -24,7 +24,7 @@ from pandas.tseries.offsets import MonthEnd
 from zht.data.gta.api import read_gta
 from zht.data.resset.api import read_resset
 from zht.data.wind.api import read_wind
-from zht.utils.dateu import convert_freq
+from zht.utils.dateu import freq_end
 
 from config import DATA_SRC, DATA_PATH
 import numpy as np
@@ -189,7 +189,7 @@ def get_mktRetM():
     df = df[[targetVar]]
     del df.index.name
     df.columns = [newName]
-    df.index=convert_freq(df.index,'M')
+    df.index=freq_end(df.index, 'M')
     df.to_csv(path)
 
 def get_capM():
@@ -236,7 +236,7 @@ def get_stockCloseY():
     path=os.path.join(DATA_PATH, fn + '.csv')
     table=_readFromSrc(tbname)
     df=pd.pivot_table(table,varname,indname,colname)
-    df.index=convert_freq(df.index,'Y')
+    df.index=freq_end(df.index, 'Y')
     df.to_csv(path)
 
 def get_ff3M_resset():
@@ -386,20 +386,4 @@ def get_stInfo():
 #         eval(f)()
 #         print(f)
 
-
-#TODO:obeserver the src
-'''
-#---------------------------
-def get_new_src():
-    p=r'E:\a\75_2612_STK_MKT_Dalyr\STK_MKT_Dalyr.txt'
-    df=pd.read_csv(p,sep='\t', encoding='ISO-8859-1', error_bad_lines=False, skiprows=[1, 2])
-    df.to_csv(r'E:\a\75_2612_STK_MKT_Dalyr\STK_MKT_Dalyr.csv',encoding='utf-8')
-
-#------------------------------------
-'''
-# TODO: gta's data is not monotonic_increasing ,add this two row to other scripts
-'''
-if not df.index.is_monotonic_increasing:
-    df = df.sort_index(level='t')  
-'''
 

@@ -15,7 +15,7 @@ from tool import groupby_rolling
 
 
 from zht.data.gta.api import read_gta
-from zht.utils.dateu import convert_freq
+from zht.utils.dateu import freq_end
 
 def _amihud(subx):
     subx['volume']=subx['volume'].replace(0,np.nan)
@@ -29,7 +29,7 @@ def get_amihud_illiq():
     df=read_gta('TRD_Dalyr')
     df=df[['Stkcd','Trddt','Dretwd','Dnvaltrd']]
     df.columns=['sid','t','ret','volume']
-    df['t']=convert_freq(df['t'],'D')
+    df['t']=freq_end(df['t'], 'D')
     df=df.set_index(['t','sid'])
     if not df.index.is_monotonic_increasing:
         df=df.sort_index(level='t')#TODO: gta's data is not monotonic_increasing ,add this two row to other scripts
@@ -58,7 +58,7 @@ def get_liquidity_ps():
     df.columns=['t','rm']
     df=df.set_index('t')
 
-    df.index=convert_freq(df.index,'M')
+    df.index=freq_end(df.index, 'M')
     df=df.sort_index()
     df['rm_ahead']=df['rm'].shift(1)
     df['delta_rm']=df['rm']-df['rm'].shift(1)

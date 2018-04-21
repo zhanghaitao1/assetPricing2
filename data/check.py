@@ -20,31 +20,44 @@ def identify_axis(axis):
 
 def analyse_freqency(axis):
     delta=axis[2]-axis[1]
-    if delta.days>=28 and axis[1].day<=28:
+    if delta.days>=28 and axis[1].day<28:
         raise MyError('The frequency seems to be "M",but the date is not the end of month !')
 
-def _check_axis(axis):
-    #for single index
-
-    validNames=['sid','t']
-
-    #TODO: how about multiIndex DataFrame and Series?
-    if not axis.name:
-        raise MyError('axis name is missing !')
-    elif axis.name not in ['sid','t']:
-        raise MyError('The axis name is {},not included in {}'.format(axis.name,str(validNames)))
-    elif axis.name=='t':
-        if not isinstance(axis[0],pd.Timestamp):
-            raise MyError('The data type of "time index" should be pd.Timestamp rather than {}!'.format(type(axis[0])))
-        analyse_freqency(axis)
-    elif axis.name=='sid':
-        if not isinstance(axis[0],str):
-            raise MyError('The data type of "sid" should be str rather than {}!'.format(type(axis[0])))
-        #TODO:unify the sid add suffix for sid
+def _check_multiIndex(axis):
+    dic={'t':pd.Timestamp,'sid':str}
+    names=axis.names
+    values=axis[0]
+    for n,v in zip(names,values):
+        if not isinstance(v,dic[n]):
+            raise MyError('The data type of "{}" should be "{}",rather than "{}"!'.format(n,dic[n],type(v)))
 
     if axis.has_duplicates:
         raise MyError('The axis "{}" has duplicates'.format(axis.name))
+    
+def _check_singleIndex(axis):
+    #for single index
+    dic={'sid':str,
+         't':pd.Timestamp,
+         'type':str}
 
+    # check data type
+    if not axis.name:
+        raise MyError('axis name is missing !')
+    elif axis.name not in dic.keys():
+        raise MyError('The axis name is "{}",not included in {}'.format(axis.name,str(dic.keys())))
+    elif not isinstance(axis[0],dic[axis.name]):
+        raise MyError('The data type of "{}" should be "{}",rather than "{}"!'.format(
+            axis.name, dic[axis.name], type(axis[0])))
+
+    # check duplicates
+    if axis.has_duplicates:
+        raise MyError('The axis "{}" has duplicates'.format(axis.name))
+
+def _check_axis(axis):
+    if isinstance(axis,pd.MultiIndex):
+        _check_multiIndex(axis)
+    else:
+        _check_singleIndex(axis)
 
 def check_s_for_saving_name(s, name):
     if not s.name:
@@ -57,6 +70,8 @@ def check_s(s, name):
     check_s_for_saving_name(s, name)
 
 def check_df(df):
+    if len(df.columns)<=1:
+        raise MyError("For DataFrame with only one column,you'd better convert it to Series !")
     _check_axis(df.index)
     _check_axis(df.columns)
 
