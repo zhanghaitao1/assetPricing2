@@ -7,73 +7,17 @@
 
 import pandas as pd
 import os
-import pickle
 import numpy as np
 
 from config import DATA_SRC,CSV_PATH,PKL_PATH
-from data.check import check_df, MyError,check
-from data.outlier import detect_outliers,  detect_outliers
-from pandas.tseries.offsets import MonthEnd
-from data.outlier import _for_1d
-from pylab import savefig
+from data.check import  MyError,check
+from data.dataTools import read_df_from_gta, save, read_gta, read_raw
+
+from data.outlier import  detect_outliers
 from zht.data.resset.api import read_resset
 from zht.utils.dateu import freq_end
 from zht.data.wind.api import read_wind
 
-
-def read_src(tbname,*args,**kwargs):
-    df=pd.read_csv(os.path.join(DATA_SRC,tbname+'.csv'),*args,**kwargs)
-    return df
-
-def _get_df(tbname, varname, indname, colname):
-    table=read_src(tbname)
-    df=pd.pivot_table(table,varname,indname,colname)
-    return df
-
-def read_csv(tbname, index_col):
-    df=pd.read_csv(os.path.join(CSV_PATH,tbname+'.csv'),index_col=index_col)
-    # TODO: datetime,axis dtypes
-    return df
-
-def read_pkl(tbname):
-    df=pd.read_pickle(os.path.join(PKL_PATH,tbname+'.pkl'))
-    return df
-
-
-def series_or_df(x):
-    if x.ndim==2 and x.shape[1]==1:
-        raise MyError('For DataFrame with only one column,we should convert them to Series!')
-
-
-def unify(x):
-    if x.ndim==1:
-        x=x.sort_index()
-        return x
-    elif x.ndim==2:
-        x=x.sort_index(axis=0)
-        x=x.sort_index(axis=1)
-        return x
-
-
-def save(x, name,outliers=True):
-    '''
-    Since some information about DataFrame will be missing,such as the dtype,columns.name,
-    will save them as pkl.
-    :param x:
-    :param name:
-    :return:
-    '''
-    x=unify(x)
-    check(x,name)
-    if outliers:
-        detect_outliers(x,name)
-
-    if x.ndim==1:
-        x.to_frame().to_csv(os.path.join(CSV_PATH, name + '.csv'))
-    else:
-        x.to_csv(os.path.join(CSV_PATH, name + '.csv'))
-
-    x.to_pickle(os.path.join(PKL_PATH, name + '.pkl'))
 
 def get_stockRetD():
     # get stock daily stock return
@@ -81,7 +25,7 @@ def get_stockRetD():
     varname='Dretwd'#考虑现金红利再投资的收益
     indname='Trddt'
     colname='Stkcd'
-    df=_get_df(tbname, varname, indname, colname)
+    df=read_df_from_gta(tbname, varname, indname, colname)
 
     df.index.name='t'
     df.index=pd.to_datetime(df.index) #TODO: dayend?
@@ -96,7 +40,7 @@ def get_stockCloseD():
     varname='Clsprc'
     indname='Trddt'
     colname='Stkcd'
-    df=_get_df(tbname, varname, indname, colname)
+    df=read_df_from_gta(tbname, varname, indname, colname)
 
     df.index.name='t'
     df.index=pd.to_datetime(df.index)
@@ -115,7 +59,7 @@ def get_mktRetD():
     tbname = 'TRD_Cndalym'
     indVar = 'Trddt'
     targetVar = 'Cdretwdos'  # 考虑现金红利再投资的综合日市场回报率(流通市值加权平均法)
-    df=read_src(tbname)
+    df=read_gta(tbname)
 
 
     condition1=df['Markettype']==21 # 21=综合A股和创业板
@@ -143,7 +87,7 @@ def _get_rf(freq):
     dic={'D':'Nrrdaydt','W':'Nrrwkdt','M':'Nrrmtdt'}
 
     tname = 'TRD_Nrrate'
-    src = read_src(tname)
+    src = read_gta(tname)
     #NRI01=定期-整存整取-一年利率；TBC=国债票面利率,根据复利计算方法，
     # 将年度的无风险利率转化为月度数据
     src=src[src['Nrr1']=='NRI01']
@@ -177,8 +121,8 @@ def get_rfM():
     save(df,'rfM')
 
 def get_eretD():
-    stockRetD=read_pkl('stockRetD')
-    rfD=read_pkl('rfD')
+    stockRetD=read_raw('stockRetD')
+    rfD=read_raw('rfD')
     eretD=stockRetD.sub(rfD,axis=0)
     # The date for stockRetD is buisiness date,but for rfD, it is calendar date.
     eretD=eretD.dropna(axis=0,how='all')# use this to ajust the index from calendar date to buisiness date
@@ -195,7 +139,7 @@ def get_stockRetM():
     indname='Trdmnt'
     colname='Stkcd'
 
-    df=_get_df(tbname, varname, indname, colname)
+    df=read_df_from_gta(tbname, varname, indname, colname)
 
     #TODO: identify the axis and convert the axis automatically
     df.index.name='t'
@@ -205,10 +149,29 @@ def get_stockRetM():
 
     save(df, 'stockRetM')
 
+def get_stockCloseM():
+    '''
+    monthly stock close price
+    :return:
+    '''
+    tbname = 'TRD_Mnth'
+    varname='Mclsprc'
+    indname='Trdmnt'
+    colname='Stkcd'
+
+    df=read_df_from_gta(tbname, varname, indname, colname)
+
+    #TODO: identify the axis and convert the axis automatically
+    df.index.name='t'
+    df.columns.name='sid'
+    df.index=freq_end(df.index, 'M')
+    df.columns=df.columns.astype(str)
+
+    save(df, 'stockCloseM')
 
 def get_eretM():
-    stockRetM=read_pkl('stockRetM')
-    rfM=read_pkl('rfM')
+    stockRetM=read_raw('stockRetM')
+    rfM=read_raw('rfM')
     eretM=stockRetM.sub(rfM,axis=0)
     save(eretM,'eretM')
 
@@ -217,7 +180,7 @@ def get_mktRetM():
     indVar = 'Trdmnt'
     targetVar = 'Cmretwdos'  # 考虑现金红利再投资的综合日市场回报率(流通市值加权平均法)
 
-    df = read_src(tbname)
+    df = read_gta(tbname)
     df=df[df['Markettype']==21]# 21=综合A股和创业板
 
     df = df.set_index(indVar)
@@ -239,7 +202,7 @@ def get_capM():
     varname='Msmvosd' #月个股流通市值，单位 千元 #TODO:the unit convert it to million as Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
     indname='Trdmnt'
     colname='Stkcd'
-    df=_get_df(tbname, varname, indname, colname)
+    df=read_df_from_gta(tbname, varname, indname, colname)
     df.index.name='t'
     df.index=freq_end(df.index, 'M')
     df.columns=df.columns.astype(str)
@@ -252,7 +215,7 @@ def get_bps_gta():
     varname = 'F091001A'
     indname = 'Accper'
     colname = 'Stkcd'
-    df=_get_df(tbname, varname, indname, colname)
+    df=read_df_from_gta(tbname, varname, indname, colname)
     df.index.name='t'
     df.index=pd.to_datetime(df.index)
     df.columns=df.columns.astype(str)
@@ -279,7 +242,7 @@ def get_stockCloseY():
     varname='Yclsprc'
     indname='Trdynt'
     colname='Stkcd'
-    df=_get_df(tbname, varname, indname, colname)
+    df=read_df_from_gta(tbname, varname, indname, colname)
     df.index=freq_end(df.index,'Y')
     df.index.name='t'
     df.columns=df.columns.astype(str)
@@ -307,7 +270,7 @@ def get_ff3M_resset():
     save(df,'ff3M_resset')
 
 def get_ff3M():
-    df=read_src('STK_MKT_ThrfacMonth')
+    df=read_gta('STK_MKT_ThrfacMonth')
     #P9709 全部A股市场包含沪深A股和创业板
     #流通市值加权
     df=df[df['MarkettypeID']=='P9709'][['TradingMonth','RiskPremium1','SMB1','HML1']]
@@ -318,7 +281,7 @@ def get_ff3M():
     save(df,'ff3M')
 
 def get_ffcM():
-    df=read_src('STK_MKT_CarhartFourFactors')
+    df=read_gta('STK_MKT_CarhartFourFactors')
     # P9709 全部A股市场包含沪深A股和创业板
     # 流通市值加权
     df = df[df['MarkettypeID'] == 'P9709'][
@@ -331,7 +294,7 @@ def get_ffcM():
     save(df,'ffcM')
 
 def get_ff5M():
-    df=read_src('STK_MKT_FivefacMonth')
+    df=read_gta('STK_MKT_FivefacMonth')
     #P9709 全部A股市场包含沪深A股和创业板
     #流通市值加权
     #2*3 投资组合
@@ -361,7 +324,7 @@ def get_hxz4M():
 
 def get_ff3D():
     tbname='STK_MKT_ThrfacDay'
-    df=read_src(tbname)
+    df=read_gta(tbname)
     condition1=df['MarkettypeID']=='P9707'
     # P9709 全部A股市场包含沪深A股和创业板.
     # 流通市值加权
@@ -374,7 +337,7 @@ def get_ff3D():
     save(df,'ff3D')
 
 def get_rpM():
-    rpM=read_pkl('ff3M')['rp']
+    rpM=read_raw('ff3M')['rp']
     rpM.name='rpM'
     save(rpM,'rpM')
 
@@ -387,12 +350,12 @@ def get_capmM():
     pass
 
 def get_rpD():
-    rpD=read_pkl('ff3D')['rp']
+    rpD=read_raw('ff3D')['rp']
     rpD.name='rpD'
     save(rpD,'rpD')
 
 def get_listInfo():
-    df=read_src('IPO_Cobasic',encoding='gbk')
+    df=read_gta('IPO_Cobasic', encoding='gbk')
     df=df.set_index('Stkcd')
     df.index.name='sid'
     df.index=df.index.astype(str)
@@ -417,7 +380,7 @@ def get_stInfo():
     :return:
     '''
     #TODO: how about PT
-    df=read_src('TRD_Dalyr',encoding='gbk')
+    df=read_gta('TRD_Dalyr', encoding='gbk')
     df=df[['Trddt','Stkcd','Trdsta']]
     df.columns=['t','sid','status']
     df.columns.name='type'
@@ -428,8 +391,7 @@ def get_stInfo():
     df0['not_st']=True
     dfD=df0.set_index(['t','sid'])['not_st']
     dfD=dfD.sort_index(level='t')
-    dfD.name='stInfoD'
-    
+    dfD=dfD.unstack()
 
     def func(x):
         # for information about the status refer to the documents
@@ -441,11 +403,10 @@ def get_stInfo():
     dfM=df1.groupby([pd.Grouper(key='t',freq='M'),'sid']).sum()
     dfM['not_st']=True
     dfM=dfM['not_st']
-    dfM.name='stInfoM'
+    dfM=dfM.unstack()
 
     save(dfD,'stInfoD',outliers=False)
     save(dfM,'stInfoM',outliers=False)
-
 
 # def get_listInfo1():
 #     fp=r'E:\a\gta20180412\txt\STK_ListedCoInfoAnl.txt'
@@ -454,11 +415,11 @@ def get_stInfo():
 #
 #     #TODO: wrong!  find stock code online,the table only contains information from 2010.
 
-if __name__=='__main__':
-    fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
-    for f in fstrs:#TODO:
-        eval(f)()
-        print(f)
+# if __name__=='__main__':
+#     fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
+#     for f in fstrs:#TODO:
+#         eval(f)()
+#         print(f)
 
 
 

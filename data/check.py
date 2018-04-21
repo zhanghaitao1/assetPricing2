@@ -5,23 +5,38 @@
 # TIME:2018-04-19  15:21
 # NAME:assetPricing2-check.py
 
+'''
+This module is used to check the validality of the Pandas objects from the following aspects:
+1.
+'''
+
+
 import pandas as pd
+from data.base import MyError
 
-class MyError(Exception):
-    '''The name of index is wrong'''
-    def __init__(self,msg):
-        super().__init__(msg)
 
-def identify_axis(axis):
+
+
+def identify_axis():
     #TODO: machine learning to identify the type and name of axis
-
     pass
 
+def check_data_structure(x):
+    '''
+    All the data structure should belong to the following list:
+    1. singleIndexed Series (index.name,series.name is required)
+    2. singleIndexed DataFrame with multiple columns(index.name,columns.name is required)
+    3. multIndexed DataFrame with multiple columns(index.names,columns.names is required)
 
-def analyse_freqency(axis):
-    delta=axis[2]-axis[1]
-    if delta.days>=28 and axis[1].day<28:
-        raise MyError('The frequency seems to be "M",but the date is not the end of month !')
+    Rules:
+    1. If there  is "t" axis,always put it in index.
+
+    '''
+    if x.ndim==1 and isinstance(x.index,pd.MultiIndex):
+        raise MyError("Series with MultiIndex is not allowed ! you'd betterconvert it into singleIndexed DataFrame !")
+    elif x.ndim==2 and x.shape[0]==1:
+        raise MyError("DataFrame with only one column is not allowed,you'd better convert it to Series !")
+
 
 def _check_multiIndex(axis):
     dic={'t':pd.Timestamp,'sid':str}
@@ -70,12 +85,11 @@ def check_s(s, name):
     check_s_for_saving_name(s, name)
 
 def check_df(df):
-    if len(df.columns)<=1:
-        raise MyError("For DataFrame with only one column,you'd better convert it to Series !")
     _check_axis(df.index)
     _check_axis(df.columns)
 
 def check(x,name):
+    check_data_structure(x)
     if x.ndim==1:
         check_s(x,name)
     elif x.ndim==2:

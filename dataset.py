@@ -369,6 +369,7 @@ def save_info():
 
 
 #--------------------------------------------sample control----------------------------------------------
+#TODO: sample control should be put before calculating the indicators or factors
 def control_stock_sample(df, condition):
     '''
     is_sz
