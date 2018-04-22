@@ -8,7 +8,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from config import DATA_SRC, CSV_PATH, PKL_PATH
+from config import DATA_SRC, CSV_PATH, PKL_PATH, FILTERED_PATH
 from data.check import check
 from data.outlier import detect_outliers
 
@@ -72,3 +72,10 @@ def detect_freq(axis):
         return 'M'
     else:
         raise ValueError
+
+def load_data(name):
+    x=pd.read_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
+    return x
+
+def save_to_filter(x,name):
+    x.to_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))

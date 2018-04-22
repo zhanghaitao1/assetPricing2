@@ -11,8 +11,7 @@ import numpy as np
 import pandas as pd
 from config import FILTERED_PATH
 from data.base import MyError
-from data.check import check
-from data.dataTools import read_raw, detect_freq
+from data.dataTools import read_raw, detect_freq, load_data, save_to_filter
 from data.outlier import detect_outliers
 from pandas.tseries.offsets import MonthEnd
 from zht.utils.mathu import get_inter_frame
@@ -154,12 +153,6 @@ def apply_condition(df):
     return df
 
 ########################################### filtered ##################################################
-def save_to_filter(x,name):
-    x.to_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
-
-def read_filtered(name):
-    x=pd.read_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
-    return x
 
 def filter_stockRetD():
     raw=read_raw('stockRetD')
@@ -189,11 +182,11 @@ def filter_rfM():
     x = start_end(raw)
     save_to_filter(x,'rfM')
 
-def filter_eretD():
-    stockRetD=read_filtered('stockRetD')
-    rfD=read_filtered('rfD')
+def filter_stockEretD():
+    stockRetD=load_data('stockRetD')
+    rfD=load_data('rfD')
     eretD=stockRetD.sub(rfD,axis=0)
-    save_to_filter(eretD,'eretD')
+    save_to_filter(eretD,'stockEretD')
 
 def filter_stockRetM():
     raw=read_raw('stockRetM')
@@ -207,11 +200,11 @@ def filter_stockCloseM():
     x=apply_condition(raw)
     save_to_filter(x,'stockCloseM')
 
-def filter_eretM():
-    stockRetM=read_filtered('stockRetM')
-    rfM=read_filtered('rfM')
+def filter_stockEretM():
+    stockRetM=load_data('stockRetM')
+    rfM=load_data('rfM')
     eretM=stockRetM.sub(rfM,axis=0)
-    save_to_filter(eretM,'eretM')
+    save_to_filter(eretM,'stockEretM')
 
 def filter_mktRetM():
     raw=read_raw('mktRetM')
@@ -229,6 +222,12 @@ def filter_bps():
     x[abs(x)>100]=np.nan #TODO:
 
     save_to_filter(x,'bps')
+
+def filter_bps_wind():
+    raw=read_raw('bps_wind')
+    x=start_end(raw)
+    x=x.where(x<100.0)
+    save_to_filter(x,'bps_wind')
 
 def filter_stockCloseY():
     raw=read_raw('stockCloseY')
@@ -286,16 +285,14 @@ def filter_ff3D():
     save_to_filter(x, 'ff3D')
 
 def filter_fpM():
-    raw=read_filtered('ff3M')['rp']
+    raw=load_data('ff3M')['rp']
     raw.name='rpM'
     save_to_filter(raw,'rpM')
 
 def filter_rpD():
-    raw=read_filtered('ff3D')['rp']
+    raw=load_data('ff3D')['rp']
     raw.name='rpD'
     save_to_filter(raw,'rpD')
-
-
 
 
 

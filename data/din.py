@@ -236,6 +236,9 @@ def get_bps_wind():
 
     save(df,'bps_wind')
 
+
+
+
 #get stock close price yearly
 def get_stockCloseY():
     tbname='TRD_Year'

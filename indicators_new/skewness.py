@@ -1,12 +1,16 @@
 # -*-coding: utf-8 -*-
+# Python 3.6
 # Author:Zhang Haitao
 # Email:13163385579@163.com
-# TIME:2018-03-21  18:17
-# NAME:assetPricing2-7skewness.py
-from dout import *
+# TIME:2018-04-22  16:00
+# NAME:assetPricing2-skewness.py
+
+import pandas as pd
+
+from data.dataTools import load_data, save_to_filter
 import statsmodels.formula.api as sm
-from tool import monthly_cal
 from collections import OrderedDict
+from tool import groupby_rolling
 
 def _get_comb():
     '''
@@ -14,18 +18,18 @@ def _get_comb():
 
     :return:
     '''
-    retD=read_df('retD','D')
+    retD=load_data('stockRetD')
     retD=retD.stack()
     retD.index.names=['t','sid']
     retD.name='ret'
 
-    eretD = read_df('stockEretD', freq='D')
+    eretD=load_data('stockEretD')
     eretD = eretD.stack()
     eretD.index.names = ['t', 'sid']
     eretD.name = 'eret'
 
-    ff3D = read_df('ff3D', 'D')
-    mktD = read_df('mktRetD', 'D')
+    ff3D=load_data('ff3D')
+    mktD=load_data('mktRetD').to_frame()
     mktD.columns=['mkt']
     mktD['mkt_square']=mktD['mkt']**2
     multi_comb_D=pd.concat([eretD,retD],axis=1)
@@ -33,18 +37,18 @@ def _get_comb():
     combD=multi_comb_D.join(single_comb_D)
 
     #monthly
-    retM = read_df('retM', 'M')
+    retM=load_data('stockRetM')
     retM = retM.stack()
     retM.index.names = ['t', 'sid']
     retM.name = 'ret'
 
-    eretM = read_df('stockEretM', freq='M')
+    eretM=load_data('stockEretM')
     eretM = eretM.stack()
     eretM.index.names = ['t', 'sid']
     eretM.name = 'eret'
 
-    ff3M = read_df('ff3M', 'M')
-    mktM = read_df('mktRetM', 'M')
+    ff3M=load_data('ff3M')
+    mktM=load_data('mktRetM').to_frame()
     mktM.columns = ['mkt']
     mktM['mkt_square'] = mktM['mkt'] ** 2
     multi_comb_M = pd.concat([eretM, retM], axis=1)
@@ -72,13 +76,20 @@ def cal_skewnewss():
 
     combD,combM=_get_comb()
 
-    monthly_cal(combD, 'D', dictD, _skew, 'skewD')
-    monthly_cal(combD, 'D', dictD, _coskew, 'coskewD')
-    monthly_cal(combD, 'D', dictD, _idioskew, 'idioskewD')
+    skewD=groupby_rolling(combD, 'D', dictD, _skew)
+    coskewD=groupby_rolling(combD, 'D', dictD, _coskew)
+    idioskewD=groupby_rolling(combD, 'D', dictD, _idioskew)
 
-    monthly_cal(combM, 'M', dictM, _skew, 'skewM')
-    monthly_cal(combM, 'M', dictM, _coskew, 'coskewM')
-    monthly_cal(combM, 'M', dictM, _idioskew, 'idioskewM')
+    skewM=groupby_rolling(combM, 'M', dictM, _skew)
+    coskewM=groupby_rolling(combM, 'M', dictM, _coskew)
+    idioskewM=groupby_rolling(combM, 'M', dictM, _idioskew)
+
+    save_to_filter(skewD,'skewD')
+    save_to_filter(coskewD,'coskewD')
+    save_to_filter(idioskewD,'idioskewD')
+    save_to_filter(skewM,'skewM')
+    save_to_filter(coskewM,'coskewM')
+    save_to_filter(idioskewM,'idioskewM')
 
 
 
