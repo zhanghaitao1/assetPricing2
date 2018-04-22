@@ -19,6 +19,7 @@ WINSORIZE_LIMITS=(0.01,0.01)
 
 PKL_PATH=os.path.join(DATA_PATH,'pkl')
 OUTLIER_PATH=os.path.join(DATA_PATH,'outlier')
+FILTERED_PATH=os.path.join(DATA_PATH,'filtered')
 
 
 

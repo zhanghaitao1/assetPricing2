@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from config import FILTERED_PATH
 from data.base import MyError
 from data.check import check
 from data.dataTools import read_raw, detect_freq
@@ -152,9 +153,160 @@ def apply_condition(df):
     df=delete_st(df)
     return df
 
+########################################### filtered ##################################################
+def save_to_filter(x,name):
+    x.to_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
 
-df=read_raw('stockRetD')
-detect_outliers(df,'0')
-newdf=apply_condition(df)
-detect_outliers(newdf,'1')
+def read_filtered(name):
+    x=pd.read_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
+    return x
+
+def filter_stockRetD():
+    raw=read_raw('stockRetD')
+    x=apply_condition(raw)
+    x[abs(x)>0.11]=np.nan
+
+    save_to_filter(x,'stockRetD')
+
+def filter_stockCloseD():
+    name='stockCloseD'
+    raw=read_raw(name)
+    x=apply_condition(raw)
+    save_to_filter(x,name)
+
+def filter_mktRetD():
+    raw=read_raw('mktRetD')
+    x=start_end(raw)
+    save_to_filter(x,'mktRetD')
+
+def filter_rfD():
+    raw=read_raw('rfD')
+    x=start_end(raw)
+    save_to_filter(x,'rfD')
+
+def filter_rfM():
+    raw = read_raw('rfM')
+    x = start_end(raw)
+    save_to_filter(x,'rfM')
+
+def filter_eretD():
+    stockRetD=read_filtered('stockRetD')
+    rfD=read_filtered('rfD')
+    eretD=stockRetD.sub(rfD,axis=0)
+    save_to_filter(eretD,'eretD')
+
+def filter_stockRetM():
+    raw=read_raw('stockRetM')
+    x=apply_condition(raw)
+    x[abs(x)>1.0]=np.nan
+
+    save_to_filter(x,'stockRetM')
+
+def filter_stockCloseM():
+    raw=read_raw('stockCloseM')
+    x=apply_condition(raw)
+    save_to_filter(x,'stockCloseM')
+
+def filter_eretM():
+    stockRetM=read_filtered('stockRetM')
+    rfM=read_filtered('rfM')
+    eretM=stockRetM.sub(rfM,axis=0)
+    save_to_filter(eretM,'eretM')
+
+def filter_mktRetM():
+    raw=read_raw('mktRetM')
+    x=start_end(raw)
+    save_to_filter(x,'mktRetM')
+
+def filter_capM():
+    raw=read_raw('capM')
+    x=apply_condition(raw)
+    save_to_filter(x,'capM')
+
+def filter_bps():
+    raw=read_raw('bps')
+    x=apply_condition(raw)
+    x[abs(x)>100]=np.nan #TODO:
+
+    save_to_filter(x,'bps')
+
+def filter_stockCloseY():
+    raw=read_raw('stockCloseY')
+    x=apply_condition(raw)
+    detect_outliers(x,'stockCloseY1')
+    save_to_filter(x,'stockCloseY')
+
+def filter_ff3M_resset():
+    raw=read_raw('ff3M_resset')
+    x=start_end(raw)
+
+    save_to_filter(x,'ff3M_resset')
+
+def filter_ff3M():
+    raw=read_raw('ff3M')
+    x=start_end(raw)
+    for col,s in x.iteritems():
+        detect_outliers(s,col)
+
+    save_to_filter(x,'ff3M')
+
+def filter_ffcM():
+    raw=read_raw('ffcM')
+    x=start_end(raw)
+    for col,s in x.iteritems():
+        detect_outliers(s,'ffcM_'+col)
+
+    save_to_filter(x,'ffcM')
+
+def filter_ff5M():
+    raw=read_raw('ff5M')
+    x=start_end(raw)
+
+    for col,s in x.iteritems():
+        detect_outliers(s,'ff5M_'+col)
+
+    save_to_filter(x,'ff5M')
+
+def filter_hxz4M():
+    raw = read_raw('hxz4M')
+    x = start_end(raw)
+
+    for col, s in x.iteritems():
+        detect_outliers(s, 'hxz4M_' + col)
+
+    save_to_filter(x, 'hxz4M')
+
+def filter_ff3D():
+    raw = read_raw('ff3D')
+    x = start_end(raw)
+
+    for col, s in x.iteritems():
+        detect_outliers(s, 'ff3D_' + col)
+    #TODO:noisy
+    save_to_filter(x, 'ff3D')
+
+def filter_fpM():
+    raw=read_filtered('ff3M')['rp']
+    raw.name='rpM'
+    save_to_filter(raw,'rpM')
+
+def filter_rpD():
+    raw=read_filtered('ff3D')['rp']
+    raw.name='rpD'
+    save_to_filter(raw,'rpD')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

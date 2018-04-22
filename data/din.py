@@ -206,11 +206,11 @@ def get_capM():
     df.index.name='t'
     df.index=freq_end(df.index, 'M')
     df.columns=df.columns.astype(str)
-    df.columns.name='type'
+    df.columns.name='sid'
     save(df,'capM')
 
 # financial indicators-------------------------------------------
-def get_bps_gta():
+def get_bps():
     tbname = 'FI_T9'
     varname = 'F091001A'
     indname = 'Accper'
@@ -219,7 +219,7 @@ def get_bps_gta():
     df.index.name='t'
     df.index=pd.to_datetime(df.index)
     df.columns=df.columns.astype(str)
-    df.columns.name='type'
+    df.columns.name='sid'
     save(df,'bps')
 
 def get_bps_wind():
@@ -387,7 +387,8 @@ def get_stInfo():
     df['t']=pd.to_datetime(df['t'])
     df['sid']=df['sid'].astype(str)
 
-    df0=df[~df['status'].isin([2.0,3.0])]
+    # df0=df[~df['status'].isin([2.0,3.0])] #TODO:
+    df0=df[df['status']==1.0] #TODO:or just delete all the ST stocks rather than just delete the corresponding months or days
     df0['not_st']=True
     dfD=df0.set_index(['t','sid'])['not_st']
     dfD=dfD.sort_index(level='t')
@@ -407,6 +408,7 @@ def get_stInfo():
 
     save(dfD,'stInfoD',outliers=False)
     save(dfM,'stInfoM',outliers=False)
+
 
 # def get_listInfo1():
 #     fp=r'E:\a\gta20180412\txt\STK_ListedCoInfoAnl.txt'
