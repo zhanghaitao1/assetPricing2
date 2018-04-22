@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-04-22  16:00
-# NAME:assetPricing2-skewness.py
+# NAME:assetPricing2-7 skewness.py
 
 import pandas as pd
 

@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-04-22  14:57
-# NAME:assetPricing2-beta.py
+# NAME:assetPricing2-2 beta.py
 
 import numpy as np
 import pandas as pd

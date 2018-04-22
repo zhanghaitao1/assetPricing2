@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-04-22  15:07
-# NAME:assetPricing2-value.py
+# NAME:assetPricing2-3 value.py
 from data.outlier import detect_outliers
 from dout import read_df
 from zht.utils.mathu import get_inter_frame
@@ -33,7 +33,6 @@ def compare_wind_gta_bps():
 
     detect_outliers(bps_wind,'a1')
     detect_outliers(bps,'a2')
-
 
 
 def get_bm():

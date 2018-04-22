@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-04-22  16:40
-# NAME:assetPricing2-idiosyncraticVolatility.py
+# NAME:assetPricing2-8 idiosyncraticVolatility.py
 
 import pandas as pd
 import numpy as np

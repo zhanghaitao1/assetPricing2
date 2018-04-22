@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-04-22  15:54
-# NAME:assetPricing2-liquidity.py
+# NAME:assetPricing2-6 liquidity.py
 
 import numpy as np
 import pandas as pd

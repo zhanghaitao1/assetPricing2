@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-04-22  15:49
-# NAME:assetPricing2-momentum.py
+# NAME:assetPricing2-4 momentum.py
 
 import pandas as pd
 import numpy as np
