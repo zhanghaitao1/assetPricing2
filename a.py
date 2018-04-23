@@ -5,16 +5,22 @@
 # TIME:2018-04-08  10:57
 # NAME:assetPricing2-a.py
 
-import pandas as pd
-from pandas.tseries.offsets import MonthEnd
 
-date=pd.date_range('2018-02-01','2018-04-09',freq='D')
-s=pd.Series(range(len(date)),index=date)
-s=s[:3].append(s[30:32]).append(s[-3:])
-s.asfreq('M')
-s.resample('M').agg(lambda x:x[-1])
+import inspect
 
 
-s.groupby(lambda x:x+MonthEnd(0)).agg(lambda x:x[-1])
-s.groupby(lambda x:x+MonthEnd(0)).agg(lambda x:x[0])
+def func(x):
+    return x*x
+
+args=range(10)
+
+str_func=inspect.getsource(func)
+str_args=inspect.getsource(args)
+
+str_main=open('multi_base.py').read()
+
+with open(r'e:\a\test.py','w') as f:
+    f.write('\n'.join([str_func,str_args,str_main]))
+
+
 

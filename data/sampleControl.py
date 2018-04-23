@@ -14,6 +14,7 @@ from data.base import MyError
 from data.dataTools import read_raw, detect_freq, load_data, save_to_filter
 from data.outlier import detect_outliers
 from pandas.tseries.offsets import MonthEnd
+from zht.utils.dateu import freq_end
 from zht.utils.mathu import get_inter_frame
 
 
@@ -293,6 +294,8 @@ def filter_rpD():
     raw=load_data('ff3D')['rp']
     raw.name='rpD'
     save_to_filter(raw,'rpD')
+
+
 
 
 

@@ -9,6 +9,7 @@ import os
 import numpy as np
 
 from config import DATA_SRC, CSV_PATH, PKL_PATH, FILTERED_PATH
+from data.base import MyError
 from data.check import check
 from data.outlier import detect_outliers
 
@@ -74,7 +75,14 @@ def detect_freq(axis):
         raise ValueError
 
 def load_data(name):
-    x=pd.read_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
+    fns1=os.listdir(FILTERED_PATH)
+    fns2=os.listdir(PKL_PATH)
+    if name+'.pkl' in fns1:
+        x=pd.read_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
+    elif name+'.pkl' in fns2:
+        x=read_raw(name)
+    else:
+        raise MyError('There is no such data named "{}.pkl" in the repository!'.format(name))
     return x
 
 def save_to_filter(x,name):

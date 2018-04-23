@@ -30,6 +30,14 @@ def check_data_structure(x):
 
     Rules:
     1. If there  is "t" axis,always put it in index.
+    2. For multiIndexed DataFrame,if there is 't','sid',they should be put in index,with 't' as level0 and
+        'sid' as level1,just like
+                            'col1'  'col2'
+            't'     'sid'     a1      a2
+            '1990'   '1'      a1      a2
+            '1990'   '2'      a1      a2
+            '1991'   '1'      a1      a2
+            '1991'   '2'      a1      a2
 
     '''
     if x.ndim==1 and isinstance(x.index,pd.MultiIndex):

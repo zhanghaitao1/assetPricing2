@@ -115,4 +115,4 @@ def get_liquidity_ps():
 
 if __name__=='__main__':
     get_amihud_illiq()
-    get_liquidity_ps()
+    # get_liquidity_ps()

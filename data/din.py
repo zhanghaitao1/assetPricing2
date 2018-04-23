@@ -5,6 +5,7 @@
 # TIME:2018-04-19  13:44
 # NAME:assetPricing2-din.py
 
+from urllib.request import urlopen
 import pandas as pd
 import os
 import numpy as np
@@ -412,6 +413,19 @@ def get_stInfo():
     save(dfD,'stInfoD',outliers=False)
     save(dfM,'stInfoM',outliers=False)
 
+def get_pu():
+    '''
+    policy uncertainty
+    :return:
+    '''
+    url = r'http://www.policyuncertainty.com/media/China_Policy_Uncertainty_Data.xlsx'
+    pu = pd.read_excel(url, skip_footer=1)
+    pu.columns = ['year', 'month', 'pu']
+    pu['t'] = pu['year'].map(str) + '-' + pu['month'].map(str)
+    pu['t'] = freq_end(pu['t'], 'M')
+    pu = pu.set_index('t')
+    pu = pu['pu']
+    save(pu,'pu')
 
 # def get_listInfo1():
 #     fp=r'E:\a\gta20180412\txt\STK_ListedCoInfoAnl.txt'
