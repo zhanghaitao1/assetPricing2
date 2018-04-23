@@ -5,17 +5,13 @@
 # TIME:2018-04-22  15:52
 # NAME:assetPricing2-5 reversal.py
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
 
 
 def get_rev():
     stockRetM=load_data('stockRetM')
     rev=stockRetM*100
-    rev=rev.stack().to_frame()
-    rev.columns=['reversal']
-    rev.index.names=['t','sid']
-    save_to_filter(rev,'reversal')
-
+    save(rev,'reversal')
 
 if __name__=='__main__':
     get_rev()

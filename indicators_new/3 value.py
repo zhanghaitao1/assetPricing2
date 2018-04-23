@@ -10,7 +10,7 @@ from zht.utils.mathu import get_inter_frame
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
 
 
 #compare the bps of wind with bv of gta
@@ -57,10 +57,16 @@ def get_bm():
     newIndex=pd.date_range(bm.index[0],bm.index[-1],freq='M')
     bm=bm.reindex(index=newIndex)
     bm=bm.fillna(method='ffill',limit=11) #TODO:some stock may have been delisted in the following year,so this method has some problems.
-    save_to_filter(bm,'bm')
 
     logbm=np.log(bm)
-    save_to_filter(logbm,'logbm')
+
+    bm=bm.stack()
+    logbm=logbm.stack()
+    x=pd.concat([bm,logbm],axis=1,keys=['bm','logbm'])
+    x.index.names=['t','sid']
+    x.columns.name='type'
+
+    save(x,'value')
 
 if __name__ == '__main__':
     get_bm()

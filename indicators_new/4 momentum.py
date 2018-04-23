@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling
@@ -62,10 +62,10 @@ def get_momentum():
         names.append(un)
 
     momentum=pd.concat(ss,axis=1,keys=names)
+    momentum.columns.name='type'
     momentum=momentum*100
-    save_to_filter(momentum,'momentum')
-    # for col in momentum.columns:
-    #     momentum[col].unstack().to_csv(os.path.join(DATA_PATH,col+'.csv'))
+
+    save(momentum,'momentum')
 
 if __name__=='__main__':
     get_momentum()

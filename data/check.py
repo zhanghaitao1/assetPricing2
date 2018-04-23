@@ -96,7 +96,7 @@ def check_df(df):
     _check_axis(df.index)
     _check_axis(df.columns)
 
-def check(x,name):
+def is_valid(x, name):
     check_data_structure(x)
     if x.ndim==1:
         check_s(x,name)

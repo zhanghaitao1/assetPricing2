@@ -19,6 +19,7 @@ The standards for din.py:
 import pandas as pd
 import os
 
+from data.dataTools import save
 from dout import read_df
 from pandas.tseries.offsets import MonthEnd
 from zht.data.gta.api import read_gta
@@ -370,14 +371,22 @@ def get_stInfo():
 
     dfM=df1.groupby([pd.Grouper(key='t',freq='M'),'sid']).sum()
     dfM['not_st']=True
-    dfM=dfM[['not_st']]
+    dfM=dfM['not_st']
+    dfM=dfM.unstack()
+    dfM.columns=dfM.columns.astype(str)
+
 
     df['not_st']=True
     dfD=df.set_index(['t','sid'])[['not_st']]
     dfD=dfD.sort_index(level='t')
 
-    dfD.to_csv(os.path.join(DATA_PATH,'stInfoD.csv'))
-    dfM.to_csv(os.path.join(DATA_PATH,'stInfoM.csv'))
+    dfD=dfD['not_st'].unstack().head()
+    dfD.columns=dfD.columns.astype(str)
+
+    save(dfD,'stInfoD',validation=True,outliers=False)
+    save(dfM,'stInfoM',validation=True,outliers=False)
+
+
 
 
 # if __name__=='__main__':

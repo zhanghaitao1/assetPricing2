@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import pandas as pd
 
 #TODO: detect outliers in src
 #TODO: detect outliers in indicators
@@ -56,7 +57,9 @@ def percentile_based_outlier(data, threshold=95):
     return (data < minval) | (data > maxval)
 
 
-def _for_2d(df,by='rbr'):
+
+
+def _for_2d(df,fn,by='rbr'):
     if by=='rbr':
         df = df.dropna(axis=0, how='all')
         fig, axes = plt.subplots(nrows=2,figsize=(20,12))
@@ -69,17 +72,18 @@ def _for_2d(df,by='rbr'):
         df=df.stack()
         df=df.dropna()
         df=df.reset_index(dropname,drop=True)
-        axes[1].plot(df.index,df.values,'ro',markersize=3)
+        axes[1].plot(df.index,df.values,'bo',markersize=3)
         axes[1].set_title("scatter")
         
         fig.suptitle('outliers for 2d')
-        
+        savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
+
     elif by=='cbc':
         pass
     else:
         raise MyError('by should be "rbr" or "cbc"!')
 
-def _for_1d(s):
+def _for_1d(s,fn):
     s=s.dropna()
     fig,axes=plt.subplots(nrows=2,figsize=(20,12))
     for ax,func,type in zip(axes,[mad_based_outlier,percentile_based_outlier],['mad_badsed','percentile_based']):
@@ -88,6 +92,12 @@ def _for_1d(s):
         ax.plot(outliers.index,outliers,'ro',markersize=3)
         ax.set_title('{};outliers:{}'.format(type,len(outliers)))
     fig.suptitle('sample:{},mean:{:.6f},median:{:.6f}'.format(len(s),np.mean(s),np.median(s)), size=14)
+    savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
+
+def _for_2d_multiIndex(multiDf,fn):
+    for col,s in multiDf.iteritems():
+        df=s.unstack(level='sid')
+        _for_2d(df,'{}_{}'.format(fn,col))
 
 def detect_outliers(x, fn, by='rbr'):
     '''
@@ -98,14 +108,17 @@ def detect_outliers(x, fn, by='rbr'):
     :param by:
     :return:
     '''
-    if x.ndim==1:
-        _for_1d(x)
-    elif x.ndim==2:
-        _for_2d(x,by)
 
-    savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
+    if x.ndim==1:
+        _for_1d(x,fn)
+    elif x.ndim==2:
+        if isinstance(x.index, pd.MultiIndex):
+            _for_2d_multiIndex(x, fn)
+        else:
+            _for_2d(x,fn,by)
 
 
 #TODO: save outliers to re-analyse
 
+#TODO: add description function
 

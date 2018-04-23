@@ -8,7 +8,7 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling
@@ -43,12 +43,18 @@ def cal_beta():
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})#TODO: why so many months are lost? refer to betaD.csv
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
     combD,combM=_get_comb()
-    # combD=combD[-800000:]
-    # combM=combM[-40000:]
+    combD=combD[-800000:] #TODO:
+    combM=combM[-40000:] #TODO:
     betaD=groupby_rolling(combD,'D',dictD,_beta)
     betaM=groupby_rolling(combM,'M',dictM,_beta)
-    save_to_filter(betaD,'betaD')
-    save_to_filter(betaM,'betaM')
+
+    betaD=betaD.stack().unstack(level=0)
+    betaM=betaM.stack().unstack(level=0)
+    x = pd.concat([betaD, betaM], axis=1)
+    x.index.names = ['t', 'sid']
+    x.columns.name = 'type'
+
+    save(x,'beta')
 
 
 if __name__=='__main__':

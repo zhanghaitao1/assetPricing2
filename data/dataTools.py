@@ -10,13 +10,10 @@ import numpy as np
 
 from config import DATA_SRC, CSV_PATH, PKL_PATH, FILTERED_PATH
 from data.base import MyError
-from data.check import check
+from data.check import is_valid
 from data.outlier import detect_outliers
+from zht.data.gta.api import read_gta
 
-
-def read_gta(tbname, *args, **kwargs):
-    df=pd.read_csv(os.path.join(DATA_SRC,tbname+'.csv'),*args,**kwargs)
-    return df
 
 def read_df_from_gta(tbname, varname, indname, colname):
     table=read_gta(tbname)
@@ -40,7 +37,7 @@ def read_raw(tbname,type='pkl',*args,**kwargs):
         # TODO: datetime,axis dtypes
     return df
 
-def save(x, name,outliers=True):
+def save(x, name, validation=True, outliers=True):
     '''
     Since some information about DataFrame will be missing,such as the dtype,columns.name,
     will save them as pkl.
@@ -49,11 +46,14 @@ def save(x, name,outliers=True):
     :param outliers:
     :return:
     '''
-    x=unify(x)
-    check(x,name)
+    if validation:
+        x=unify(x)
+        is_valid(x, name)
+
     if outliers:
         detect_outliers(x,name)
 
+    # save csv
     if x.ndim==1:
         x.to_frame().to_csv(os.path.join(CSV_PATH, name + '.csv'))
     else:

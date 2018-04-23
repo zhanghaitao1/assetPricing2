@@ -5,18 +5,148 @@
 # TIME:2018-04-21  17:40
 # NAME:assetPricing2-sampleControl.py
 import datetime
+import operator
 import os
+from functools import reduce
 
 import numpy as np
 import pandas as pd
 from config import FILTERED_PATH
 from data.base import MyError
-from data.dataTools import read_raw, detect_freq, load_data, save_to_filter
+from data.dataTools import read_raw, detect_freq, load_data, save_to_filter, save
 from data.outlier import detect_outliers
 from pandas.tseries.offsets import MonthEnd
 from zht.utils.dateu import freq_end
 from zht.utils.mathu import get_inter_frame
 
+def control_sid(conditions):
+    '''
+    is_sz
+    is_sh
+    is_gem 创业板
+    is_cross
+    not_financial
+    is_industry
+
+    :param conditions:
+    :return:stock code
+    '''
+    #TODO: is_gem,is_industry,
+    condition_set=['is_sz','is_sh','not_cross','not_financial']
+    info=read_raw('listInfo')
+
+    def _one_condition(condition):
+        if condition in condition_set:
+            sids=info.index[info[condition]]
+            return sids
+        else:
+            raise ValueError('The "conditions" should be one of {}'.format(repr(condition_set)))
+    if isinstance(conditions, list):
+        l_sids=[_one_condition(con) for con in conditions]
+        return sorted(list(set.intersection(*map(set,l_sids))))
+
+def control_t(start='1997-01-01', end=None, freq='M'):
+    '''
+    The limit on return starts from 1996-12-26
+
+    start
+    end
+
+    is_bear
+    is_bull
+    is_downside?
+
+    :return:
+    '''
+    if not end:
+        end=datetime.datetime.today()
+
+    return pd.date_range(start,end,freq=freq)
+
+def cross_closePrice_floor(clsPrice=5.0,freq='M'):
+    '''
+    delete penny stocks
+
+    the minimum close price is 5
+
+    :param df:
+    :param clsPrice:
+    :return:
+    '''
+    stockClose=read_raw('stockClose'+freq)
+    return stockClose>clsPrice
+
+#TODO: refer to readme.md to find more controling methods.
+def cross_year_after_list(freq='M'):
+    '''
+    listed at list 1 year
+    :return:
+    '''
+    listInfo=read_raw('listInfo')
+    listInfo['year_later']=listInfo['listDate']+pd.offsets.DateOffset(years=1)
+    if freq=='M':
+        listInfo['year_later']=listInfo['year_later']+MonthEnd(1)
+        # 1 rather than 0,exclude the first month,since most of
+        # year_later won't be monthend.
+    else:
+        listInfo['year_later']=listInfo['year_later']+pd.offsets.DateOffset(days=1)
+
+    start=listInfo['year_later'].min()
+    end=datetime.datetime.today()
+    mask=pd.DataFrame(np.nan,index=pd.Index(pd.date_range(start,end,freq=freq),name='t'),
+                       columns=listInfo.index,dtype=bool)
+
+    for sid,d in listInfo['year_later'].iteritems():
+       mask.at[d,sid]=True
+
+    mask=mask.ffill()
+    return mask
+
+def cross_not_st(freq='M'):
+    if freq=='M':
+        stInfo=read_raw('stInfoM')
+    elif freq=='D':
+        stInfo=read_raw('stInfoD')
+    else:
+        raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
+    return stInfo
+
+def control_cross(condition,*args,**kwargs):
+    conditions=['closePrice_floor','year_after_list','not_st']
+    if condition=='closeprice_floor':
+        return cross_closePrice_floor(*args,**kwargs)
+    elif condition=='year_after_list':
+        return cross_closePrice_floor(*args,**kwargs)
+    elif condition=='not_st':
+        return cross_not_st(*args,**kwargs)
+    else:
+        raise MyError('{} is invalid. Cross condition should belongs to {}.'.format(condition,repr(conditions)))
+
+def control_input():
+    sids=control_sid(['is_sz','not_financial'])
+    t=control_t(start='2001-01-01')
+    cross1=cross_closePrice_floor()
+    cross2=cross_year_after_list()
+    cross3=cross_not_st()
+    cross1,cross2,cross3=get_inter_frame([cross1,cross2,cross3])
+    comb=cross1 & cross2 & cross3
+    comb=comb.reindex(index=pd.Index(t,name='t'),columns=pd.Index(sids,name='sid'))
+    comb=comb.dropna(axis=0,how='all')
+    comb=comb.dropna(axis=1,how='all')
+    return comb
+
+def apply_condition(x):
+    condition=control_input()
+    if isinstance(x.index,pd.MultiIndex):
+        return x.loc[x.index.intersection(condition.stack().dropna().index)]
+    else:
+        x,condition=get_inter_frame([x,condition])
+        return x[condition.fillna(value=False)]
+
+liquidity=load_data('liquidity')
+stockCloseD=load_data('stockCloseD')
+liq=apply_condition(liquidity)
+stock=apply_condition(stockCloseD)
 
 def control_stock_sample(df, condition):
     '''
@@ -152,6 +282,9 @@ def apply_condition(df):
     df=year_after_list(df)
     df=delete_st(df)
     return df
+
+
+
 
 ########################################### filtered ##################################################
 
@@ -296,17 +429,16 @@ def filter_rpD():
     save_to_filter(raw,'rpD')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+#---------------------  detect outliers of new calculated indicators ------------------------
+# sizenames=['size','mktCap_ff','size_ff']
+# betanames=['betaD','betaM']
+#
+#
+# betaD=load_data('betaD').stack().unstack(level=0)
+# betaM=load_data('betaM').stack().unstack(level=0)
+# x=pd.concat([betaD,betaM],axis=1)
+# x.index.names=['t','sid']
+# x.columns.name='type'
+#
+# save(x,'0')
 

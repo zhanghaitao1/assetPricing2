@@ -8,14 +8,13 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
+
 
 def cal_sizes():
     mktCap=load_data('capM')
     mktCap[mktCap<=0]=np.nan
     size=np.log(mktCap)
-
-    save_to_filter(size,'size')
 
     junes = [m for m in mktCap.index.tolist() if m.month == 6]
     newIndex = pd.date_range(start=junes[0], end=mktCap.index[-1], freq='M')
@@ -23,10 +22,21 @@ def cal_sizes():
     mktCap_ff = junesDf.reindex(index=newIndex)
     mktCap_ff = mktCap_ff.ffill(limit=11)  # limit=11 is required,or it will fill all NaNs forward.
 
-    save_to_filter(mktCap_ff,'mktCap_ff')
-
     size_ff = np.log(mktCap_ff)
-    save_to_filter(size_ff,'size_ff')
+
+    size=size.stack()
+    size.name='size'
+    mktCap_ff=mktCap_ff.stack()
+    mktCap_ff.name='mktCap_ff'
+    size_ff=size_ff.stack()
+    size_ff.name='size_ff'
+
+    x=pd.concat([size,mktCap_ff,size_ff],axis=1)
+    x.index.names=['t','sid']
+    x.columns.name='type'
+
+    save(x,'size')
+
 
 if __name__ == '__main__':
     cal_sizes()

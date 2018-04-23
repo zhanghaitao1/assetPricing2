@@ -11,7 +11,7 @@ import os
 import numpy as np
 
 from config import DATA_SRC,CSV_PATH,PKL_PATH
-from data.check import  MyError,check
+from data.check import  MyError,is_valid
 from data.dataTools import read_df_from_gta, save, read_gta, read_raw
 
 from data.outlier import  detect_outliers
