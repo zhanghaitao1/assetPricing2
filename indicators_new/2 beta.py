@@ -4,6 +4,8 @@
 # Email:13163385579@163.com
 # TIME:2018-04-22  14:57
 # NAME:assetPricing2-2 beta.py
+import os
+from multiprocessing.pool import Pool
 
 import numpy as np
 import pandas as pd
@@ -11,27 +13,21 @@ import pandas as pd
 from data.dataTools import load_data, save_to_filtered, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
-from tool import groupby_rolling
+from tool import groupby_rolling, groupby_rolling1
 
 
 def _get_comb():
     #page 123
-    eretD=load_data('eretD')
-    eretD = eretD.stack()
-    eretD.index.names = ['t', 'sid']
-    eretD.name = 'eret'
-    rpD=load_data('rpD')
-    rpD.name='rp'
-    combD = eretD.to_frame().join(rpD)
-    
-    eretM=load_data('eretM')
-    eretM = eretM.stack()
-    eretM.index.names = ['t', 'sid']
-    eretM.name = 'eret'
-    rpM=load_data('rpM')
-    rpM.name='rp'
-    combM = eretM.to_frame().join(rpM)
-    return combD,combM
+    combs=[]
+    for freq in ['D','M']:
+        eret=load_data('stockEret'+freq).stack()
+        eret.name='eret'
+        rp=load_data('rp'+freq)
+        rp.name='rp'
+        comb=eret.to_frame().join(rp)
+        combs.append(comb)
+    return tuple(combs)
+
 
 def _beta(subx):
     beta=sm.ols('eret ~ rp',data=subx).fit().params['rp']
@@ -57,6 +53,5 @@ def cal_beta():
 
     save(x,'beta')
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     cal_beta()

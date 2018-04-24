@@ -132,6 +132,14 @@ def groupby_rolling(multiIndDF, prefix, dict, type_func):
     result = pd.concat(values, axis=0, keys=names)
     return result
 
+def groupby_rolling1(multiIndDF,func,history,thresh):
+    days = multiIndDF.index.get_level_values('t').unique()
+    months = pd.date_range(start=days[0], end=days[-1], freq='M')
+    value = multiIndDF.groupby('sid').apply(
+        lambda df: _rolling_for_series(df, months, history, thresh, func))
+    return value
+
+
 #TODO: use closures and decorator to handle this problem
 #TODO:upgrade this funcntion use rolling,rolling_apply
 def monthly_cal(comb, prefix, dict, type_func, fn):

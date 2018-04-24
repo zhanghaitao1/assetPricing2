@@ -17,7 +17,7 @@ import pandas as pd
 #TODO: detect outliers in indicators
 #TODO: detect outliers in factors
 
-def mad_based_outlier(points, thresh=3.5):
+def mad_based_outlier(points, thresh=5): #TODO: thresh
     """
     Returns a boolean array with True if points are outliers and False 
     otherwise.
@@ -51,22 +51,23 @@ def mad_based_outlier(points, thresh=3.5):
 
     return modified_z_score > thresh
 
-def percentile_based_outlier(data, threshold=95):
+def percentile_based_outlier(data, threshold=99): #TODO: thresh?
     diff = (100 - threshold) / 2.0
     minval, maxval = np.percentile(data, [diff, 100.0 - diff])
     return (data < minval) | (data > maxval)
 
 
 
-def _for_2d(df,fn,by='rbr'):
-    if by=='rbr':
+def _for_2d(df,fn):
+    if df.columns.name=='sid':
+        # stack dimension reduction from 2d (panel) to 1d (time series)
         df = df.dropna(axis=0, how='all')
         fig, axes = plt.subplots(nrows=2,figsize=(20,12))
         outs=df.apply(lambda s:mad_based_outlier(s.dropna().values).sum(),axis=1)
         ratios=[r/l for r,l in zip(outs,[s.dropna().shape[0] for _,s in df.iterrows()])]
         axes[0].plot(outs.index,ratios)
         axes[0].set_title('ratio of outliers')
-        
+
         dropname=df.columns.name
         df=df.stack()
         df=df.dropna()
@@ -76,11 +77,9 @@ def _for_2d(df,fn,by='rbr'):
 
         fig.suptitle('outliers for 2d')
         savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
-
-    elif by=='cbc':
-        pass
-    else:
-        raise MyError('by should be "rbr" or "cbc"!')
+    elif df.columns.name=='type':
+        for col,s in df.iteritems():
+            _for_1d(s,'{}_{}'.format(fn,col))
 
 def _for_1d(s,fn):
     s=s.dropna()
@@ -98,7 +97,7 @@ def _for_2d_multiIndex(multiDf,fn):
         df=s.unstack(level='sid')
         _for_2d(df,'{}_{}'.format(fn,col))
 
-def detect_outliers(x, fn, by='rbr'):
+def detect_outliers(x, fn):
     '''
     detect outliers
 
@@ -114,17 +113,17 @@ def detect_outliers(x, fn, by='rbr'):
         if isinstance(x.index, pd.MultiIndex):
             _for_2d_multiIndex(x, fn)
         else:
-            _for_2d(x,fn,by)
+            _for_2d(x,fn)
 
 
 
 #---------------------handle outliers-------------------------------
-def delete_outliers(x,thresh=3.5):
+def delete_outliers(x,thresh=5):#TODO: thresh?
     '''
     delete outliers
     :param x:
     :param by:
-    :return:
+    :return: the same data structure as x,but the shape may be different.
     '''
     def _for_series(s):
         s=s.dropna()
@@ -132,21 +131,39 @@ def delete_outliers(x,thresh=3.5):
         return s
 
     def _for_2d_singleIndexed(df):
-        result=df.apply(_for_series,axis=1)
-        # DataFrame.apply will  result in the missing of columns.name
-        result.columns.name=df.columns.name
-        return result
+        if df.columns.name=='sid':# row by row
+            '''
+            For df like stockCloseD,we handle outliers row by row.
+            That is,the outliers are identified and deleted based on all the available 
+            close prices at each time point.
+            '''
+            return df.apply(_for_series,axis=1)
+        elif df.columns.name=='type':# column by column
+            '''
+            For df like ff3D,we handle outliers column by column,that is,every time,we select 
+            all the history of a indicator,such  as 'rp',and then identify and delete the outliers
+            based on this time series
+            '''
+            return df.apply(_for_series,axis=0)
 
     def _for_2d_multiIndexed(multiDf):
         return multiDf.apply(lambda s:_for_2d_singleIndexed(s.unstack('sid')).stack())
 
+    result=None
     if x.ndim==1:
-        return _for_series(x)
+        result=_for_series(x)
+        result.name=x.name
     elif x.ndim==2:
         if isinstance(x.index,pd.MultiIndex):
-            return _for_2d_multiIndexed(x)
+            result=_for_2d_multiIndexed(x)
         else:
-            return x.apply(_for_series,axis=1)
+            result=_for_2d_singleIndexed(x)
+        # DataFrame.apply will  result in the missing of columns.name
+        result.columns.name=x.columns.name
+
+    return result
+
+
 
 #TODO: save outliers to re-analyse
 

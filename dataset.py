@@ -16,13 +16,6 @@ import datetime
 
 from zht.utils.dfu import join_dfs
 
-'''
-standard of the dataframe:
-index.names=['t','sid']
-columns=['type1','type2']
-type1,or type2 can be rfM,eretM,and size or idioskewD_12M
-'''
-
 def unify_df(df):
     '''
     This function has the following features:
