@@ -63,7 +63,8 @@ def save(x, name, validation=True, outliers=True):
     
 
 def detect_freq(axis):
-    days=(axis[1:]-axis[:-1]).days.values
+    ts=axis.get_level_values('t').unique()
+    days=(ts[1:]-ts[:-1]).days.values
     # avg=np.mean(days)
     # max=np.max(days)
     min=np.min(days)

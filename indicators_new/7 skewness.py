@@ -7,7 +7,7 @@
 
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling
@@ -73,25 +73,16 @@ def _idioskew(subx):
 def cal_skewnewss():
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
-
     combD,combM=_get_comb()
 
-    skewD=groupby_rolling(combD, 'D', dictD, _skew)
-    coskewD=groupby_rolling(combD, 'D', dictD, _coskew)
-    idioskewD=groupby_rolling(combD, 'D', dictD, _idioskew)
+    dfDs=[groupby_rolling(combD,'D',dictD,func) for func in [_skew,_coskew,_idioskew]]
+    dfMs=[groupby_rolling(combM,'D',dictM,func) for func in [_skew,_coskew,_idioskew]]
 
-    skewM=groupby_rolling(combM, 'M', dictM, _skew)
-    coskewM=groupby_rolling(combM, 'M', dictM, _coskew)
-    idioskewM=groupby_rolling(combM, 'M', dictM, _idioskew)
-
-    save_to_filter(skewD,'skewD')
-    save_to_filter(coskewD,'coskewD')
-    save_to_filter(idioskewD,'idioskewD')
-    save_to_filter(skewM,'skewM')
-    save_to_filter(coskewM,'coskewM')
-    save_to_filter(idioskewM,'idioskewM')
-
-
+    for freq,dfs in zip(['D','M'],[dfDs,dfMs]):
+        x = pd.concat([df.stack().unstack(level=0) for df in dfs], axis=1)
+        x.index.names = ['t', 'sid']
+        x.columns.name = 'type'
+        save(x,'skewness'+freq)
 
 if __name__=='__main__':
     cal_skewnewss()

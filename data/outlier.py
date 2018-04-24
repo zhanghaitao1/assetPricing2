@@ -53,9 +53,8 @@ def mad_based_outlier(points, thresh=3.5):
 
 def percentile_based_outlier(data, threshold=95):
     diff = (100 - threshold) / 2.0
-    minval, maxval = np.percentile(data, [diff, 100 - diff])
+    minval, maxval = np.percentile(data, [diff, 100.0 - diff])
     return (data < minval) | (data > maxval)
-
 
 
 
@@ -63,9 +62,9 @@ def _for_2d(df,fn,by='rbr'):
     if by=='rbr':
         df = df.dropna(axis=0, how='all')
         fig, axes = plt.subplots(nrows=2,figsize=(20,12))
-        result=df.apply(lambda s:mad_based_outlier(s.dropna().values).sum(),axis=1)
-        ratios=[r/l for r,l in zip(result,[s.dropna().shape[0] for _,s in df.iterrows()])]
-        axes[0].plot(result.index,ratios)
+        outs=df.apply(lambda s:mad_based_outlier(s.dropna().values).sum(),axis=1)
+        ratios=[r/l for r,l in zip(outs,[s.dropna().shape[0] for _,s in df.iterrows()])]
+        axes[0].plot(outs.index,ratios)
         axes[0].set_title('ratio of outliers')
         
         dropname=df.columns.name
@@ -74,7 +73,7 @@ def _for_2d(df,fn,by='rbr'):
         df=df.reset_index(dropname,drop=True)
         axes[1].plot(df.index,df.values,'bo',markersize=3)
         axes[1].set_title("scatter")
-        
+
         fig.suptitle('outliers for 2d')
         savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
 
@@ -117,6 +116,37 @@ def detect_outliers(x, fn, by='rbr'):
         else:
             _for_2d(x,fn,by)
 
+
+
+#---------------------handle outliers-------------------------------
+def delete_outliers(x,thresh=3.5):
+    '''
+    delete outliers
+    :param x:
+    :param by:
+    :return:
+    '''
+    def _for_series(s):
+        s=s.dropna()
+        s=s[~mad_based_outlier(s,thresh)]
+        return s
+
+    def _for_2d_singleIndexed(df):
+        result=df.apply(_for_series,axis=1)
+        # DataFrame.apply will  result in the missing of columns.name
+        result.columns.name=df.columns.name
+        return result
+
+    def _for_2d_multiIndexed(multiDf):
+        return multiDf.apply(lambda s:_for_2d_singleIndexed(s.unstack('sid')).stack())
+
+    if x.ndim==1:
+        return _for_series(x)
+    elif x.ndim==2:
+        if isinstance(x.index,pd.MultiIndex):
+            return _for_2d_multiIndexed(x)
+        else:
+            return x.apply(_for_series,axis=1)
 
 #TODO: save outliers to re-analyse
 

@@ -91,14 +91,12 @@ def cross_year_after_list(freq='M'):
     else:
         listInfo['year_later']=listInfo['year_later']+pd.offsets.DateOffset(days=1)
 
-    start=listInfo['year_later'].min()
-    end=datetime.datetime.today()
-    mask=pd.DataFrame(np.nan,index=pd.Index(pd.date_range(start,end,freq=freq),name='t'),
-                       columns=listInfo.index,dtype=bool)
-
-    for sid,d in listInfo['year_later'].iteritems():
-       mask.at[d,sid]=True
-
+    mask=listInfo[['year_later']].copy()
+    mask.columns=['t']
+    mask['bool']=True
+    mask=mask.reset_index().set_index(['t','sid'])['bool']
+    mask=mask.unstack()
+    mask=mask.reindex(index=pd.Index(pd.date_range(mask.index[0],mask.index[-1],freq=freq),name=mask.index.name))
     mask=mask.ffill()
     return mask
 
@@ -111,23 +109,13 @@ def cross_not_st(freq='M'):
         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
     return stInfo
 
-def control_cross(condition,*args,**kwargs):
-    conditions=['closePrice_floor','year_after_list','not_st']
-    if condition=='closeprice_floor':
-        return cross_closePrice_floor(*args,**kwargs)
-    elif condition=='year_after_list':
-        return cross_closePrice_floor(*args,**kwargs)
-    elif condition=='not_st':
-        return cross_not_st(*args,**kwargs)
-    else:
-        raise MyError('{} is invalid. Cross condition should belongs to {}.'.format(condition,repr(conditions)))
 
-def control_input():
-    sids=control_sid(['is_sz','not_financial'])
-    t=control_t(start='2001-01-01')
-    cross1=cross_closePrice_floor()
-    cross2=cross_year_after_list()
-    cross3=cross_not_st()
+def control_input(freq):
+    sids=control_sid(['not_financial'])
+    t=control_t(start='2001-01-01',freq=freq)
+    cross1=cross_closePrice_floor(freq=freq)
+    cross2=cross_year_after_list(freq=freq)
+    cross3=cross_not_st(freq=freq)
     cross1,cross2,cross3=get_inter_frame([cross1,cross2,cross3])
     comb=cross1 & cross2 & cross3
     comb=comb.reindex(index=pd.Index(t,name='t'),columns=pd.Index(sids,name='sid'))
@@ -136,18 +124,21 @@ def control_input():
     return comb
 
 def apply_condition(x):
-    condition=control_input()
+    '''
+    combine all types of sample controling methods
+    :param x:
+    :return:
+    '''
+    freq=detect_freq(x.index)
+    condition=control_input(freq)
     if isinstance(x.index,pd.MultiIndex):
         return x.loc[x.index.intersection(condition.stack().dropna().index)]
     else:
         x,condition=get_inter_frame([x,condition])
         return x[condition.fillna(value=False)]
 
-liquidity=load_data('liquidity')
-stockCloseD=load_data('stockCloseD')
-liq=apply_condition(liquidity)
-stock=apply_condition(stockCloseD)
 
+#-------------------------------old --------------------------------------
 def control_stock_sample(df, condition):
     '''
     is_sz
@@ -225,10 +216,10 @@ def floor_price(df,clsPrice=5.0):
 def sample_data_optimization():
     pass
 
-def roof_price(df,price):
+def roof_price():
     pass
 
-def in_event_window(df):
+def in_event_window():
     pass
 
 
@@ -273,15 +264,6 @@ def delete_st(df):
     df,stInfo=get_inter_frame([df,stInfo])
 
     return df[stInfo.notnull()]
-
-
-def apply_condition(df):
-    df=control_stock_sample(df,'not_financial')
-    df=start_end(df)
-    df=floor_price(df)
-    df=year_after_list(df)
-    df=delete_st(df)
-    return df
 
 
 

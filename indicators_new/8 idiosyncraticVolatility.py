@@ -10,7 +10,7 @@ import numpy as np
 from functools import partial
 
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filter, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling
@@ -63,30 +63,17 @@ def cal_volatility():
 
     combD,combM=_get_comb()
     
-    
-    
-    volD=groupby_rolling(combD, 'D', dictD, partial(_vol,square_m=252**0.5))
-    volssD=groupby_rolling(combD, 'D', dictD, partial(_volss,square_m=252**0.5))
-    idioVol_capmD=groupby_rolling(combD, 'D', dictD, partial(_idioVol_capm,square_m=252**0.5))
-    idioVol_ff3D=groupby_rolling(combD,'D',dictD,partial(_idioVol_ff3,square_m=252**0.5))
+    dfDs=[groupby_rolling(combD,'D',dictD,partial(func,square_m=252**0.5))
+          for func in [_vol,_volss,_idioVol_capm,_idioVol_ff3]]
 
-    volM=groupby_rolling(combM, 'M', dictM, partial(_vol,square_m=12**0.5))
-    volssM=groupby_rolling(combM, 'M', dictM, partial(_volss,square_m=12**0.5))
-    idioVol_capmM=groupby_rolling(combM, 'M', dictM, partial(_idioVol_capm,square_m=12**0.5))
-    idioVol_ff3M=groupby_rolling(combM, 'M', dictM, partial(_idioVol_ff3,square_m=12**0.5))
-    idioVol_ffcM=groupby_rolling(combM, 'M', dictM, partial(_idioVol_ffc,square_m=12**0.5))
+    dfMs=[groupby_rolling(combM,'M',dictM,partial(func,square_m=12**0.5))
+          for func in [_vol,_volss,_idioVol_capm,_idioVol_ff3,_idioVol_ffc]]
 
-    save_to_filter(volD,'volD')
-    save_to_filter(volssD,'volssD')
-    save_to_filter(idioVol_capmD,'idioVol_capmD')
-    save_to_filter(idioVol_ff3D,'idioVol_ff3D')
-
-    save_to_filter(volM,'volM')
-    save_to_filter(volssM,'volssM')
-    save_to_filter(idioVol_capmM,'idioVol_capmM')
-    save_to_filter(idioVol_ff3M,'idioVol_ff3M')
-    save_to_filter(idioVol_ffcM,'idioVol_ffcM')
-
+    for freq,dfs in zip(['D','M'],[dfDs,dfMs]):
+        x = pd.concat([df.stack().unstack(level=0) for df in dfs], axis=1)
+        x.index.names = ['t', 'sid']
+        x.columns.name = 'type'
+        save(x,'idio'+freq)
 
 if __name__=='__main__':
     cal_volatility()

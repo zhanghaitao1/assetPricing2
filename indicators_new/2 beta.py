@@ -43,8 +43,7 @@ def cal_beta():
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})#TODO: why so many months are lost? refer to betaD.csv
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
     combD,combM=_get_comb()
-    combD=combD[-800000:] #TODO:
-    combM=combM[-40000:] #TODO:
+
     betaD=groupby_rolling(combD,'D',dictD,_beta)
     betaM=groupby_rolling(combM,'M',dictM,_beta)
 

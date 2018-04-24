@@ -12,7 +12,7 @@ from data.dataTools import load_data, save_to_filter, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 
-from data.outlier import detect_outliers
+from data.outlier import detect_outliers, delete_outliers
 from data.sampleControl import apply_condition
 from tool import groupby_rolling
 
@@ -82,6 +82,11 @@ liquidity=load_data('liquidity')
 new=apply_condition(liquidity)
 
 detect_outliers(new,'0')
+
+new1=delete_outliers(new)
+
+detect_outliers(new1,'1')
+
 
 
 
@@ -191,6 +196,6 @@ def get_liquidity_ps():
     save_to_filter(result,'liqBeta')
 
 
-if __name__=='__main__':
-    get_amihud_illiq()
+# if __name__=='__main__':
+    # get_amihud_illiq()
     # get_liquidity_ps()

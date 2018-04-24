@@ -392,7 +392,7 @@ def get_stInfo():
     df['sid']=df['sid'].astype(str)
 
     # df0=df[~df['status'].isin([2.0,3.0])] #TODO:
-    df0=df[df['status']==1.0] #TODO:or just delete all the ST stocks rather than just delete the corresponding months or days
+    df0=df[df['status']==1.0].copy() #TODO:or just delete all the ST stocks rather than just delete the corresponding months or days
     df0['not_st']=True
     dfD=df0.set_index(['t','sid'])['not_st']
     dfD=dfD.sort_index(level='t')
@@ -412,6 +412,7 @@ def get_stInfo():
 
     save(dfD,'stInfoD',outliers=False)
     save(dfM,'stInfoM',outliers=False)
+
 
 def get_pu():
     '''
