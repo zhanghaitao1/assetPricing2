@@ -10,7 +10,7 @@ import numpy as np
 from functools import partial
 
 
-from data.dataTools import load_data, save_to_filter
+from data.dataTools import load_data, save_to_filtered
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling
@@ -33,7 +33,7 @@ def get_upDown():
         series.append(s)
 
     upDown=pd.concat(series,axis=1,keys=windows)
-    save_to_filter(upDown,'upDown')
+    save_to_filtered(upDown, 'upDown')
 
 def cal_market_states():
     '''

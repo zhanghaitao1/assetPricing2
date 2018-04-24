@@ -5,18 +5,13 @@
 # TIME:2018-04-21  17:40
 # NAME:assetPricing2-sampleControl.py
 import datetime
-import operator
-import os
-from functools import reduce
 
 import numpy as np
 import pandas as pd
-from config import FILTERED_PATH
 from data.base import MyError
-from data.dataTools import read_raw, detect_freq, load_data, save_to_filter, save
-from data.outlier import detect_outliers
+from data.dataTools import read_unfiltered, detect_freq, load_data, save_to_filtered
+from data.outlier import detect_outliers, delete_outliers
 from pandas.tseries.offsets import MonthEnd
-from zht.utils.dateu import freq_end
 from zht.utils.mathu import get_inter_frame
 
 def control_sid(conditions):
@@ -33,7 +28,7 @@ def control_sid(conditions):
     '''
     #TODO: is_gem,is_industry,
     condition_set=['is_sz','is_sh','not_cross','not_financial']
-    info=read_raw('listInfo')
+    info=read_unfiltered('listInfo')
 
     def _one_condition(condition):
         if condition in condition_set:
@@ -69,11 +64,11 @@ def cross_closePrice_floor(clsPrice=5.0,freq='M'):
 
     the minimum close price is 5
 
-    :param df:
     :param clsPrice:
+    :param freq:
     :return:
     '''
-    stockClose=read_raw('stockClose'+freq)
+    stockClose=read_unfiltered('stockClose' + freq)
     return stockClose>clsPrice
 
 #TODO: refer to readme.md to find more controling methods.
@@ -82,7 +77,7 @@ def cross_year_after_list(freq='M'):
     listed at list 1 year
     :return:
     '''
-    listInfo=read_raw('listInfo')
+    listInfo=read_unfiltered('listInfo')
     listInfo['year_later']=listInfo['listDate']+pd.offsets.DateOffset(years=1)
     if freq=='M':
         listInfo['year_later']=listInfo['year_later']+MonthEnd(1)
@@ -102,9 +97,9 @@ def cross_year_after_list(freq='M'):
 
 def cross_not_st(freq='M'):
     if freq=='M':
-        stInfo=read_raw('stInfoM')
+        stInfo=read_unfiltered('stInfoM')
     elif freq=='D':
-        stInfo=read_raw('stInfoD')
+        stInfo=read_unfiltered('stInfoD')
     else:
         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
     return stInfo
@@ -154,7 +149,7 @@ def control_stock_sample(df, condition):
     '''
     #TODO: is_gem,is_industry,
     conditions=['is_sz','is_sh','not_cross','not_financial']
-    info=read_raw('listInfo')
+    info=read_unfiltered('listInfo')
 
     if condition in conditions:
         validSids=info.index[info[condition]]
@@ -209,7 +204,7 @@ def floor_price(df,clsPrice=5.0):
     :return:
     '''
     freq=detect_freq(df.index)
-    stockCloseM=read_raw('stockClose'+freq)
+    stockCloseM=read_unfiltered('stockClose' + freq)
     stockCloseM,df=get_inter_frame([stockCloseM,df])
     return df[stockCloseM>=clsPrice]
 
@@ -231,7 +226,7 @@ def year_after_list(df):
     '''
     freq=detect_freq(df.index)
 
-    listInfo=read_raw('listInfo')
+    listInfo=read_unfiltered('listInfo')
     listInfo['year_later']=listInfo['listDate']+pd.offsets.DateOffset(years=1)
     if freq=='M':
         listInfo['year_later']=listInfo['year_later']+MonthEnd(1)
@@ -256,9 +251,9 @@ def year_after_list(df):
 def delete_st(df):
     freq=detect_freq(df.index)
     if freq=='M':
-        stInfo=read_raw('stInfoM')
+        stInfo=read_unfiltered('stInfoM')
     elif freq=='D':
-        stInfo=read_raw('stInfoD')
+        stInfo=read_unfiltered('stInfoD')
     else:
         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
     df,stInfo=get_inter_frame([df,stInfo])
@@ -270,157 +265,4 @@ def delete_st(df):
 
 ########################################### filtered ##################################################
 
-def filter_stockRetD():
-    raw=read_raw('stockRetD')
-    x=apply_condition(raw)
-    x[abs(x)>0.11]=np.nan
-
-    save_to_filter(x,'stockRetD')
-
-def filter_stockCloseD():
-    name='stockCloseD'
-    raw=read_raw(name)
-    x=apply_condition(raw)
-    save_to_filter(x,name)
-
-def filter_mktRetD():
-    raw=read_raw('mktRetD')
-    x=start_end(raw)
-    save_to_filter(x,'mktRetD')
-
-def filter_rfD():
-    raw=read_raw('rfD')
-    x=start_end(raw)
-    save_to_filter(x,'rfD')
-
-def filter_rfM():
-    raw = read_raw('rfM')
-    x = start_end(raw)
-    save_to_filter(x,'rfM')
-
-def filter_stockEretD():
-    stockRetD=load_data('stockRetD')
-    rfD=load_data('rfD')
-    eretD=stockRetD.sub(rfD,axis=0)
-    save_to_filter(eretD,'stockEretD')
-
-def filter_stockRetM():
-    raw=read_raw('stockRetM')
-    x=apply_condition(raw)
-    x[abs(x)>1.0]=np.nan
-
-    save_to_filter(x,'stockRetM')
-
-def filter_stockCloseM():
-    raw=read_raw('stockCloseM')
-    x=apply_condition(raw)
-    save_to_filter(x,'stockCloseM')
-
-def filter_stockEretM():
-    stockRetM=load_data('stockRetM')
-    rfM=load_data('rfM')
-    eretM=stockRetM.sub(rfM,axis=0)
-    save_to_filter(eretM,'stockEretM')
-
-def filter_mktRetM():
-    raw=read_raw('mktRetM')
-    x=start_end(raw)
-    save_to_filter(x,'mktRetM')
-
-def filter_capM():
-    raw=read_raw('capM')
-    x=apply_condition(raw)
-    save_to_filter(x,'capM')
-
-def filter_bps():
-    raw=read_raw('bps')
-    x=apply_condition(raw)
-    x[abs(x)>100]=np.nan #TODO:
-
-    save_to_filter(x,'bps')
-
-def filter_bps_wind():
-    raw=read_raw('bps_wind')
-    x=start_end(raw)
-    x=x.where(x<100.0)
-    save_to_filter(x,'bps_wind')
-
-def filter_stockCloseY():
-    raw=read_raw('stockCloseY')
-    x=apply_condition(raw)
-    detect_outliers(x,'stockCloseY1')
-    save_to_filter(x,'stockCloseY')
-
-def filter_ff3M_resset():
-    raw=read_raw('ff3M_resset')
-    x=start_end(raw)
-
-    save_to_filter(x,'ff3M_resset')
-
-def filter_ff3M():
-    raw=read_raw('ff3M')
-    x=start_end(raw)
-    for col,s in x.iteritems():
-        detect_outliers(s,col)
-
-    save_to_filter(x,'ff3M')
-
-def filter_ffcM():
-    raw=read_raw('ffcM')
-    x=start_end(raw)
-    for col,s in x.iteritems():
-        detect_outliers(s,'ffcM_'+col)
-
-    save_to_filter(x,'ffcM')
-
-def filter_ff5M():
-    raw=read_raw('ff5M')
-    x=start_end(raw)
-
-    for col,s in x.iteritems():
-        detect_outliers(s,'ff5M_'+col)
-
-    save_to_filter(x,'ff5M')
-
-def filter_hxz4M():
-    raw = read_raw('hxz4M')
-    x = start_end(raw)
-
-    for col, s in x.iteritems():
-        detect_outliers(s, 'hxz4M_' + col)
-
-    save_to_filter(x, 'hxz4M')
-
-def filter_ff3D():
-    raw = read_raw('ff3D')
-    x = start_end(raw)
-
-    for col, s in x.iteritems():
-        detect_outliers(s, 'ff3D_' + col)
-    #TODO:noisy
-    save_to_filter(x, 'ff3D')
-
-def filter_fpM():
-    raw=load_data('ff3M')['rp']
-    raw.name='rpM'
-    save_to_filter(raw,'rpM')
-
-def filter_rpD():
-    raw=load_data('ff3D')['rp']
-    raw.name='rpD'
-    save_to_filter(raw,'rpD')
-
-
-#---------------------  detect outliers of new calculated indicators ------------------------
-# sizenames=['size','mktCap_ff','size_ff']
-# betanames=['betaD','betaM']
-#
-#
-# betaD=load_data('betaD').stack().unstack(level=0)
-# betaM=load_data('betaM').stack().unstack(level=0)
-# x=pd.concat([betaD,betaM],axis=1)
-# x.index.names=['t','sid']
-# x.columns.name='type'
-#
-# save(x,'0')
 

@@ -8,7 +8,7 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter, save
+from data.dataTools import load_data, save_to_filtered, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 
@@ -76,20 +76,6 @@ def get_liquidity():
     x.columns.name='type'
 
     save(x,'liquidity')
-
-liquidity=load_data('liquidity')
-
-new=apply_condition(liquidity)
-
-detect_outliers(new,'0')
-
-new1=delete_outliers(new)
-
-detect_outliers(new1,'1')
-
-
-
-
 
 def _amihud(subx):
     subx['volume']=subx['volume'].replace(0,np.nan)
@@ -193,7 +179,7 @@ def get_liquidity_ps():
 
     result=comb.groupby('sid').apply(_get_result).unstack('sid')
 
-    save_to_filter(result,'liqBeta')
+    save_to_filtered(result, 'liqBeta')
 
 
 # if __name__=='__main__':

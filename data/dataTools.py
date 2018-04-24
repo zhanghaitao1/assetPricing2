@@ -8,7 +8,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from config import DATA_SRC, CSV_PATH, PKL_PATH, FILTERED_PATH
+from config import CSV_PATH, PKL_PATH, PKL_FILTERED_PATH
 from data.base import MyError
 from data.check import is_valid
 from data.outlier import detect_outliers
@@ -29,20 +29,21 @@ def unify(x):
         x=x.sort_index(axis=1)
         return x
 
-def read_raw(tbname,type='pkl',*args,**kwargs):
-    if type=='pkl':
+def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
+    if suffix== 'pkl':
         df = pd.read_pickle(os.path.join(PKL_PATH, tbname + '.pkl'))
     else:
         df = pd.read_csv(os.path.join(CSV_PATH, tbname + '.csv'),*args,**kwargs)
         # TODO: datetime,axis dtypes
     return df
 
-def save(x, name, validation=True, outliers=True):
+def save(x, name, validation=True):
     '''
     Since some information about DataFrame will be missing,such as the dtype,columns.name,
     will save them as pkl.
     :param x:
     :param name:
+    :param validation: True or False,validate the data structure or not.
     :param outliers:
     :return:
     '''
@@ -50,8 +51,8 @@ def save(x, name, validation=True, outliers=True):
         x=unify(x)
         is_valid(x, name)
 
-    if outliers:
-        detect_outliers(x,name)
+    # if outliers:
+    #     detect_outliers(x,name)
 
     # save csv
     if x.ndim==1:
@@ -67,24 +68,33 @@ def detect_freq(axis):
     days=(ts[1:]-ts[:-1]).days.values
     # avg=np.mean(days)
     # max=np.max(days)
-    min=np.min(days)
-    if min==1:
+    _min=np.min(days)
+    if _min==1:
         return 'D'
-    elif min>=28:
+    elif _min>=28:
         return 'M'
     else:
         raise ValueError
 
 def load_data(name):
-    fns1=os.listdir(FILTERED_PATH)
+    fns1=os.listdir(PKL_FILTERED_PATH)
     fns2=os.listdir(PKL_PATH)
     if name+'.pkl' in fns1:
-        x=pd.read_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
+        x=pd.read_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
     elif name+'.pkl' in fns2:
-        x=read_raw(name)
+        x=read_unfiltered(name)
     else:
         raise MyError('There is no such data named "{}.pkl" in the repository!'.format(name))
     return x
 
-def save_to_filter(x,name):
-    x.to_pickle(os.path.join(FILTERED_PATH,name+'.pkl'))
+def save_to_filtered(x, name):
+
+    # save csv
+    if x.ndim==1:
+        x.to_frame().to_csv(os.path.join(PKL_FILTERED_PATH, name + '.csv'))
+    else:
+        x.to_csv(os.path.join(CSV_PATH, name + '.csv'))
+
+    x.to_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
+
+

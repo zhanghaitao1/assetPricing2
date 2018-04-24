@@ -7,7 +7,7 @@
 
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter, save
+from data.dataTools import load_data, save_to_filtered, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling

@@ -10,7 +10,7 @@ from zht.utils.mathu import get_inter_frame
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter, save
+from data.dataTools import load_data, save_to_filtered, save
 
 
 #compare the bps of wind with bv of gta

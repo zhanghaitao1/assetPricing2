@@ -10,16 +10,16 @@ DATA_SRC=r'D:\zht\database\quantDb\sourceData\gta\data\csv'
 
 PROJECT_PATH=r'D:\zht\database\quantDb\researchTopics\assetPricing2'
 DATA_PATH=os.path.join(PROJECT_PATH, 'data')
-CSV_PATH=os.path.join(DATA_PATH,'csv')
-
 TMP_PATH=os.path.join(PROJECT_PATH,'tmp')
-
-
 WINSORIZE_LIMITS=(0.01,0.01)
 
+CSV_PATH=os.path.join(DATA_PATH,'csv')
 PKL_PATH=os.path.join(DATA_PATH,'pkl')
+
 OUTLIER_PATH=os.path.join(DATA_PATH,'outlier')
-FILTERED_PATH=os.path.join(DATA_PATH,'filtered')
+CSV_FILTERED_PATH=os.path.join(DATA_PATH,'csv_filtered')
+PKL_FILTERED_PATH=os.path.join(DATA_PATH, 'pkl_filtered')
+
 
 
 

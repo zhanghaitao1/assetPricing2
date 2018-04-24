@@ -1,4 +1,7 @@
 
+
+
+
 # steps
 1. use Dataset to construct stacked df containing all the needed data
 2. send the df to Univariate or Bivariate
@@ -8,7 +11,11 @@
 2. At time t,we calculate the indicators and use this indicators to get sorted-portfolios
     then use these portfolio to calculate the mimicking portfolio returns(long-short factors) in time t+1.So the
     time corresponding to indicators are t,the time for factors are time t+1.
-3. 
+3. Steps:
+    1. din.py
+    2. din_filter_outliers.py
+    3. calculate_indicators  '.py's
+    3. indicators_filter_outliers.py
 
 # functions to add
 1. show those significant result with bold characters as table A5 of Asness, Clifford S., Andrea Frazzini, and Lasse Heje Pedersen. “Quality Minus Junk.” SSRN Scholarly Paper. Rochester, NY: Social Science Research Network, June 5, 2017. https://papers.ssrn.com/abstract=2312432.

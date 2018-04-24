@@ -8,7 +8,7 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter, save
+from data.dataTools import load_data, save_to_filtered, save
 
 
 def cal_sizes():
@@ -31,6 +31,7 @@ def cal_sizes():
     size_ff=size_ff.stack()
     size_ff.name='size_ff'
 
+    # combine
     x=pd.concat([size,mktCap_ff,size_ff],axis=1)
     x.index.names=['t','sid']
     x.columns.name='type'

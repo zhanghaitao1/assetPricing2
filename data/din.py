@@ -5,16 +5,10 @@
 # TIME:2018-04-19  13:44
 # NAME:assetPricing2-din.py
 
-from urllib.request import urlopen
 import pandas as pd
-import os
 import numpy as np
 
-from config import DATA_SRC,CSV_PATH,PKL_PATH
-from data.check import  MyError,is_valid
-from data.dataTools import read_df_from_gta, save, read_gta, read_raw
-
-from data.outlier import  detect_outliers
+from data.dataTools import read_df_from_gta, save, read_gta, read_unfiltered
 from zht.data.resset.api import read_resset
 from zht.utils.dateu import freq_end
 from zht.data.wind.api import read_wind
@@ -53,7 +47,6 @@ def get_stockCloseD():
 
     save(df, 'stockCloseD')
 
-
 def get_mktRetD():
     # get daily market return
 
@@ -73,8 +66,6 @@ def get_mktRetD():
     s = df[targetVar]
     s.name='mktRetD' #TODO: put this line into check function or unify function?
     save(s, 'mktRetD')
-
-
 
 def _get_rf(freq):
     '''
@@ -121,15 +112,14 @@ def get_rfM():
     df=_get_rf(freq='M')
     save(df,'rfM')
 
-def get_eretD():
-    stockRetD=read_raw('stockRetD')
-    rfD=read_raw('rfD')
-    eretD=stockRetD.sub(rfD,axis=0)
+def get_stockEretD():
+    stockRetD=read_unfiltered('stockRetD')
+    rfD=read_unfiltered('rfD')
+    stockEretD=stockRetD.sub(rfD,axis=0)
     # The date for stockRetD is buisiness date,but for rfD, it is calendar date.
-    eretD=eretD.dropna(axis=0,how='all')# use this to ajust the index from calendar date to buisiness date
+    stockEretD=stockEretD.dropna(axis=0,how='all')# use this to ajust the index from calendar date to buisiness date
 
-    save(eretD,'eretD')
-
+    save(stockEretD,'stockEretD')
 
 def get_stockRetM():
     '''
@@ -170,11 +160,11 @@ def get_stockCloseM():
 
     save(df, 'stockCloseM')
 
-def get_eretM():
-    stockRetM=read_raw('stockRetM')
-    rfM=read_raw('rfM')
-    eretM=stockRetM.sub(rfM,axis=0)
-    save(eretM,'eretM')
+def get_stockEretM():
+    stockRetM=read_unfiltered('stockRetM')
+    rfM=read_unfiltered('rfM')
+    stockEretM=stockRetM.sub(rfM,axis=0)
+    save(stockEretM,'stockEretM')
 
 def get_mktRetM():
     tbname = 'TRD_Cnmont'
@@ -236,9 +226,6 @@ def get_bps_wind():
     df.columns.name='sid'
 
     save(df,'bps_wind')
-
-
-
 
 #get stock close price yearly
 def get_stockCloseY():
@@ -341,20 +328,12 @@ def get_ff3D():
     save(df,'ff3D')
 
 def get_rpM():
-    rpM=read_raw('ff3M')['rp']
+    rpM=read_unfiltered('ff3M')['rp']
     rpM.name='rpM'
     save(rpM,'rpM')
 
-
-def get_capmM():
-    '''
-    just as get_rpM()
-    :return:
-    '''
-    pass
-
 def get_rpD():
-    rpD=read_raw('ff3D')['rp']
+    rpD=read_unfiltered('ff3D')['rp']
     rpD.name='rpD'
     save(rpD,'rpD')
 
@@ -375,7 +354,7 @@ def get_listInfo():
     df=df[['listDate','not_financial','not_cross','is_sh','is_sz']]
     df=df[~df.index.duplicated(False)] #there are some duplicated items such as '600018
     df=df.dropna()
-    save(df,'listInfo',outliers=False)
+    save(df,'listInfo')
 
 def get_stInfo():
     '''
@@ -410,9 +389,8 @@ def get_stInfo():
     dfM=dfM['not_st']
     dfM=dfM.unstack()
 
-    save(dfD,'stInfoD',outliers=False)
-    save(dfM,'stInfoM',outliers=False)
-
+    save(dfD,'stInfoD')
+    save(dfM,'stInfoM')
 
 def get_pu():
     '''
@@ -428,18 +406,12 @@ def get_pu():
     pu = pu['pu']
     save(pu,'pu')
 
-# def get_listInfo1():
-#     fp=r'E:\a\gta20180412\txt\STK_ListedCoInfoAnl.txt'
-#     df = pd.DataFrame([row.split('\t') for row in open(fp, encoding='ISO-8859-1', newline='\r').readlines()])
-#     df=df[2:]
-#
-#     #TODO: wrong!  find stock code online,the table only contains information from 2010.
 
-# if __name__=='__main__':
-#     fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
-#     for f in fstrs:#TODO:
-#         eval(f)()
-#         print(f)
+if __name__=='__main__':
+    fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
+    for f in fstrs:#TODO:
+        eval(f)()
+        print(f)
 
 
 

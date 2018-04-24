@@ -8,7 +8,7 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filter, save
+from data.dataTools import load_data, save_to_filtered, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling
@@ -49,6 +49,8 @@ def cal_beta():
 
     betaD=betaD.stack().unstack(level=0)
     betaM=betaM.stack().unstack(level=0)
+
+    #combine
     x = pd.concat([betaD, betaM], axis=1)
     x.index.names = ['t', 'sid']
     x.columns.name = 'type'

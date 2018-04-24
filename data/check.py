@@ -42,7 +42,7 @@ def check_data_structure(x):
     '''
     if x.ndim==1 and isinstance(x.index,pd.MultiIndex):
         raise MyError("Series with MultiIndex is not allowed ! you'd betterconvert it into singleIndexed DataFrame !")
-    elif x.ndim==2 and x.shape[0]==1:
+    elif x.ndim==2 and x.shape[1]==1:
         raise MyError("DataFrame with only one column is not allowed,you'd better convert it to Series !")
 
 
