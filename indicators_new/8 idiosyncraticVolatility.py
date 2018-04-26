@@ -8,12 +8,13 @@
 import pandas as pd
 import numpy as np
 from functools import partial
+from multiprocessing.pool import Pool
 
 
 from data.dataTools import load_data, save_to_filtered, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
-from tool import groupby_rolling
+from tool import groupby_rolling, groupby_rolling1
 
 
 def _get_comb():
@@ -73,9 +74,36 @@ def cal_volatility():
         x = pd.concat([df.stack().unstack(level=0) for df in dfs], axis=1)
         x.index.names = ['t', 'sid']
         x.columns.name = 'type'
-        save(x,'idio'+freq)
 
-if __name__=='__main__':
-    cal_volatility()
+        x.to_pickle(r'e:\a\tmp_idio{}.pkl'+freq)
+
+        # save(x,'idio'+freq)
+
+def task(arg):
+    result=groupby_rolling1(*arg)
+    print(arg[1].func.__name__,arg[2],arg[3])
+    return result
+
+
+if __name__ == '__main__':
+    dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
+    dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
+    combD,combM=_get_comb()
+
+    p = Pool(3)
+    argsD = [(combD, partial(func,square_m=252**0.5), history, thresh) for func in [_vol,_volss,_idioVol_capm,_idioVol_ff3]
+             for history, thresh in dictD.items()]
+    argsM = [(combM, partial(func,square_m=12**0.5), history, thresh) for func in [_vol,_volss,_idioVol_capm,_idioVol_ff3,_idioVol_ffc]
+             for history, thresh in dictM.items()]
+
+    dfDs = p.map(task, argsD)
+    dfMs = p.map(task, argsM)
+
+    for freq,dfs in zip(['D','M'],[dfDs,dfMs]):
+        x = pd.concat([df.stack() for df in dfs], axis=1,
+                      keys=['{}_{}'.format(func.func.__name__[1:],history) for _,func,history,_ in argsD]) #TODO:
+        x=x.reorder_levels(order=['t','sid']).sort_index()
+        x.columns.name = 'type'
+        save(x,'idio'+freq)
 
 

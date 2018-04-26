@@ -380,11 +380,11 @@ def get_stInfo():
     dfD=df.set_index(['t','sid'])[['not_st']]
     dfD=dfD.sort_index(level='t')
 
-    dfD=dfD['not_st'].unstack().head()
+    dfD=dfD['not_st'].unstack()
     dfD.columns=dfD.columns.astype(str)
 
-    save(dfD,'stInfoD',validation=True,outliers=False)
-    save(dfM,'stInfoM',validation=True,outliers=False)
+    save(dfD,'stInfoD',validation=True)
+    save(dfM,'stInfoM',validation=True)
 
 
 

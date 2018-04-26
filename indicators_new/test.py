@@ -98,10 +98,11 @@ if __name__=='__main__':
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
     combD, combM = _get_comb()
+
     # combD=combD[:int(combD.shape[0]/40)] #TODO:
     # combM=combM[:int(combM.shape[0]/40)]
 
-    p = Pool()
+    p = Pool(4)
     argsD = [(combD, func, history, thresh) for func in [_skew, _coskew, _idioskew] for history, thresh in
              dictD.items()]
     argsM = [(combM, func, history, thresh) for func in [_skew, _coskew, _idioskew] for history, thresh in
@@ -117,7 +118,5 @@ if __name__=='__main__':
         x=x.reorder_levels(order=['t','sid']).sort_index()
         x.columns.name = 'type'
         save(x,'skewness'+freq)
-
-
 
 

@@ -179,9 +179,8 @@ def get_liquidity_ps():
 
     result=comb.groupby('sid').apply(_get_result).unstack('sid')
 
-    save_to_filtered(result, 'liqBeta')
+    save(result, 'liqBeta')
 
 
-# if __name__=='__main__':
-    # get_amihud_illiq()
-    # get_liquidity_ps()
+if __name__ == '__main__':
+    get_liquidity()

@@ -137,6 +137,7 @@ def groupby_rolling1(multiIndDF,func,history,thresh):
     months = pd.date_range(start=days[0], end=days[-1], freq='M')
     value = multiIndDF.groupby('sid').apply(
         lambda df: _rolling_for_series(df, months, history, thresh, func))
+    value.columns.name='t'
     return value
 
 
