@@ -110,13 +110,16 @@ if __name__=='__main__':
     dfDs = p.map(task, argsD)
     dfMs = p.map(task, argsM)
 
+    xs=[]
     for freq,dfs in zip(['D','M'],[dfDs,dfMs]):
         x = pd.concat([df.stack() for df in dfs], axis=1,
-                      keys=['{}_{}'.format(func.__name__[1:],history) for _,func,history,_ in argsD])
+                      keys=['{}_{}__{}'.format(func.__name__[1:],history,freq) for _,func,history,_ in argsD])
 
         x=x.reorder_levels(order=['t','sid']).sort_index()
         x.columns.name = 'type'
-        save(x,'skewness'+freq)
+        xs.append(x)
+
+    save(pd.concat(xs,axis=1),'skewness')
 
 
 
