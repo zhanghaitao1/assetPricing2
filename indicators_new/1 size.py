@@ -31,12 +31,15 @@ def cal_sizes():
     size_ff=size_ff.stack()
     size_ff.name='size_ff'
 
+    mktCap=mktCap.stack()
+    mktCap.name='mktCap'
     # combine
-    x=pd.concat([size,mktCap_ff,size_ff],axis=1)
+    x=pd.concat([mktCap,mktCap_ff,size,size_ff],axis=1)
     x.index.names=['t','sid']
     x.columns.name='type'
 
     save(x,'size')
+
 
 
 if __name__ == '__main__':

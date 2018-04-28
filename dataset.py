@@ -324,7 +324,7 @@ class Dataset:
     def get_data_and_info(self):
         # TODO:clear the .pkl files before runing the program
         p_data = os.path.join(TMP_PATH,'data.pkl')
-        p_info = os.path.join(TMP_PATH,'info.pkl')
+        p_info = os.path.join(TMP_PATH,'info.csv.pkl')
         if os.path.isfile(p_data) and os.path.isfile(p_info):
             with open(p_data, 'rb') as f:
                 data = pickle.load(f)
@@ -358,7 +358,7 @@ def save_info():
     DATA=Dataset()
     ss=[pd.Series(v,name=k) for k,v in DATA.info.items()]
     df=pd.concat(ss,axis=1)
-    df.to_csv('info.csv')
+    df.to_csv('info.csv.csv')
 
 
 #--------------------------------------------sample control----------------------------------------------

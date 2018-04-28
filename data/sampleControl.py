@@ -133,6 +133,14 @@ def apply_condition(x):
         return x[condition.fillna(value=False)]
 
 
+
+
+
+
+
+
+
+
 #-------------------------------old --------------------------------------
 def control_stock_sample(df, condition):
     '''
@@ -260,6 +268,9 @@ def delete_st(df):
 
     return df[stInfo.notnull()]
 
+def bear_or_bull():
+    # refer to marketStates.py
+    pass
 
 
 

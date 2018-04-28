@@ -28,7 +28,8 @@ def get_upDown():
 
     upDown=pd.concat(series,axis=1,keys=['{}M'.format(w) for w in windows])
     upDown.columns.name='type'
-    save(upDown, 'upDown')
+    save(upDown,'marketStates')
+    # save(upDown, 'upDown')
 
 def cal_market_states():
     '''

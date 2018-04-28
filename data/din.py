@@ -8,7 +8,7 @@
 import pandas as pd
 import numpy as np
 
-from data.dataTools import read_df_from_gta, save, read_gta, read_unfiltered
+from data.dataTools import read_df_from_gta, save, read_gta, read_unfiltered, load_data
 from zht.data.resset.api import read_resset
 from zht.utils.dateu import freq_end
 from zht.data.wind.api import read_wind
@@ -241,6 +241,21 @@ def get_stockCloseY():
 
     save(df,'stockCloseY')
 
+def get_rpM():
+    rpM=read_unfiltered('ff3M')['rp']
+    rpM.name='rpM'
+    save(rpM,'rpM')
+
+def get_rpD():
+    rpD=read_unfiltered('ff3D')['rp']
+    rpD.name='rpD'
+    save(rpD,'rpD')
+
+def get_capmM():
+    rpM=load_data('rpM')
+    rpM.name='rp'
+    save(rpM,'capmM',validation=False)
+
 def get_ff3M_resset():
     '''
     from resset data
@@ -327,16 +342,6 @@ def get_ff3D():
     df.index=freq_end(df.index,'D')
     save(df,'ff3D')
 
-def get_rpM():
-    rpM=read_unfiltered('ff3M')['rp']
-    rpM.name='rpM'
-    save(rpM,'rpM')
-
-def get_rpD():
-    rpD=read_unfiltered('ff3D')['rp']
-    rpD.name='rpD'
-    save(rpD,'rpD')
-
 def get_listInfo():
     df=read_gta('IPO_Cobasic', encoding='gbk')
     df=df.set_index('Stkcd')
@@ -407,11 +412,11 @@ def get_pu():
     save(pu,'pu')
 
 
-if __name__=='__main__':
-    fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
-    for f in fstrs:#TODO:
-        eval(f)()
-        print(f)
+# if __name__=='__main__':
+#     fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
+#     for f in fstrs:#TODO:
+#         eval(f)()
+#         print(f)
 
 
 
