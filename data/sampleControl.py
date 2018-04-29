@@ -53,6 +53,11 @@ def control_t(start='1997-01-01', end=None, freq='M'):
 
     :return:
     '''
+    '''
+    use truncating  & fancy indexing
+    refer to http://pandas.pydata.org/pandas-docs/stable/timeseries.html#
+
+    '''
     if not end:
         end=datetime.datetime.today()
 
@@ -136,6 +141,20 @@ def apply_condition(x):
 
 
 
+#TODO: sid add suffix
+
+
+#TODO:The 10% limit policy took effect at the beginning of 1997.We exclude stocks that have been listed for less than one year and returns on the first day after the initial public offering.
+#TODO: as robustness check in Long, Jiang, and Zhu, “Idiosyncratic Tail Risk and Expected Stock Returns: Evidence from the Chinese Stock Markets.”
+'''
+Delete ST (special treatment) and firms in financial industry.
+    How to delete ST,delete from the ST date or delete the ST stocks from the whole sample?
+
+susamples,before and after December 2006.
+subsamples with returns higher and lower than the median index return
+subsamples before and after March 2010 when Chinese stock markets partially allowed short sales.
+calculate portfolio returns with different holding epriods of 2,6,and 12 months
+'''
 
 
 

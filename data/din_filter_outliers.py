@@ -10,6 +10,7 @@ import numpy as np
 import os
 
 from config import PKL_PATH
+from data.dataApi import Database
 from data.dataTools import read_unfiltered, save_to_filtered, load_data
 from data.outlier import detect_outliers, delete_outliers
 from data.sampleControl import start_end
@@ -23,12 +24,17 @@ def handle_outliers(tbname):
     detect_outliers(x1,'filtered_'+tbname)
     save_to_filtered(x1,tbname)
 
-tbnames=[fn[:-4] for fn in os.listdir(PKL_PATH)]
-for tbname in tbnames:
-    try:
-        handle_outliers(tbname)
-        print(tbname)
-    except:
-        print('{} is skipped'.format(tbname))
+def filter_all():
+    tbnames=[fn[:-4] for fn in os.listdir(PKL_PATH)]
+    for tbname in tbnames:
+        try:
+            handle_outliers(tbname)
+            print(tbname)
+        except:
+            print('{} is skipped'.format(tbname))
+
+
+
+
 
 

@@ -118,19 +118,47 @@ def detect_outliers(x, fn):
 
 
 #---------------------handle outliers-------------------------------
-def delete_outliers(x,thresh=5):#TODO: thresh?
+def delete_outliers(x,method,thresh,pooled=True):#TODO: thresh?
     '''
     delete outliers
+
+    Example:
+        liquidity=load_data('liquidity')
+        ps1=liquidity['ps1'].unstack()
+        ps1_mad=delete_outliers(ps1, method='mad', thresh=6,pooled=False)
+        ps1_percentile=delete_outliers(ps1, method='percentile', thresh=99,pooled=False)
+        ps1_pooled=delete_outliers(ps1,method='percentile',thresh=99,pooled=True)
+        ps1_pooled_mad=delete_outliers(ps1,method='mad',thresh=6,pooled=True)
+
     :param x:
     :param by:
     :return: the same data structure as x,but the shape may be different.
     '''
     def _for_series(s):
         s=s.dropna()
-        s=s[~mad_based_outlier(s,thresh)]
-        return s
+        if s.shape[0]>0:
+            if method=='mad':
+                s=s[~mad_based_outlier(s,thresh)]
+            elif method=='percentile':
+                s=s[~percentile_based_outlier(s,thresh)]
+            else:
+                raise MyError('no method named "{}"'.format(method))
+            return s
+        else:
+            '''
+            For DataFrame.apply(func),the func must return the objects shared the same type.
+            For s.shape[0]==0,if we do not return a empty Series,it will return a None,which
+            is different with scenery when df.shape[0]>0,which return a Series.
+            '''
+            return pd.Series()
 
     def _for_2d_singleIndexed(df):
+        if pooled:
+            '''
+            treat all the element in a df equally,rather than handle them row-by-row or col-by-col
+            '''
+            return _for_series(df.stack()).unstack()
+
         if df.columns.name=='sid':# row by row
             '''
             For df like stockCloseD,we handle outliers row by row.

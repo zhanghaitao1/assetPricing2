@@ -6,21 +6,14 @@
 # NAME:assetPricing2-a.py
 
 
-import inspect
+from data.dataApi import Database
+from data.outlier import detect_outliers
+
+DATA=Database()
+
+detect_outliers(DATA.data,'data')
 
 
-def func(x):
-    return x*x
-
-args=range(10)
-
-str_func=inspect.getsource(func)
-str_args=inspect.getsource(args)
-
-str_main=open('multi_base.py').read()
-
-with open(r'e:\a\test.py','w') as f:
-    f.write('\n'.join([str_func,str_args,str_main]))
 
 
 

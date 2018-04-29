@@ -8,53 +8,57 @@ import os
 import pickle
 
 from config import PKL_PATH
-from data.dataTools import load_data, save
+from data.dataTools import load_data, save, save_to_filtered
 import pandas as pd
 from data.sampleControl import apply_condition
+from indicators_new.indicators_filter import refine
 
 
 def combine_all_indicators():
     fns=['size','beta','value','momentum','reversal','liquidity','skewness','idio']
 
     xs=[]
-    info_s=[]
+    info={}
     for fn in fns:
         x=load_data(fn)
         # stack those panel with only one indicators such as reversal
         if not isinstance(x.index,pd.MultiIndex):
             if x.columns.name=='sid':
                 x = x.stack().to_frame()
-                x.name = fn
+                x.columns = [fn]
 
         x.columns = pd.Index(['{}__{}'.format(fn, col) for col in x.columns], x.columns.name)
         xs.append(x)
-        info_s.append(pd.Series(x.columns,name=fn))
+        info[fn]=x.columns.tolist()
 
     indicators=pd.concat(xs,axis=1)
-    info=pd.concat(info_s,axis=1)
-    pickle.dump(info,open(os.path.join(PKL_PATH,'info.csv.pkl'),'wb'))
-    info.to_csv('info.csv.csv')
-    return indicators
+    return indicators,info
 
 def combine_all_benchmarks():
     models=['capmM', 'ff3M', 'ffcM', 'ff5M', 'hxz4M']
     xs=[]
-    for bench in models:
-        x=load_data(bench)
+    info={}
+    for model in models:
+        x=load_data(model)
         if x.ndim==1:# such as capmM
-            x.name='{}__{}'.format(bench,x.name)
+            x.name='{}__{}'.format(model,x.name)
         else:
-            x.columns=pd.Index(['{}__{}'.format(bench,col) for col in x.columns],name=x.columns.name)
+            x.columns=pd.Index(['{}__{}'.format(model,col) for col in x.columns],name=x.columns.name)
         xs.append(x)
 
+        if x.ndim==1: # model with only one column such as capmM
+            info[model]=[x.name]
+        else:
+            info[model]=x.columns.tolist()
     benchmark=pd.concat(xs,axis=1)
-    return benchmark
+    return benchmark,info
 
 def join_all():
-    # time T
+    # --------------------time T---------------------------------
     weight=load_data('size')['mktCap']
     weight.name='weight'
-    indicators=combine_all_indicators()
+
+    indicators,info_indicators=combine_all_indicators()
     indicators=indicators.groupby('sid').shift(1)
     '''
         all the indicators are shift forward one month except for eret,rf and other base data,
@@ -76,7 +80,7 @@ def join_all():
         as well.For more details,refer to page 40 of Bali.
 
     '''
-    # time T+1
+    # -----------------------------time T+1--------------------------------------
     stockEretM=load_data('stockEretM')
     stockEretM=stockEretM.stack()
     stockEretM.name='stockEretM'
@@ -84,31 +88,45 @@ def join_all():
     rfM=load_data('rfM')
     mktRetM=load_data('mktRetM')
     rpM=load_data('rpM')
-    benchmark=combine_all_benchmarks()
+    benchmark,info_benchmark=combine_all_benchmarks()
 
     #combine singleIndexed
     single=pd.concat([rfM,mktRetM,rpM,benchmark],axis=1)
 
     #combine multiIndexed
-    multi=pd.concat([indicators,stockEretM],axis=1)
+    multi=pd.concat([weight,indicators,stockEretM],axis=1)
     data=multi.join(single,how='outer')
     data.index.name=['t','sid']
     data.columns.name='type'
 
-    data_controlled=apply_condition(data)
-    save(data,'data')
-    save(data_controlled,'data_controlled')
 
-class Dataset:
+    info={**info_benchmark,**info_indicators}
+    pickle.dump(info,open(os.path.join(PKL_PATH,'info.pkl'),'wb'))
+
+    # save info as df
+    infoDf=pd.concat([pd.Series(v,name=k) for k,v in info.items()],axis=1)
+    infoDf.to_csv('info.csv')
+
+    save(data,'data')
+
+def refine_data():
+    data=load_data('data')
+    data=refine(data)
+    save_to_filtered(data,'data')
+
+    data_controlled=apply_condition(data)
+    save_to_filtered(data_controlled,'data_controlled')
+
+class Database:
     def __init__(self,sample_control=True):
         if sample_control:
             self.data=load_data('data_controlled')
         else:
             self.data=load_data('data')
-        self.info=load_data('info.csv')
+        self.info=load_data('info')
 
     def by_factor(self,factorname):
-        return self.data[self.info[factorname].dropna().values].copy(deep=True).dropna(how='all')
+        return self.data[self.info[factorname]].copy(deep=True).dropna(how='all')
 
     def by_indicators(self,indicators):
         '''
@@ -125,8 +143,10 @@ class Dataset:
 
 if __name__ == '__main__':
     join_all()
+    refine_data()
 
 
 
 
+#TODO:deal with sample control and detect outliers
 
