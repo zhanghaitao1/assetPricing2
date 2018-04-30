@@ -4,12 +4,12 @@
 # Email:13163385579@163.com
 # TIME:2018-04-24  17:34
 # NAME:assetPricing2-indicators_filter.py
-from data.dataApi import Database
+
 from data.dataTools import load_data
 from data.outlier import delete_outliers, detect_outliers
 
-def analyse_outliers():
-    data = Database().data
+def analyse_outliers(data):
+    #TODO: a little messy
     detect_outliers(data, 'data')
 
     #---------------------------liquidity----------------------------------
@@ -58,8 +58,22 @@ def analyse_outliers():
     skew_24M__D_pooled=delete_outliers(skew_24M__D,method='percentile',thresh=99.9,pooled=True)
     detect_outliers(skew_24M__D_pooled,'skew_24M__D_pooled')
 
-
 def refine(data):
 
-
+    dic={'liquidity':['amihud','ps1','ps2','roll1','roll2'],
+         'skewness':['idioskew_24M__D','skew_12M__D','skew_24M__D']}
+    for category,indicators in dic.items():
+        for indicator in indicators:
+            col='{}__{}'.format(category,indicator)
+            initial = data[col]
+            if category=='liquidity':
+                new=delete_outliers(initial.unstack(),method='percentile',thresh=99,pooled=True).stack()
+            elif category=='skewness':
+                new = delete_outliers(initial.unstack(), method='percentile', thresh=99.9, pooled=True).stack()
+            else:
+                raise ValueError
+            data[col]=new
+            print('refine {} {}'.format(category,indicator))
     return data
+
+

@@ -8,7 +8,7 @@ import os
 import pickle
 
 from config import PKL_PATH
-from data.dataTools import load_data, save, save_to_filtered
+from data.dataTools import load_data, save, save_to_filtered, read_unfiltered
 import pandas as pd
 from data.sampleControl import apply_condition
 from indicators_new.indicators_filter import refine
@@ -110,7 +110,7 @@ def join_all():
     save(data,'data')
 
 def refine_data():
-    data=load_data('data')
+    data=read_unfiltered('data')
     data=refine(data)
     save_to_filtered(data,'data')
 

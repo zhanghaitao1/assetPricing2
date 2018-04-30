@@ -51,15 +51,15 @@ def get_liquidity():
     df3=df3.set_index(['t','sid'])
     df3=df3.astype(float)
 
-    # Zeros
-    df4=read_gta('Liq_Zeros_M',index_col=0)
-    df4 = df4[df4['Status'] == 'A']  # A=正常交易
-    df4 = df4[['Stkcd', 'Trdmnt', 'Zeros_M','Zeros_Impact_M']]  # 月内日均换手率(流通股数)
-    df4.columns = ['sid', 't', 'zeros1','zeros2']
-    df4['t'] = freq_end(df4['t'], 'M')
-    df4['sid'] = df4['sid'].astype(str)
-    df4=df4.set_index(['t','sid'])
-    df4=df4.astype(float)
+    # # Zeros
+    # df4=read_gta('Liq_Zeros_M',index_col=0)
+    # df4 = df4[df4['Status'] == 'A']  # A=正常交易
+    # df4 = df4[['Stkcd', 'Trdmnt', 'Zeros_M','Zeros_Impact_M']]  # 月内日均换手率(流通股数)
+    # df4.columns = ['sid', 't', 'zeros1','zeros2']
+    # df4['t'] = freq_end(df4['t'], 'M')
+    # df4['sid'] = df4['sid'].astype(str)
+    # df4=df4.set_index(['t','sid'])
+    # df4=df4.astype(float)
 
     # Pastor Stambaugh
     df5=read_gta('Liq_PS_M',index_col=0)
@@ -72,11 +72,14 @@ def get_liquidity():
     df5=df5.astype(float)
 
     # combine them
-    x=pd.concat([df[~df.index.duplicated()] for df in [df1,df2,df3,df4,df5]],axis=1)
+    x=pd.concat([df[~df.index.duplicated()] for df in [df1,df2,df3,df5]],axis=1)
     x.columns.name='type'
 
     save(x,'liquidity')
 
+
+
+#---------------------------------------calulate by myself------------------------------
 def _amihud(subx):
     subx['volume']=subx['volume'].replace(0,np.nan)
     subx=subx.dropna()

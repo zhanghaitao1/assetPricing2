@@ -4,6 +4,7 @@
 # Email:13163385579@163.com
 # TIME:2018-03-22  15:03
 # NAME:assetPricing2-dataTools.py
+from functools import partial
 
 from config import WINSORIZE_LIMITS
 from dout import *
@@ -298,12 +299,8 @@ def summary_statistics(data,percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),axis=1):
     if data.ndim==1:
         return describe_1d(data,percentiles)
     else:
-        if axis==0:
-            ldesc=[describe_1d(s,percentiles) for _,s in data.iteritems()]
-        else:
-            ldesc = [describe_1d(s,percentiles) for _, s in data.T.iteritems()]
-        summary=pd.concat(ldesc,axis=1)
-    return summary.T
+        ss=data.apply(partial(describe_1d,percentiles=percentiles),axis=axis)
+        return ss
 
 def cal_corr(df,method='pearson',winsorize=False):
     '''
@@ -375,12 +372,13 @@ def cal_breakPoints(df,q):
         points=np.linspace(0,1.0,q+1)
     else:
         points=q
-    def _get_quantiles(series,points,name):
-        d=[series.quantile(bp) for bp in points]
-        return pd.Series(d,index=format_percentiles(points),name=name)
-    lbps=[_get_quantiles(s,points,name) for name,s in df.iterrows()]
-    breakPoints=pd.concat(lbps,axis=1)
-    return breakPoints.T
+    def _for_series(s,points):
+        return pd.Series([s.quantile(bp) for bp in points],index=format_percentiles(points))
+
+    breakpoints=df.apply(lambda s:_for_series(s,points),axis=1)
+
+    return breakpoints
+
 
 def count_groups(df,q):
     '''
@@ -397,16 +395,14 @@ def count_groups(df,q):
     '''
     if isinstance(q,int):
         lbs=['g'+str(i) for i in range(1,q+1)]
-        ln=[pd.qcut(df.loc[month],q,labels=lbs).value_counts()
-            for month in df.index.tolist()]
     else:
-        lbs=['g'+str(i) for i in range(1,len(q))]
-        ln=[pd.qcut(df.loc[month],q,labels=lbs).values_counts()
-            for month in df.index.tolist()]
+        lbs=['g'+str(b) for b in q]
 
-    count=pd.concat(ln,axis=1)
-    count = count.reindex(lbs, axis=0)
-    return count.T
+    def _for_series(s,lbs):
+        return pd.qcut(s,q,labels=lbs).value_counts()
+
+    count=df.apply(lambda s:_for_series(s,lbs),axis=1)
+    return count
 
 def famaMacBeth(formula, time_label, df, lags=5):
     '''

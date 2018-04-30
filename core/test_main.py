@@ -12,9 +12,9 @@ testdir = r'D:\zht\database\quantDb\researchTopics\assetPricing2\20180427'
 
 
 def test_OneFactor():
-    factors=['size','beta','value','momentum','reversal','liquidity','skewness','idio']
+    factors=['beta','size','value','momentum','reversal','liquidity','skewness','idio']
 
-    for factor in factors[-3:]: #TODO:
+    for factor in factors: #TODO:
         path=os.path.join(testdir,factor)
         OneFactor(factor,path)()
         print(factor,'Finished')

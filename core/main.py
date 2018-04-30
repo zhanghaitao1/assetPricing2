@@ -50,7 +50,7 @@ def adjust_with_riskModel(x, riskmodel=None):
         #                                      't': riskmodel+'_alpha_t'})
 
         return nw['Intercept'].rename(index={'coef':'alpha_'+riskmodel,
-                                             't': 't_alpha'+riskmodel})
+                                             't': 't_alpha_'+riskmodel})
     else:
         formula='y ~ 1'
         nw = newey_west(formula, df, lags)
@@ -144,7 +144,7 @@ class OneFactor:
             d = self.df[indicator].unstack()
             # there is no samples for some months due to festival
             # TODO: how to set the thresh?
-            d = d.dropna(axis=0, how='all', thresh=self.q * 10)
+            d = d.dropna(axis=0,thresh=self.q * 10)
             bps = cal_breakPoints(d, self.q)
             dfs_bp.append(bps)
             count = count_groups(d, self.q)
@@ -234,6 +234,7 @@ class OneFactor:
                 panel['avg'] = panel.mean(axis=1)
                 # TODO: use the risk models declared above
 
+                # part A
                 a_data = comb.groupby(['t', gcol])[indicator].mean()
                 a_data = a_data.unstack()
                 a_data.columns = a_data.columns.astype(str)

@@ -1,3 +1,7 @@
+# recheck
+1. If we use filtered data, the max and min in summary statistics will change significantly
+
+
 
 
 

@@ -69,5 +69,5 @@ def test_Bivariate():
     size_12M()()
 
 if __name__=='__main__':
-    # test_Onefactor()
-    test_Bivariate()
+    test_Onefactor()
+    # test_Bivariate()
