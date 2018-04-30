@@ -71,3 +71,12 @@ def get_bm():
 if __name__ == '__main__':
     get_bm()
 
+'''
+#TODO: wrong!!!! For predictors with accounting data updated annually
+(e.g.,earnings-to-price,accruals),variables constructed using data from 
+year t are used to forecast returns for 12 months beginning in July
+of year t+1,unless otherwise noted.For predictors that are updated on
+a monthly interval (e.g.,momentum,long-term reversal),variables constructed
+in month t are used to forecast returns in month t+1,unless otherwise noted.
+
+'''
