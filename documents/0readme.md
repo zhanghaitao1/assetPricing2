@@ -1,6 +1,6 @@
 # recheck
 1. If we use filtered data, the max and min in summary statistics will change significantly
-2. In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
+2. 
 3. The benchmark adjusted tvalues seem to be messy.In details,
     For beta,D_1M,D_3M is positive,the others are negative
     For size,all of the signs are negative.

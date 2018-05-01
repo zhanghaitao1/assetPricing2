@@ -112,7 +112,7 @@ def cross_not_st(freq='M'):
 
 def control_input(freq):
     sids=control_sid(['not_financial'])
-    t=control_t(start='2001-01-01',freq=freq)
+    t=control_t(start='1997-01-01',freq=freq)
     cross1=cross_closePrice_floor(freq=freq)
     cross2=cross_year_after_list(freq=freq)
     cross3=cross_not_st(freq=freq)

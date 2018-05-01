@@ -8,12 +8,10 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import load_data, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 
-from data.outlier import detect_outliers, delete_outliers
-from data.sampleControl import apply_condition
 from tool import groupby_rolling
 
 from zht.data.gta.api import read_gta
@@ -41,15 +39,19 @@ def get_liquidity():
     df2=df2.set_index(['t','sid'])
     df2=df2.astype(float)
 
+    '''
+    roll1,roll2,zeros1 and zeros2 are note proper for portfolio analysis,since there are a lot of
+    zeros in sample,which will cause errors in the program.
+    '''
     # roll
-    df3=read_gta('Liq_Roll_M',index_col=0)
-    df3 = df3[df3['Status'] == 'A']  # A=正常交易
-    df3 = df3[['Stkcd', 'Trdmnt', 'Roll_M','Roll_Impact_M']]  # 月内日均换手率(流通股数)
-    df3.columns = ['sid', 't', 'roll1','roll2']
-    df3['t'] = freq_end(df3['t'], 'M')
-    df3['sid'] = df3['sid'].astype(str)
-    df3=df3.set_index(['t','sid'])
-    df3=df3.astype(float)
+    # df3=read_gta('Liq_Roll_M',index_col=0)
+    # df3 = df3[df3['Status'] == 'A']  # A=正常交易
+    # df3 = df3[['Stkcd', 'Trdmnt', 'Roll_M','Roll_Impact_M']]  # 月内日均换手率(流通股数)
+    # df3.columns = ['sid', 't', 'roll1','roll2']
+    # df3['t'] = freq_end(df3['t'], 'M')
+    # df3['sid'] = df3['sid'].astype(str)
+    # df3=df3.set_index(['t','sid'])
+    # df3=df3.astype(float)
 
     # # Zeros
     # df4=read_gta('Liq_Zeros_M',index_col=0)
@@ -72,7 +74,7 @@ def get_liquidity():
     df5=df5.astype(float)
 
     # combine them
-    x=pd.concat([df[~df.index.duplicated()] for df in [df1,df2,df3,df5]],axis=1)
+    x=pd.concat([df[~df.index.duplicated()] for df in [df1,df2,df5]],axis=1)
     x.columns.name='type'
 
     save(x,'liquidity')

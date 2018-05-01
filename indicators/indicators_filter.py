@@ -60,7 +60,7 @@ def analyse_outliers(data):
 
 def refine(data):
 
-    dic={'liquidity':['amihud','ps1','ps2','roll1','roll2'],
+    dic={'liquidity':['amihud','ps1','ps2'],
          'skewness':['idioskew_24M__D','skew_12M__D','skew_24M__D']}
     for category,indicators in dic.items():
         for indicator in indicators:

@@ -54,21 +54,25 @@ def combine_all_benchmarks():
     return benchmark,info
 
 def join_all():
-    # --------------------time T---------------------------------
-    weight=load_data('size')['mktCap']
-    weight.name='weight'
-
-    indicators,info_indicators=combine_all_indicators()
-    indicators=indicators.groupby('sid').shift(1)
     '''
+        We use the indicators,and weight in time t to predict the adjusted return in time t+1,so,
+    for time T we have:
+        1. weight
+        2. indicators
+
+    For time T+1:
+        1. stock excess return
+        2. rp
+        3. benchmark
+
         all the indicators are shift forward one month except for eret,rf and other base data,
-    so the index denotes time t+1,and all the indicators are from time t,the base data are from 
+    so the index denotes time t+1,and all the indicators are from time t,the base data are from
     time t+1.We adjust the indicators rather than the base data for these reasons:
     1. we will sort the indicators in time t to construct portfolios and analyse the eret in time
         t+1
-    2. We need to make sure that the index for eret and benchmark is corresponding to the time when 
+    2. We need to make sure that the index for eret and benchmark is corresponding to the time when
     it was calcualted. If we shift back the base data in this place (rather than shift forward the
-    indicators),we would have to shift forward eret again when we regress the portfolio eret on 
+    indicators),we would have to shift forward eret again when we regress the portfolio eret on
     benckmark model in the function _alpha in template.py
 
     For simply,we use the information at t to predict the eret of time t+1.In our DATA.data,the index
@@ -80,6 +84,14 @@ def join_all():
         as well.For more details,refer to page 40 of Bali.
 
     '''
+
+    # --------------------time T---------------------------------
+    weight=load_data('size')['mktCap']
+    weight.name='weight'
+
+    indicators,info=combine_all_indicators()
+    indicators=indicators.groupby('sid').shift(1)
+
     # -----------------------------time T+1--------------------------------------
     stockEretM=load_data('stockEretM')
     stockEretM=stockEretM.stack()
@@ -88,10 +100,9 @@ def join_all():
     rfM=load_data('rfM')
     mktRetM=load_data('mktRetM')
     rpM=load_data('rpM')
-    benchmark,info_benchmark=combine_all_benchmarks()
 
     #combine singleIndexed
-    single=pd.concat([rfM,mktRetM,rpM,benchmark],axis=1)
+    single=pd.concat([rfM,mktRetM,rpM],axis=1)
 
     #combine multiIndexed
     multi=pd.concat([weight,indicators,stockEretM],axis=1)
@@ -99,8 +110,6 @@ def join_all():
     data.index.name=['t','sid']
     data.columns.name='type'
 
-
-    info={**info_benchmark,**info_indicators}
     pickle.dump(info,open(os.path.join(PKL_PATH,'info.pkl'),'wb'))
 
     # save info as df
@@ -111,11 +120,23 @@ def join_all():
 
 def refine_data():
     data=read_unfiltered('data')
-    data=refine(data)
-    save_to_filtered(data,'data')
+    # data=refine(data) #TODO: filter out the abnormal values
+    # save_to_filtered(data,'data')
 
     data_controlled=apply_condition(data)
     save_to_filtered(data_controlled,'data_controlled')
+
+class Benchmark:
+    def __init__(self):
+        self.data,self.info=combine_all_benchmarks()
+
+    def by_benchmark(self,name):
+        '''
+
+        :param name:one of ['capm','ff3','ff5','ffc','hxz4']
+        :return:
+        '''
+        return self.data[self.info[name+'M']]
 
 class Database:
     def __init__(self,sample_control=True):
@@ -149,4 +170,5 @@ if __name__ == '__main__':
 
 
 #TODO:deal with sample control and detect outliers
+
 

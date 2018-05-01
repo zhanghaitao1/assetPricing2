@@ -6,12 +6,22 @@
 # NAME:assetPricing2-a.py
 
 
-from data.dataApi import Database
-from data.outlier import detect_outliers
+import sqlite3
+conn=sqlite3.connect(r'E:\a\zotero.sqlite')
 
-DATA=Database()
+c=conn.cursor()
 
-detect_outliers(DATA.data,'data')
+c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+
+tablenames=c.fetchall()
+
+tablenames
+
+for tb in tablenames:
+    c.execute("select * from {} LIMIT 5".format(tb[0]))
+    print(tb[0],c.fetchall(),'\n\n')
+
+
 
 
 

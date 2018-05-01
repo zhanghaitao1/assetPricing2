@@ -11,14 +11,13 @@ import pandas as pd
 import numpy as np
 from config import WINSORIZE_LIMITS
 
-from data.dataApi import Database
+from data.dataApi import Database, Benchmark
 from tool import monitor, summary_statistics, cal_corr, cal_persistence, cal_breakPoints, count_groups, my_average, \
     assign_port_id, famaMacBeth, apply_col_by_col, newey_west
 from zht.utils.mathu import winsorize, get_outer_frame
 
-DATA=Database()
-
-
+DATA=Database(sample_control=True) #TODO: use controlled data
+# In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
 
 @apply_col_by_col
 def adjust_with_riskModel(x, riskmodel=None):
@@ -41,13 +40,15 @@ def adjust_with_riskModel(x, riskmodel=None):
     df.columns = ['y']
 
     if riskmodel in d.keys():
-        bench=DATA.data[DATA.info[d[riskmodel]]]
-        df=df.join(bench)
+        '''
+        we do not need to shift the time index,the index in df denotes time t+1 (the indicators
+        have been shifted forward),so,here the time for Stock excess return is consistent with
+        the time for benchmarks.Both of them are from time t+1.
+        '''
+        bench=Benchmark().by_benchmark(riskmodel)
+        df=pd.concat([df,bench],axis=1)
         formula='y ~ '+' + '.join(bench.columns.tolist())
         nw = newey_west(formula, df, lags)
-
-        # return nw['Intercept'].rename(index={'coef': riskmodel+'_alpha',
-        #                                      't': riskmodel+'_alpha_t'})
 
         return nw['Intercept'].rename(index={'coef':'alpha_'+riskmodel,
                                              't': 't_alpha_'+riskmodel})
@@ -261,7 +262,7 @@ class OneFactor:
         table_w = table_w.reindex(columns=newOrder)
 
         table_e['significant_positive']=table_e.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
-        table_e['significant_negative']=table_e.iloc[:,-1].map(lambda v:-1 if v<-2 else np.nan)
+        table_e['significant_negative']=table_e.iloc[:,-2].map(lambda v:-1 if v<-2 else np.nan)
 
         table_e.to_csv(os.path.join(self.path, 'univariate portfolio analysis-equal weighted.csv'))
         table_w.to_csv(os.path.join(self.path, 'univariate portfolio analysis-value weighted.csv'))
@@ -378,15 +379,15 @@ class OneFactor:
             fig.savefig(os.path.join(self.path, 'fm parameter ts fig-{}.png'.format(indicator)))
 
     def run(self):
-        # self.summary()
-        # self.correlation()
-        # self.persistence()
-        # self.breakPoints_and_countGroups()
+        self.summary()
+        self.correlation()
+        self.persistence()
+        self.breakPoints_and_countGroups()
 
         # self.portfolio_characteristics()
         self.portfolio_analysis()
-        # self.fm()
-        # self.parameter_ts_fig()
+        self.fm()
+        self.parameter_ts_fig()
 
     def __call__(self):
         self.run()

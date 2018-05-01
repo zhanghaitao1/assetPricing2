@@ -8,7 +8,9 @@ import os
 
 from core.main import OneFactor,Bivariate
 
-testdir = r'D:\zht\database\quantDb\researchTopics\assetPricing2\20180427'
+# testdir = r'D:\zht\database\quantDb\researchTopics\assetPricing2\20180427'
+testdir=r'D:\zht\database\quantDb\researchTopics\assetPricing2\apply_condition_result'
+
 
 
 def test_OneFactor():
@@ -35,8 +37,8 @@ class size_12M(Bivariate):
         super()._fm(ll_indeVars)
 
     def run(self):
-        # self.dependent_portfolio_analysis()
-        # self.independent_portfolio_analysis()
+        self.dependent_portfolio_analysis()
+        self.independent_portfolio_analysis()
         self.fm()
 
     def __call__(self):
