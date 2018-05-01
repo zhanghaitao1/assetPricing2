@@ -263,6 +263,8 @@ class OneFactor:
 
         table_e['significant_positive']=table_e.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
         table_e['significant_negative']=table_e.iloc[:,-2].map(lambda v:-1 if v<-2 else np.nan)
+        table_w['significant_positive']=table_w.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
+        table_w['significant_negative']=table_w.iloc[:,-2].map(lambda v:-1 if v<-2 else np.nan)
 
         table_e.to_csv(os.path.join(self.path, 'univariate portfolio analysis-equal weighted.csv'))
         table_w.to_csv(os.path.join(self.path, 'univariate portfolio analysis-value weighted.csv'))
