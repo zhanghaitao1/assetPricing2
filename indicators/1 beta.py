@@ -34,8 +34,6 @@ def _beta(subx):
     return beta
 
 def cal_beta():
-    #TODO: name D1M D3M  M12M M36M
-
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})#TODO: why so many months are lost? refer to betaD.csv
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
     combD,combM=_get_comb()
@@ -51,7 +49,9 @@ def cal_beta():
     x.index.names = ['t', 'sid']
     x.columns.name = 'type'
 
-    save(x,'beta')
+    save(x,'beta',sort_axis=False)
 
 if __name__ == '__main__':
     cal_beta()
+    #TODO: parallelize
+

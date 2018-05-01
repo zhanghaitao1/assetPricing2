@@ -107,6 +107,6 @@ if __name__ == '__main__':
         x.columns.name = 'type'
         xs.append(x)
 
-    save(pd.concat(xs,axis=1),'idio')
+    save(pd.concat(xs,axis=1),'idio',sort_axis=False)
 
 

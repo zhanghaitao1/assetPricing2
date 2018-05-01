@@ -210,8 +210,6 @@ class OneFactor:
 
         :return:
         '''
-        # TODO: add a parameter to declare what risk models will be used. [ff3,capm,ff5]
-
         all_indicators = list(set(self.indicators + ['weight', 'stockEretM']))
         comb = DATA.by_indicators(all_indicators)
 
@@ -256,9 +254,14 @@ class OneFactor:
         table_w = pd.concat(result_wavg, axis=0, keys=self.indicators)
         # reorder the columns
         initialOrder = table_e.columns.tolist()
-        newOrder = self.groupnames + [col for col in initialOrder if col not in self.groupnames]
+        h=self.groupnames+['avg']
+        newOrder=h+[col for col in initialOrder if col not in h]
+        # newOrder = self.groupnames + [col for col in initialOrder if col not in self.groupnames]
         table_e = table_e.reindex(columns=newOrder)
         table_w = table_w.reindex(columns=newOrder)
+
+        table_e['significant_positive']=table_e.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
+        table_e['significant_negative']=table_e.iloc[:,-1].map(lambda v:-1 if v<-2 else np.nan)
 
         table_e.to_csv(os.path.join(self.path, 'univariate portfolio analysis-equal weighted.csv'))
         table_w.to_csv(os.path.join(self.path, 'univariate portfolio analysis-value weighted.csv'))
@@ -329,7 +332,16 @@ class OneFactor:
             subdf = comb[[indicator, 'stockEretM']]
             subdf = subdf.dropna()
             subdf.columns = ['y', 'x']
-            # The independent variable is winsorized at a given level on a monthly basis. as page 141
+            '''
+            (page 141)The independent variable is winsorized at a given level on a monthly basis.
+            
+            (page 90)The independent variables are usually winsorized to ensure that a small number of extreme
+            independent variable values do not have a large effect on the results of the regression.
+            
+            In some cases the dependent variable is also winsorized.When the dependent variable is a 
+            security return or excess return,this variable is usually not winsorized.In most other 
+            cases,it is common to winsorized the dependent variable.
+            '''
             subdf['x'] = subdf.groupby('t')['x'].apply(lambda s: winsorize(s, limits=WINSORIZE_LIMITS))
             subdf = subdf.reset_index()
             formula = 'y ~ x'
@@ -360,19 +372,21 @@ class OneFactor:
                                  index_col=[0], parse_dates=True)
         parameters['zero'] = 0.0
         for indicator in self.indicators:
-            fig = parameters[[indicator, 'zero']].plot().get_figure()
+            s=parameters[indicator].dropna()
+            positive_ratio=(s>0).sum()/s.shape[0]
+            fig = parameters[[indicator, 'zero']].plot(title='positive ratio: {:.3f}'.format(positive_ratio)).get_figure()
             fig.savefig(os.path.join(self.path, 'fm parameter ts fig-{}.png'.format(indicator)))
 
     def run(self):
-        self.summary()
-        self.correlation()
-        self.persistence()
-        self.breakPoints_and_countGroups()
+        # self.summary()
+        # self.correlation()
+        # self.persistence()
+        # self.breakPoints_and_countGroups()
 
         # self.portfolio_characteristics()
         self.portfolio_analysis()
-        self.fm()
-        self.parameter_ts_fig()
+        # self.fm()
+        # self.parameter_ts_fig()
 
     def __call__(self):
         self.run()
@@ -593,3 +607,7 @@ class Bivariate:
         table = table.reindex(index=newIndex)
 
         table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
+
+
+
+#TODO: wrong!!!! For predictors with accounting data updated annually

@@ -66,7 +66,7 @@ def get_momentum():
     momentum=momentum*100
     momentum.columns.name='type'
 
-    save(momentum,'momentum')
+    save(momentum,'momentum',sort_axis=False)
 
 if __name__=='__main__':
     get_momentum()

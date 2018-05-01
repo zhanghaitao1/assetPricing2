@@ -1,6 +1,37 @@
 # recheck
 1. If we use filtered data, the max and min in summary statistics will change significantly
+2. In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
+3. The benchmark adjusted tvalues seem to be messy.In details,
+    For beta,D_1M,D_3M is positive,the others are negative
+    For size,all of the signs are negative.
+    For value,positive
+    For mom,most of the t excess return is insignificant,and three of the ff3 tvalues are positive.All
+        the others are negative
+    For reversal,all of them are significant negatively     
+    For liquidity,roll2 and amihud is positive,the others are negative.
+    For skewness,1_D,3_D,6_D is positive for ff3,ff5,ffc
+        For ff3,ffc,ff5,1_D,3_D,6_D is positive
+        For capm,hxz,only 1_D is positive
+        For all the other scenerys,the value is negative
+    For idio,all of them are negative,except some of them are not significant for t excess return 
+        The others are significant
+       
+    
+    
+    For skewness,it shows the same pattern as beta
+        By the way,there are some abnormal values in the first stage of fm regression
+            
+    The benchmark models blow up all the magnitude of tvalue.
+    
 
+
+# Time relationship
+For predictors with accounting data updated annually
+(e.g.,earnings-to-price,accruals),variables constructed using data from 
+year t are used to forecast returns for 12 months beginning in July
+of year t+1,unless otherwise noted.For predictors that are updated on
+a monthly interval (e.g.,momentum,long-term reversal),variables constructed
+in month t are used to forecast returns in month t+1,unless otherwise noted.
 
 
 

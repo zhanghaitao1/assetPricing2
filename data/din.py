@@ -254,7 +254,7 @@ def get_rpD():
 def get_capmM():
     rpM=load_data('rpM')
     rpM.name='rp'
-    save(rpM,'capmM',validation=False)
+    save(rpM,'capmM',axis_info=False)
 
 def get_ff3M_resset():
     '''

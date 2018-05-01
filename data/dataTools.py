@@ -10,7 +10,7 @@ import numpy as np
 
 from config import CSV_PATH, PKL_PATH, PKL_FILTERED_PATH
 from data.base import MyError
-from data.check import is_valid
+from data.check import check_data_structure, check_axis_order, check_axis_info
 from data.outlier import detect_outliers
 from zht.data.gta.api import read_gta
 
@@ -20,14 +20,6 @@ def read_df_from_gta(tbname, varname, indname, colname):
     df=pd.pivot_table(table,varname,indname,colname)
     return df
 
-def unify(x):
-    if x.ndim==1:
-        x=x.sort_index()
-        return x
-    elif x.ndim==2:
-        x=x.sort_index(axis=0)
-        x=x.sort_index(axis=1)
-        return x
 
 def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
     if suffix== 'pkl':
@@ -37,19 +29,26 @@ def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
         # TODO: datetime,axis dtypes
     return df
 
-def save(x, name, validation=True):
+def save(x, name, data_structure=True,axis_info=True,sort_axis=True):
     '''
-    Since some information about DataFrame will be missing,such as the dtype,columns.name,
-    will save them as pkl.
-    :param x:
-    :param name:
-    :param validation: True or False,validate the data structure or not.
-    :param outliers:
+        before saving the data as pkl,we can check whether the data accords with
+    our standard in respect of data structure,axis info,and the order of axis.
+
+    :param x:Series or DataFrame
+    :param name: The name to save,without suffix
+    :param data_structure:
+    :param axis_info:
+    :param sort_axis:
     :return:
     '''
-    if validation:
-        x=unify(x)
-        is_valid(x, name)
+    if data_structure:
+        check_data_structure(x)
+
+    if axis_info:
+        check_axis_info(x,name)
+
+    if sort_axis:
+        x=check_axis_order(x)
 
     # if outliers:
     #     detect_outliers(x,name)
@@ -61,7 +60,6 @@ def save(x, name, validation=True):
         x.to_csv(os.path.join(CSV_PATH, name + '.csv'))
 
     x.to_pickle(os.path.join(PKL_PATH, name + '.pkl'))
-    
 
 def detect_freq(axis):
     ts=axis.get_level_values('t').unique()

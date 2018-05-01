@@ -51,7 +51,7 @@ def get_bm():
     me=load_data('stockCloseY')
     be,me=get_inter_frame([be,me])
     bm=be/me
-    bm[bm<=0]=np.nan #delete those sample with bm<0
+    bm[bm<=0]=np.nan #delete those samples with bm<0
     bm=bm.shift(1,freq='6M')
 
     newIndex=pd.date_range(bm.index[0],bm.index[-1],freq='M')
@@ -71,12 +71,3 @@ def get_bm():
 if __name__ == '__main__':
     get_bm()
 
-'''
-#TODO: wrong!!!! For predictors with accounting data updated annually
-(e.g.,earnings-to-price,accruals),variables constructed using data from 
-year t are used to forecast returns for 12 months beginning in July
-of year t+1,unless otherwise noted.For predictors that are updated on
-a monthly interval (e.g.,momentum,long-term reversal),variables constructed
-in month t are used to forecast returns in month t+1,unless otherwise noted.
-
-'''

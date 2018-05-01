@@ -383,8 +383,8 @@ def get_stInfo():
     dfD=dfD['not_st'].unstack()
     dfD.columns=dfD.columns.astype(str)
 
-    save(dfD,'stInfoD',validation=True)
-    save(dfM,'stInfoM',validation=True)
+    save(dfD,'stInfoD')
+    save(dfM,'stInfoM')
 
 
 

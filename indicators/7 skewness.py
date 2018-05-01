@@ -119,7 +119,8 @@ if __name__=='__main__':
         x.columns.name = 'type'
         xs.append(x)
 
-    save(pd.concat(xs,axis=1),'skewness')
+    save(pd.concat(xs,axis=1),'skewness',sort_axis=False)
+
 
 
 

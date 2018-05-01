@@ -21,6 +21,16 @@ def identify_axis():
     #TODO: machine learning to identify the type and name of axis
     pass
 
+def check_axis_order(x):
+    if x.ndim==1:
+        x=x.sort_index()
+        return x
+    elif x.ndim==2:
+        x=x.sort_index(axis=0)
+        x=x.sort_index(axis=1)
+        return x
+
+
 def check_data_structure(x):
     '''
     All the data structure should belong to the following list:
@@ -76,31 +86,25 @@ def _check_singleIndex(axis):
     if axis.has_duplicates:
         raise MyError('The axis "{}" has duplicates'.format(axis.name))
 
-def _check_axis(axis):
+def _check_axis_info(axis):
     if isinstance(axis,pd.MultiIndex):
         _check_multiIndex(axis)
     else:
         _check_singleIndex(axis)
 
-def check_s_for_saving_name(s, name):
+def _check_s_for_saving_name(s, name):
     if not s.name:
         raise MyError('No name for Series')
     elif s.name!=name:
         raise MyError('The file name "{}" to save is different with the name of Series "{}"'.format(name,s.name))
 
-def check_s(s, name):
-    _check_axis(s.index)
-    check_s_for_saving_name(s, name)
-
-def check_df(df):
-    _check_axis(df.index)
-    _check_axis(df.columns)
-
-def is_valid(x, name):
-    check_data_structure(x)
+def check_axis_info(x,name):
     if x.ndim==1:
-        check_s(x,name)
+        _check_axis_info(x.index)
+        _check_s_for_saving_name(x, name)
+
     elif x.ndim==2:
-        check_df(x)
+        _check_axis_info(x.index)
+        _check_axis_info(x.columns)
     else:
         raise NotImplementedError
