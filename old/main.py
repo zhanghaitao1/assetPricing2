@@ -330,7 +330,7 @@ class OneFactor:
             subdf['x']=subdf.groupby('t')['x'].apply(lambda s:winsorize(s,limits=WINSORIZE_LIMITS))
             subdf=subdf.reset_index()
             formula='y ~ x'
-            r,adj_r2,n,p,fittedvalues=famaMacBeth(formula,'t',subdf,lags=5)
+            r,adj_r2,n,p=famaMacBeth(formula,'t',subdf,lags=5)
             #TODO: why intercept tvalue is so large?
             # TODO: why some fm regression do not have a adj_r2 ?
             data.append([r.loc['x', 'coef'], r.loc['x', 'tvalue'],
@@ -573,7 +573,7 @@ class Bivariate:
             df.columns = newname + ['t', 'eretM']
             formula = 'eretM ~ ' + ' + '.join(newname)
             # TODO:lags?
-            r, adj_r2, n,p,fittedvalues= famaMacBeth(formula, 't', df, lags=5)#TODO:
+            r, adj_r2, n,p= famaMacBeth(formula, 't', df, lags=5)#TODO:
             r = r.rename(index=dict(zip(newname, l_indeVars)))
             #save the first stage regression parameters
             p=p.rename(columns=dict(zip(newname,l_indeVars)))

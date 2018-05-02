@@ -463,8 +463,6 @@ def famaMacBeth(formula, time_label, df, lags=5):
         groups=df.index.get_level_values(time_label).unique()
 
     p=pd.DataFrame([x.params for x in res],index=groups)
-    # first stage fitted value
-    fittedvalues=pd.concat([x.fittedvalues for x in res]).unstack()
     N=np.mean([x.nobs for x in res])
     adj_r2=np.mean([x.rsquared_adj for x in res])
 
@@ -499,7 +497,7 @@ def famaMacBeth(formula, time_label, df, lags=5):
     result.loc[result.pvalue < 0.05, 'stars'] = '**'
     result.loc[result.pvalue < 0.01, 'stars'] = '***'
 
-    return result,adj_r2,N,p,fittedvalues
+    return result,adj_r2,N,p
 
 def newey_west(formula,df,lags=5):
     #TODO: other t values such as bootstrapped standard errors of Murphy and Topel, “Estimation and Inference in Two-Step Econometric Models.”

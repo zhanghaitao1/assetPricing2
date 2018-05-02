@@ -19,6 +19,17 @@ from zht.utils.mathu import winsorize, get_outer_frame
 DATA=Database(sample_control=True) #TODO: use controlled data
 # In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
 
+def combine_with_datalagged(indicators):
+    datalagged = DATA.by_indicators(indicators + ['weight'])
+    datat = DATA.by_indicators(['stockEretM'])
+    '''
+    sort the lagged characteristics to construct portfolios
+    Notice:
+        before shift(1),we must groupby('sid').
+    '''
+    comb = pd.concat([datalagged.groupby('sid').shift(1), datat],axis=1)
+    return comb
+
 @apply_col_by_col
 def adjust_with_riskModel(x, riskmodel=None):
     '''
@@ -198,6 +209,10 @@ class OneFactor:
             the index denotes t+1,and the weight is from time t,
             since we have shift weight forward in dataset.
             '''
+            # def func(df):
+            #     return my_average(df,'stockEretM',wname='weight')
+            #
+            # panel_stk_wavg=comb.groupby(['t',gcol]).apply(func)
             panel_stk_wavg = comb.groupby(['t', gcol]).apply(
                 lambda df: my_average(df, 'stockEretM', wname='weight')
             )
@@ -211,8 +226,9 @@ class OneFactor:
 
         :return:
         '''
-        all_indicators = list(set(self.indicators + ['weight', 'stockEretM']))
-        comb = DATA.by_indicators(all_indicators)
+        comb=combine_with_datalagged(self.indicators)
+        # all_indicators = list(set(self.indicators + ['weight', 'stockEretM']))
+        # comb = DATA.by_indicators(all_indicators)
 
         result_eavg = []
         result_wavg = []
@@ -270,8 +286,8 @@ class OneFactor:
         table_w.to_csv(os.path.join(self.path, 'univariate portfolio analysis-value weighted.csv'))
 
     def _one_indicator(self, indicator):
-        ns = range(0, 12)
-        all_indicators = list(set([indicator] + ['weight', 'stockEretM']))
+        ns = range(1, 13)
+        all_indicators=[indicator,'weight','stockEretM']
         comb = DATA.get_by_indicators(all_indicators)
         comb = comb.dropna()
         comb['g'] = comb.groupby('t', group_keys=False).apply(
@@ -298,8 +314,10 @@ class OneFactor:
             comb[eret_name] = eret.shift(-n).stack()
 
             group_eavg_ts = comb.groupby(['t', 'g'])[eret_name].mean()
-            group_wavg_ts = comb.groupby(['t', 'g']).apply(lambda df: np.average(df[eret_name], weights=df['mktCap']))
-
+            group_wavg_ts = comb.groupby(['t', 'g']).apply(
+                lambda df: np.average(df[eret_name], weights=df['weight']))
+            #TODO: If we are analyzing size,the weights should be the indicator
+            #we are analyzing,rather than weight
             s_e = _one_indicator_one_weight_type(group_eavg_ts, indicator)
             s_w = _one_indicator_one_weight_type(group_wavg_ts, indicator)
             s_es.append(s_e)
@@ -328,7 +346,7 @@ class OneFactor:
 
     @monitor
     def fm(self):
-        comb = DATA.by_indicators(self.indicators + ['stockEretM'])
+        comb=combine_with_datalagged(self.indicators)
         data = []
         ps = []
         for indicator in self.indicators:
@@ -348,7 +366,7 @@ class OneFactor:
             subdf['x'] = subdf.groupby('t')['x'].apply(lambda s: winsorize(s, limits=WINSORIZE_LIMITS))
             subdf = subdf.reset_index()
             formula = 'y ~ x'
-            r, adj_r2, n, p,fittedvalues= famaMacBeth(formula, 't', subdf, lags=5)
+            r, adj_r2, n, p= famaMacBeth(formula, 't', subdf, lags=5)
             # TODO: why intercept tvalue is so large?
             # TODO: why some fm regression do not have a adj_r2 ?
             data.append([r.loc['x', 'coef'], r.loc['x', 'tvalue'],
@@ -371,6 +389,7 @@ class OneFactor:
 
         :return:
         '''
+        #TODO: Why not plot rolling parameters?
         parameters = pd.read_csv(os.path.join(self.path, 'fama macbeth regression parameters in first stage.csv'),
                                  index_col=[0], parse_dates=True)
         parameters['zero'] = 0.0
@@ -409,8 +428,7 @@ class Bivariate:
 
     def _get_independent_data(self):
         # TODO: add the method of ratios such as [0.3,0.7]
-        # sometimes the self.indicators and ['weight','stockEretM'] may share some elements
-        comb=DATA.by_indicators([self.indicator1,self.indicator2,'weight','stockEretM'])
+        comb=combine_with_datalagged([self.indicator1,self.indicator2])
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
             lambda df:assign_port_id(df[self.indicator1], self.q,
@@ -438,9 +456,7 @@ class Bivariate:
         :param indicators:list with two elements,the first is the controlling variable
         :return:
         '''
-
-        # sometimes the self.indicators and ['mktCap','eret'] may share some elements
-        comb=DATA.by_indicators(indicators+['weight','stockEretM'])
+        comb=combine_with_datalagged(indicators)
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
             lambda df:assign_port_id(df[indicators[0]], self.q,
@@ -580,8 +596,7 @@ class Bivariate:
         security return or excess return,this variable is usually not winsorized.In most other
         cases,it is common to winsorized the dependent variable.
         '''
-        indicators=indeVars+['stockEretM']
-        df=DATA.by_indicators(indicators)
+        df=combine_with_datalagged(indeVars)
         df=df.dropna()
         # winsorize
         df[indeVars]=df.groupby('t')[indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
@@ -589,7 +604,7 @@ class Bivariate:
         df.columns=newname+['stockEretM']
         formula = 'stockEretM ~ ' + ' + '.join(newname)
         # TODO:lags?
-        r, adj_r2, n, firstStage_params,firstStage_fittedvalues = famaMacBeth(formula, 't', df, lags=5)  # TODO:
+        r, adj_r2, n, firstStage_params = famaMacBeth(formula, 't', df, lags=5)  # TODO:
         r = r.rename(index=dict(zip(newname, indeVars)))
         # save the first stage regression parameters
         firstStage_params = firstStage_params.rename(columns=dict(zip(newname,indeVars)))
@@ -597,7 +612,7 @@ class Bivariate:
         params.index = params.index.map('{0[0]} {0[1]}'.format)
         params['adj_r2'] = adj_r2
         params['n'] = n
-        return params,firstStage_params,firstStage_fittedvalues
+        return params,firstStage_params
 
     def _fm(self,x):
         '''
@@ -606,17 +621,14 @@ class Bivariate:
         :return:
         '''
         if isinstance(x[0],str):
-            p, firstStage_params, firstStage_fittedvalues = self._fm_for_l(x)
+            p, firstStage_params = self._fm_for_l(x)
             firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(x) + '.csv'))
-            firstStage_fittedvalues.to_csv(
-                os.path.join(self.path, 'first stage fittedvalues ' + '_'.join(x) + '.csv'))
             p.to_csv(os.path.join(os.path.join(self.path,'fama macbeth regression analysis.csv')))
         if isinstance(x[0],list):
             ps=[]
             for indeVars in x:
-                p,firstStage_params,firstStage_fittedvalues=self._fm_for_l(indeVars)
+                p,firstStage_params=self._fm_for_l(indeVars)
                 firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(indeVars) + '.csv'))
-                firstStage_fittedvalues.to_csv(os.path.join(self.path, 'first stage fittedvalues ' + '_'.join(indeVars) + '.csv'))
                 ps.append(p)
             table = pd.concat(ps, axis=1, keys=range(1, len(x) + 1))
             all_indeVars = list(set(var for l_indeVars in x for var in l_indeVars))

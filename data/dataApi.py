@@ -87,15 +87,12 @@ def join_all():
 
     '''
 
-    # --------------------time T---------------------------------
+    # --------------------time T-1 (Backward) ---------------------------------
     weight=load_data('size')['mktCap']
     weight.name='weight'
-
     indicators,info=combine_all_indicators()
-    indicators=indicators.groupby('sid').shift(1)
 
-    #TODO: wrong
-    # -----------------------------time T+1--------------------------------------
+    # -----------------------------time T--------------------------------------
     stockEretM=load_data('stockEretM')
     stockEretM=stockEretM.stack()
     stockEretM.name='stockEretM'
