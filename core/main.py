@@ -596,18 +596,21 @@ class Bivariate:
         security return or excess return,this variable is usually not winsorized.In most other
         cases,it is common to winsorized the dependent variable.
         '''
-        df=combine_with_datalagged(indeVars)
-        df=df.dropna()
+        comb=combine_with_datalagged(indeVars)
+        comb=comb.dropna()
+
         # winsorize
-        df[indeVars]=df.groupby('t')[indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
-        newname = ['name' + str(i) for i in range(1, len(indeVars) + 1)]
-        df.columns=newname+['stockEretM']
-        formula = 'stockEretM ~ ' + ' + '.join(newname)
+        comb[indeVars]=comb.groupby('t')[indeVars].apply(
+            lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
+        namedict={inde:'name{}'.format(i) for i,inde in enumerate(indeVars)}
+        comb=comb.rename(columns=namedict)
+        formula = 'stockEretM ~ ' + ' + '.join(namedict.values())
         # TODO:lags?
-        r, adj_r2, n, firstStage_params = famaMacBeth(formula, 't', df, lags=5)  # TODO:
-        r = r.rename(index=dict(zip(newname, indeVars)))
+        r, adj_r2, n, firstStage_params = famaMacBeth(formula, 't', comb, lags=5)  # TODO:
+        r = r.rename(index={v:k for k,v in namedict.items()})
         # save the first stage regression parameters
-        firstStage_params = firstStage_params.rename(columns=dict(zip(newname,indeVars)))
+        firstStage_params = firstStage_params.rename(
+            columns={v:k for k,v in namedict.items()})
         params = r[['coef', 'tvalue']].stack()
         params.index = params.index.map('{0[0]} {0[1]}'.format)
         params['adj_r2'] = adj_r2

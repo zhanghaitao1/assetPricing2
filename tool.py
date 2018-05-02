@@ -502,7 +502,6 @@ def famaMacBeth(formula, time_label, df, lags=5):
 def newey_west(formula,df,lags=5):
     #TODO: other t values such as bootstrapped standard errors of Murphy and Topel, “Estimation and Inference in Two-Step Econometric Models.”
     #TODO: Shanken corrected t-statistics
-
     reg=sm.ols(formula,df).fit(cov_type='HAC',
                                   cov_kwds={'maxlags':lags},
                                   use_t=True)
