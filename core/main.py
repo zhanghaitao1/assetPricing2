@@ -348,7 +348,7 @@ class OneFactor:
             subdf['x'] = subdf.groupby('t')['x'].apply(lambda s: winsorize(s, limits=WINSORIZE_LIMITS))
             subdf = subdf.reset_index()
             formula = 'y ~ x'
-            r, adj_r2, n, p = famaMacBeth(formula, 't', subdf, lags=5)
+            r, adj_r2, n, p,fittedvalues= famaMacBeth(formula, 't', subdf, lags=5)
             # TODO: why intercept tvalue is so large?
             # TODO: why some fm regression do not have a adj_r2 ?
             data.append([r.loc['x', 'coef'], r.loc['x', 'tvalue'],
@@ -567,50 +567,62 @@ class Bivariate:
         _f([self.indicator1, self.indicator2])
         _f([self.indicator2, self.indicator1])
 
-    def _fm(self, ll_indeVars):
+    @staticmethod
+    def _fm_for_l(indeVars):
+        #TODO: upgrade fm in Univariate by calling this function
         '''
-        :param ll_indeVars: list of list,the inside list contains all
-            the indepedent variables to construct a regress equation
+        (page 141)The independent variable is winsorized at a given level on a monthly basis.
 
+        (page 90)The independent variables are usually winsorized to ensure that a small number of extreme
+        independent variable values do not have a large effect on the results of the regression.
+
+        In some cases the dependent variable is also winsorized.When the dependent variable is a
+        security return or excess return,this variable is usually not winsorized.In most other
+        cases,it is common to winsorized the dependent variable.
+        '''
+        indicators=indeVars+['stockEretM']
+        df=DATA.by_indicators(indicators)
+        df=df.dropna()
+        # winsorize
+        df[indeVars]=df.groupby('t')[indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
+        newname = ['name' + str(i) for i in range(1, len(indeVars) + 1)]
+        df.columns=newname+['stockEretM']
+        formula = 'stockEretM ~ ' + ' + '.join(newname)
+        # TODO:lags?
+        r, adj_r2, n, firstStage_params,firstStage_fittedvalues = famaMacBeth(formula, 't', df, lags=5)  # TODO:
+        r = r.rename(index=dict(zip(newname, indeVars)))
+        # save the first stage regression parameters
+        firstStage_params = firstStage_params.rename(columns=dict(zip(newname,indeVars)))
+        params = r[['coef', 'tvalue']].stack()
+        params.index = params.index.map('{0[0]} {0[1]}'.format)
+        params['adj_r2'] = adj_r2
+        params['n'] = n
+        return params,firstStage_params,firstStage_fittedvalues
+
+    def _fm(self,x):
+        '''
+
+        :param x: a list of list,or just a list contains the name of independent variables
         :return:
         '''
-        indeVars=list(set(var for l_indeVars in ll_indeVars for var in l_indeVars))
-        indicators = indeVars + ['stockEretM']
-        comb = DATA.by_indicators(indicators)
-        # The independent variable is winsorized at a given level on a monthly basis. as page 170
-        comb[indeVars]=comb.groupby('t')[indeVars].apply(lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
-        comb = comb.reset_index()
-        stks = []
-        for l_indeVars in ll_indeVars:
-            '''
-            replace the old name with new name,since patsy do not support name starts with number 
-
-            '''
-            newname = ['name' + str(i) for i in range(1, len(l_indeVars) + 1)]
-            df = comb[l_indeVars + ['t', 'stockEretM']].dropna()
-            df.columns = newname + ['t', 'stockEretM']
-            formula = 'stockEretM ~ ' + ' + '.join(newname)
-            # TODO:lags?
-            r, adj_r2, n,p = famaMacBeth(formula, 't', df, lags=5)#TODO:
-            r = r.rename(index=dict(zip(newname, l_indeVars)))
-            #save the first stage regression parameters
-            p=p.rename(columns=dict(zip(newname,l_indeVars)))
-            p.to_csv(os.path.join(self.path,'first stage parameters '+'_'.join(l_indeVars)+'.csv'))
-            stk = r[['coef', 'tvalue']].stack()
-            stk.index = stk.index.map('{0[0]} {0[1]}'.format)
-            stk['adj_r2'] = adj_r2
-            stk['n'] = n
-            stks.append(stk)
-
-        table = pd.concat(stks, axis=1, keys=range(1, len(ll_indeVars) + 1))
-
-        newIndex = [var + ' ' + suffix for var in indicators for suffix in ['coef', 'tvalue']] + \
-                   ['Intercept coef', 'Intercept tvalue', 'adj_r2', 'n']
-
-        table = table.reindex(index=newIndex)
-
-        table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
-
-
+        if isinstance(x[0],str):
+            p, firstStage_params, firstStage_fittedvalues = self._fm_for_l(x)
+            firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(x) + '.csv'))
+            firstStage_fittedvalues.to_csv(
+                os.path.join(self.path, 'first stage fittedvalues ' + '_'.join(x) + '.csv'))
+            p.to_csv(os.path.join(os.path.join(self.path,'fama macbeth regression analysis.csv')))
+        if isinstance(x[0],list):
+            ps=[]
+            for indeVars in x:
+                p,firstStage_params,firstStage_fittedvalues=self._fm_for_l(indeVars)
+                firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(indeVars) + '.csv'))
+                firstStage_fittedvalues.to_csv(os.path.join(self.path, 'first stage fittedvalues ' + '_'.join(indeVars) + '.csv'))
+                ps.append(p)
+            table = pd.concat(ps, axis=1, keys=range(1, len(x) + 1))
+            all_indeVars = list(set(var for l_indeVars in x for var in l_indeVars))
+            newIndex = [var + ' ' + suffix for var in all_indeVars for suffix in ['coef', 'tvalue']] + \
+                       ['Intercept coef', 'Intercept tvalue', 'adj_r2', 'n']
+            table = table.reindex(index=newIndex)
+            table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
 
 #TODO: wrong!!!! For predictors with accounting data updated annually

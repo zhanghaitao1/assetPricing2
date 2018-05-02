@@ -109,8 +109,23 @@ def cross_not_st(freq='M'):
         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
     return stInfo
 
+def cross_all_but_tiny():
+    '''
+    'all-but-tiny' stocks are those larger than the NYSE 20th percentile and 'large'
+    stocks are those larger than the NYSE 50th percentile based on market equity at
+    the beginning of the month.Fama and French (2008) suggest usign these groups as
+    a simple way to check whether predictability is driven by micro-cap stocks or also
+    exists among the economically more important population of large stocks.
 
-def control_input(freq):
+    references:
+        Lewellen, J. (2015). The Cross-section of Expected Stock Returns. Critical Finance Review 4, 1–44.
+
+    :return:
+    '''
+    pass
+
+
+def combine_condition(freq):
     sids=control_sid(['not_financial'])
     t=control_t(start='1997-01-01',freq=freq)
     cross1=cross_closePrice_floor(freq=freq)
@@ -130,7 +145,7 @@ def apply_condition(x):
     :return:
     '''
     freq=detect_freq(x.index)
-    condition=control_input(freq)
+    condition=combine_condition(freq)
     if isinstance(x.index,pd.MultiIndex):
         return x.loc[x.index.intersection(condition.stack().dropna().index)]
     else:
@@ -161,80 +176,6 @@ calculate portfolio returns with different holding epriods of 2,6,and 12 months
 
 
 #-------------------------------old --------------------------------------
-def control_stock_sample(df, condition):
-    '''
-    is_sz
-    is_sh
-    is_gem 创业板
-    is_cross
-    not_financial
-    is_industry
-
-    :param df:
-    :param condition:
-    :return:stock code
-    '''
-    #TODO: is_gem,is_industry,
-    conditions=['is_sz','is_sh','not_cross','not_financial']
-    info=read_unfiltered('listInfo')
-
-    if condition in conditions:
-        validSids=info.index[info[condition]]
-    else:
-        raise ValueError('The "condition" should be one of {}'.format(repr(conditions)))
-
-    if df.index.name=='sid':
-        return df.reindex(index=df.index.intersection(validSids)) #TODO: intersection rather than reindex
-    elif df.columns.name=='sid':
-        return df.reindex(columns=df.columns.intersection(validSids))
-    else:
-        raise MyError('No axis named "sid"!')
-
-
-def start_end(df, start='1997-01-01', end=None):
-    '''
-    The limit on return starts from 1996-12-26
-
-    start
-    end
-
-    is_bear
-    is_bull
-    is_downside?
-
-    :return:
-    '''
-    if isinstance(start,str):
-        start=pd.to_datetime(start)
-
-    if not end:
-        end=datetime.datetime.today()
-
-    if isinstance(end,str):
-        end=pd.to_datetime(end)
-
-    if 't' in df.index.names:
-        return df[(start<=df.index.get_level_values('t')) &(df.index.get_level_values('t')<=end)]
-    elif 't' in df.columns:
-        return df[(start<=df['t'])&(df['t']<=end)]
-    else:
-        raise ValueError('There is no index or column named "t" !')
-
-def floor_price(df,clsPrice=5.0):
-    '''
-    delete penny stocks
-
-    the minimum close price is 5
-
-    :param df:
-    :param clsPrice:
-    :return:
-    '''
-    freq=detect_freq(df.index)
-    stockCloseM=read_unfiltered('stockClose' + freq)
-    stockCloseM,df=get_inter_frame([stockCloseM,df])
-    return df[stockCloseM>=clsPrice]
-
 def sample_data_optimization():
     pass
 
@@ -246,46 +187,7 @@ def in_event_window():
 
 
 #TODO: refer to readme.md to find more controling methods.
-def year_after_list(df):
-    '''
-    listed at list 1 year
-    :return:
-    '''
-    freq=detect_freq(df.index)
 
-    listInfo=read_unfiltered('listInfo')
-    listInfo['year_later']=listInfo['listDate']+pd.offsets.DateOffset(years=1)
-    if freq=='M':
-        listInfo['year_later']=listInfo['year_later']+MonthEnd(1)
-        # 1 rather than 0,exclude the first month,since most of
-        # year_later won't be monthend.
-    else:
-        listInfo['year_later']=listInfo['year_later']+pd.offsets.DateOffset(days=1)
-
-    start=listInfo['year_later'].min()
-    end=datetime.datetime.today()
-    mark=pd.DataFrame(np.nan,index=pd.date_range(start,end,freq=freq),
-                       columns=listInfo.index)
-
-    for sid,d in listInfo['year_later'].iteritems():
-       mark.at[d,sid]=1
-
-    mark=mark.ffill()
-    df,mark=get_inter_frame([df,mark])
-    df=df[mark.notnull()].dropna(axis=1,how='all')
-    return df
-
-def delete_st(df):
-    freq=detect_freq(df.index)
-    if freq=='M':
-        stInfo=read_unfiltered('stInfoM')
-    elif freq=='D':
-        stInfo=read_unfiltered('stInfoD')
-    else:
-        raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
-    df,stInfo=get_inter_frame([df,stInfo])
-
-    return df[stInfo.notnull()]
 
 def bear_or_bull():
     # refer to marketStates.py

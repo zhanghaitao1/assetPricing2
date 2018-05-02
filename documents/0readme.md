@@ -16,8 +16,6 @@
     For idio,all of them are negative,except some of them are not significant for t excess return 
         The others are significant
        
-    
-    
     For skewness,it shows the same pattern as beta
         By the way,there are some abnormal values in the first stage of fm regression
             

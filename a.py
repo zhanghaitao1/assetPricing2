@@ -4,26 +4,25 @@
 # Email:13163385579@163.com
 # TIME:2018-04-08  10:57
 # NAME:assetPricing2-a.py
+from data.dataTools import load_data
+import pandas as pd
 
+data=load_data('data')
+skew=load_data('skewness')
 
-import sqlite3
-conn=sqlite3.connect(r'E:\a\zotero.sqlite')
+months=skew.index.get_level_values('t').unique()
+month=months[64]
 
-c=conn.cursor()
+sub1=skew.groupby('t').get_group(months[63]) #1999-7
+# sub1.to_csv(r'e:\a\sub1.csv')
 
-c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+retD = load_data('stockRetD')
+retD = retD.stack()
+retD.index.names = ['t', 'sid']
+retD.name = 'ret'
 
-tablenames=c.fetchall()
-
-tablenames
-
-for tb in tablenames:
-    c.execute("select * from {} LIMIT 5".format(tb[0]))
-    print(tb[0],c.fetchall(),'\n\n')
-
-
-
-
-
-
+eretD = load_data('stockEretD')
+eretD = eretD.stack()
+eretD.index.names = ['t', 'sid']
+eretD.name = 'eret'
 

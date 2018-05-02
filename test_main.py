@@ -5,7 +5,7 @@
 # TIME:2018-04-01  11:31
 # NAME:assetPricing2-test_main.py
 
-from main import OneFactor, Bivariate
+from old.main import OneFactor, Bivariate
 
 def test_Onefactor():
     # factor = 'beta'

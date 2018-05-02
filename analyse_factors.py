@@ -10,7 +10,7 @@ import os
 import pandas as pd
 from dataset import DATA
 
-from main import OneFactor
+from old.main import OneFactor
 
 
 class SIZE(OneFactor):

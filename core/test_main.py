@@ -25,11 +25,12 @@ class size_12M(Bivariate):
     def __init__(self):
         indicator1='size'
         indicator2='D_12M'
-        path=os.path.join(testdir,'size_12M')
+        path=os.path.join(testdir,'test_lewellen')
         super().__init__(indicator1,indicator2,path)
 
     #TODO: how to send paramters into a class method without inherit and overide the method
     def fm(self):
+
         ll_indeVars = [['value__bm'], ['value__bm', 'beta__M_12M'], ['value__bm', 'size__size'],
                        ['value__bm', 'beta__M_12M', 'size__size'],
                        ['value__logbm'], ['value__logbm', 'beta__M_12M'],

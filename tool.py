@@ -455,13 +455,18 @@ def famaMacBeth(formula, time_label, df, lags=5):
 
     '''
 
-    res = df.groupby(time_label).apply(lambda x: sm.ols(
+    res = df.groupby(time_label,sort=True).apply(lambda x: sm.ols(
         formula, data=x).fit())
-    p=pd.DataFrame([x.params for x in res],index=df[time_label].unique())
+    if time_label in df.columns:
+        groups=df[time_label].unique()
+    else:# The time label comes from the index
+        groups=df.index.get_level_values(time_label).unique()
 
+    p=pd.DataFrame([x.params for x in res],index=groups)
+    # first stage fitted value
+    fittedvalues=pd.concat([x.fittedvalues for x in res]).unstack()
     N=np.mean([x.nobs for x in res])
     adj_r2=np.mean([x.rsquared_adj for x in res])
-
 
     means = {}
     params_labels = res.iloc[0].params.index
@@ -494,7 +499,7 @@ def famaMacBeth(formula, time_label, df, lags=5):
     result.loc[result.pvalue < 0.05, 'stars'] = '**'
     result.loc[result.pvalue < 0.01, 'stars'] = '***'
 
-    return result,adj_r2,N,p
+    return result,adj_r2,N,p,fittedvalues
 
 def newey_west(formula,df,lags=5):
     #TODO: other t values such as bootstrapped standard errors of Murphy and Topel, “Estimation and Inference in Two-Step Econometric Models.”
@@ -505,33 +510,4 @@ def newey_west(formula,df,lags=5):
                                   use_t=True)
     return pd.DataFrame([reg.params,reg.tvalues],index=['coef','t'],
                         columns=reg.params.index)
-
-
-
-def observe_df(df):
-    '''
-    detect the possible problem with dataFrame
-
-    1. duplicated index
-    2. 't' datetime, ascending
-    3. 'sid' str
-    4. shape[0],shape[1]
-    5. duplicated value
-    6. 't' MonthEnd(0)
-    7. max and min
-    8. duplicated index?
-    :param df:
-    :return:
-    '''
-    pass
-
-
-
-
-
-#detect outliers
-
-
-#TODO: detect abnormal for all the src
-
 
