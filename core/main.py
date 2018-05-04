@@ -12,8 +12,9 @@ import numpy as np
 from config import WINSORIZE_LIMITS
 
 from data.dataApi import Database, Benchmark
-from tool import monitor, summary_statistics, cal_corr, cal_persistence, cal_breakPoints, count_groups, my_average, \
-    assign_port_id, famaMacBeth, apply_col_by_col, newey_west
+from tool import monitor, summary_statistics, cal_corr, cal_persistence, \
+    cal_breakPoints, count_groups, my_average, \
+    assign_port_id, famaMacBeth, apply_col_by_col, newey_west, correlation_mixed
 from zht.utils.mathu import winsorize, get_outer_frame
 
 DATA=Database(sample_control=True) #TODO: use controlled data
@@ -69,16 +70,18 @@ def adjust_with_riskModel(x, riskmodel=None):
         return nw['Intercept'].rename(index={'coef': 'excess return',
                                              't': 't excess return'})
 
-def risk_adjust(panel):
+def risk_adjust(panel,riskmodels=None):
     '''
     risk adjusted alpha
 
     :param panel:
     :return:
     '''
-    return pd.concat([adjust_with_riskModel(panel,riskmodel)
-                   for riskmodel in [None,'capm','ff3','ffc','ff5','hxz4']],
-                  axis=0)
+    if not riskmodels:
+        riskmodels=[None,'capm','ff3','ffc','ff5','hxz4']
+
+    return pd.concat([adjust_with_riskModel(panel,rm)
+                   for rm in riskmodels],axis=0)
 
 
 
@@ -113,28 +116,7 @@ class OneFactor:
             indicators=self.indicators
 
         comb=DATA.by_indicators(indicators)
-        def _spearman(df):
-            df=df.dropna()
-            if df.shape[0]>10:#TODO:thresh to choose
-                return cal_corr(df,'spearman',winsorize=False)
-
-        def _pearson(df):
-            df=df.dropna()
-            if df.shape[0]>10:#TODO: min_samples
-                return cal_corr(df,'pearson',winsorize=True)
-
-
-        corrs=comb.groupby('t').apply(_spearman)
-        corrp=comb.groupby('t').apply(_pearson)
-
-        corrsAvg=corrs.groupby(level=1).mean().reindex(index=indicators, columns=indicators)
-        corrpAvg=corrp.groupby(level=1).mean().reindex(index=indicators, columns=indicators)
-
-        corr1 = np.tril(corrpAvg.values, k=-1)
-        corr2 = np.triu(corrsAvg.values, k=1)
-
-        corr = pd.DataFrame(corr1 + corr2, index=corrpAvg.index, columns=corrpAvg.columns)
-        np.fill_diagonal(corr.values, np.NaN)
+        corr=correlation_mixed(comb)
         corr.to_csv(os.path.join(self.path, 'corr.csv'))
 
     @monitor

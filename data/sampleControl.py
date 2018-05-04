@@ -109,7 +109,7 @@ def cross_not_st(freq='M'):
         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
     return stInfo
 
-def cross_all_but_tiny():
+def cross_size_groups(freq='M'):
     '''
     'all-but-tiny' stocks are those larger than the NYSE 20th percentile and 'large'
     stocks are those larger than the NYSE 50th percentile based on market equity at
@@ -122,7 +122,30 @@ def cross_all_but_tiny():
 
     :return:
     '''
-    pass
+    p1=0.3
+    p2=0.7
+    size=read_unfiltered('capM')
+    floors=size.quantile(p1,axis=1)
+    roofs=size.quantile(p2,axis=1)
+
+    small=[]
+    medium=[]
+    big=[]
+    for t,s in size.iterrows():
+        f=floors[t]
+        r=roofs[t]
+        small.append(s<f)
+        medium.append((f<s) & (f<r))
+        big.append(s>=r)
+
+    small=pd.concat(small,axis=0,keys=size.index)
+    medium=pd.concat(medium,axis=0,keys=size.index)
+    big=pd.concat(big,axis=0,keys=size.index)
+    return small,medium,big
+
+#TODO: to control the sample,we have to use the lagged value to decide the sample
+#TODO: is valid or not.That is,at time t,we should use the size of time t-1 to
+#TODO: decide whethe a stock is a tiny stock or a big stock.??????
 
 
 def combine_condition(freq):
@@ -147,6 +170,8 @@ def apply_condition(x):
     freq=detect_freq(x.index)
     condition=combine_condition(freq)
     if isinstance(x.index,pd.MultiIndex):
+        #TODO: wrong!!!!
+        return x[condition.stack()]  #TODO: unify the format of sample control
         return x.loc[x.index.intersection(condition.stack().dropna().index)]
     else:
         x,condition=get_inter_frame([x,condition])

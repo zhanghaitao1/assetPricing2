@@ -508,3 +508,31 @@ def newey_west(formula,df,lags=5):
     return pd.DataFrame([reg.params,reg.tvalues],index=['coef','t'],
                         columns=reg.params.index)
 
+def correlation_mixed(multiDf):
+    indicators=multiDf.columns.tolist()
+
+    def _spearman(df):
+        df = df.dropna()
+        if df.shape[0] > 10:  # TODO:thresh to choose
+            return cal_corr(df, 'spearman', winsorize=False)
+
+    def _pearson(df):
+        df = df.dropna()
+        if df.shape[0] > 10:  # TODO: min_samples
+            return cal_corr(df, 'pearson', winsorize=True)
+
+    corrs = multiDf.groupby('t').apply(_spearman)
+    corrp = multiDf.groupby('t').apply(_pearson)
+
+    corrsAvg = corrs.groupby(level=1).mean().reindex(index=indicators,
+                                                     columns=indicators)
+    corrpAvg = corrp.groupby(level=1).mean().reindex(index=indicators,
+                                                     columns=indicators)
+
+    corr1 = np.tril(corrpAvg.values, k=-1)
+    corr2 = np.triu(corrsAvg.values, k=1)
+
+    corr = pd.DataFrame(corr1 + corr2, index=corrpAvg.index,
+                        columns=corrpAvg.columns)
+    np.fill_diagonal(corr.values, np.NaN)
+    return corr
