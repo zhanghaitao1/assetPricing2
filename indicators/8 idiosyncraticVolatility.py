@@ -90,7 +90,7 @@ if __name__ == '__main__':
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
     combD,combM=_get_comb()
 
-    p = Pool(3)
+    p = Pool(5)
     argsD = [(combD, partial(func,square_m=252**0.5), history, thresh) for func in [_vol,_volss,_idioVol_capm,_idioVol_ff3]
              for history, thresh in dictD.items()]
     argsM = [(combM, partial(func,square_m=12**0.5), history, thresh) for func in [_vol,_volss,_idioVol_capm,_idioVol_ff3,_idioVol_ffc]
@@ -100,9 +100,10 @@ if __name__ == '__main__':
     dfMs = p.map(task, argsM)
 
     xs=[]
-    for freq,dfs in zip(['D','M'],[dfDs,dfMs]):
+    for freq,dfs,args in zip(['D','M'],[dfDs,dfMs],[argsD,argsM]):
         x = pd.concat([df.stack() for df in dfs], axis=1,
-                      keys=['{}_{}__{}'.format(func.func.__name__[1:],history,freq) for _,func,history,_ in argsD])
+                      keys=['{}_{}__{}'.format(func.func.__name__[1:],history,freq)
+                            for _,func,history,_ in args])
         x=x.reorder_levels(order=['t','sid']).sort_index()
         x.columns.name = 'type'
         xs.append(x)
