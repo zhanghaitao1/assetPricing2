@@ -28,6 +28,8 @@ def combine_with_datalagged(indicators):
     Notice:
         before shift(1),we must groupby('sid').
     '''
+    #TODO:shift(1) we result in the sample loss of first month,upgrade this
+    #function to take shift in consideration.
     comb = pd.concat([datalagged.groupby('sid').shift(1), datat],axis=1)
     return comb
 
@@ -259,6 +261,7 @@ class OneFactor:
         table_e = table_e.reindex(columns=newOrder)
         table_w = table_w.reindex(columns=newOrder)
 
+        #mark the t values to facilitate the following analysis
         table_e['significant_positive']=table_e.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
         table_e['significant_negative']=table_e.iloc[:,-2].map(lambda v:-1 if v<-2 else np.nan)
         table_w['significant_positive']=table_w.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
@@ -270,7 +273,7 @@ class OneFactor:
     def _one_indicator(self, indicator):
         ns = range(1, 13)
         all_indicators=[indicator,'weight','stockEretM']
-        comb = DATA.get_by_indicators(all_indicators)
+        comb = DATA.by_indicators(all_indicators)
         comb = comb.dropna()
         comb['g'] = comb.groupby('t', group_keys=False).apply(
             lambda df: pd.qcut(df[indicator], self.q,
@@ -394,6 +397,7 @@ class OneFactor:
 
     def __call__(self):
         self.run()
+
 
 class Bivariate:
     q=5

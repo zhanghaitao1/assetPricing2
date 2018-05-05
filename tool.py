@@ -199,20 +199,25 @@ def assign_port_id(s, q, labels, thresh=None):
     this function will first dropna and then asign porfolio id.
 
     :param s: Series
-    :param q:
+    :param q:  integer or array of quantiles Number of quantiles. 10 for deciles,
+     4 for quartiles, etc. Alternately array of quantiles,
+     e.g. [0, .25, .5, .75, 1.] for quartiles
     :param labels:
     :param thresh:
     :return:
     '''
-    ns = s.dropna()
+    s = s.dropna()
     if thresh is None:
-        thresh = q * 10  # TODO: thresh self.q*10？
+        if isinstance(q,int):
+            thresh = q * 10  # TODO: thresh self.q*10？
+        elif isinstance(q,(list,tuple)):
+            thresh=50
 
-    if ns.shape[0] > thresh:
-        result = pd.qcut(ns, q, labels)
+    if s.shape[0] > thresh:
+        result = pd.qcut(s, q, labels)
         return result
     else:
-        return pd.Series(index=ns.index)
+        return pd.Series(index=s.index)
 
 def monitor(func):
 
