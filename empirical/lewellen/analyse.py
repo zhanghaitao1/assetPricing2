@@ -34,7 +34,7 @@ class Test(Bivariate):
         super().__init__(indicator1,indicator2,path)
 
     #TODO: how to send paramters into a class method without inherit and overide the method
-    def fm(self):
+    def famaMacbeth(self):
         super()._fm(l)
 
     def run(self):

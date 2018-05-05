@@ -566,7 +566,7 @@ class Bivariate:
         _f([self.indicator2, self.indicator1])
 
     @staticmethod
-    def _fm_for_l(indeVars):
+    def famaMacbeth_reg(indeVars):
         #TODO: upgrade fm in Univariate by calling this function
         '''
         (page 141)The independent variable is winsorized at a given level on a monthly basis.
@@ -606,13 +606,13 @@ class Bivariate:
         :return:
         '''
         if isinstance(x[0],str):
-            p, firstStage_params = self._fm_for_l(x)
+            p, firstStage_params = self.famaMacbeth_reg(x)
             firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(x) + '.csv'))
             p.to_csv(os.path.join(os.path.join(self.path,'fama macbeth regression analysis.csv')))
         if isinstance(x[0],list):
             ps=[]
             for indeVars in x:
-                p,firstStage_params=self._fm_for_l(indeVars)
+                p,firstStage_params=self.famaMacbeth_reg(indeVars)
                 firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(indeVars) + '.csv'))
                 ps.append(p)
             table = pd.concat(ps, axis=1, keys=range(1, len(x) + 1))

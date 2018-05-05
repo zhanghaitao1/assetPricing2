@@ -24,7 +24,7 @@ def control_sid(conditions):
     is_industry
 
     :param conditions:
-    :return:stock code
+    :return:a list of stock codes
     '''
     #TODO: is_gem,is_industry,
     condition_set=['is_sz','is_sh','not_cross','not_financial']
@@ -32,13 +32,18 @@ def control_sid(conditions):
 
     def _one_condition(condition):
         if condition in condition_set:
-            sids=info.index[info[condition]]
+            sids=info[info[condition]].index.tolist()
             return sids
         else:
             raise ValueError('The "conditions" should be one of {}'.format(repr(condition_set)))
-    if isinstance(conditions, list):
+
+    if isinstance(conditions,str):
+        return _one_condition(conditions)
+    elif isinstance(conditions, list):
         l_sids=[_one_condition(con) for con in conditions]
         return sorted(list(set.intersection(*map(set,l_sids))))
+    else:
+        raise MyError('no such conditon as {}'.format(conditions))
 
 def control_t(start='1997-01-01', end=None, freq='M'):
     '''
@@ -51,7 +56,7 @@ def control_t(start='1997-01-01', end=None, freq='M'):
     is_bull
     is_downside?
 
-    :return:
+    :return:time series
     '''
     '''
     use truncating  & fancy indexing
@@ -71,7 +76,7 @@ def cross_closePrice_floor(clsPrice=5.0,freq='M'):
 
     :param clsPrice:
     :param freq:
-    :return:
+    :return:DataFrame filled with True or False
     '''
     stockClose=read_unfiltered('stockClose' + freq)
     return stockClose>clsPrice
@@ -80,7 +85,7 @@ def cross_closePrice_floor(clsPrice=5.0,freq='M'):
 def cross_year_after_list(freq='M'):
     '''
     listed at list 1 year
-    :return:
+    :return:DataFrame filled with True or False
     '''
     listInfo=read_unfiltered('listInfo')
     listInfo['year_later']=listInfo['listDate']+pd.offsets.DateOffset(years=1)
@@ -98,16 +103,22 @@ def cross_year_after_list(freq='M'):
     mask=mask.unstack()
     mask=mask.reindex(index=pd.Index(pd.date_range(mask.index[0],mask.index[-1],freq=freq),name=mask.index.name))
     mask=mask.ffill()
+    mask=mask.fillna(value=False) # replace nan or None with False
     return mask
 
 def cross_not_st(freq='M'):
+    '''
+    filter out st stocks
+    :param freq:
+    :return: DataFrame filled with True or False
+    '''
     if freq=='M':
         stInfo=read_unfiltered('stInfoM')
     elif freq=='D':
         stInfo=read_unfiltered('stInfoD')
     else:
         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
-    return stInfo
+    return stInfo.fillna(value=False) # replace nan or None with False
 
 def cross_size_groups(freq='M'):
     '''
@@ -120,7 +131,7 @@ def cross_size_groups(freq='M'):
     references:
         Lewellen, J. (2015). The Cross-section of Expected Stock Returns. Critical Finance Review 4, 1–44.
 
-    :return:
+    :return:three DataFrames filled with True or False
     '''
     p1=0.3
     p2=0.7
@@ -138,9 +149,10 @@ def cross_size_groups(freq='M'):
         medium.append((f<s) & (f<r))
         big.append(s>=r)
 
-    small=pd.concat(small,axis=0,keys=size.index)
-    medium=pd.concat(medium,axis=0,keys=size.index)
-    big=pd.concat(big,axis=0,keys=size.index)
+    small=pd.concat(small,axis=1,keys=size.index).T
+    medium=pd.concat(medium,axis=1,keys=size.index).T
+    big=pd.concat(big,axis=1,keys=size.index).T
+
     return small,medium,big
 
 #TODO: to control the sample,we have to use the lagged value to decide the sample
@@ -149,6 +161,10 @@ def cross_size_groups(freq='M'):
 
 
 def combine_condition(freq):
+    '''
+    :param freq:
+    :return: DataFrame filled with True or False
+    '''
     sids=control_sid(['not_financial'])
     t=control_t(start='1997-01-01',freq=freq)
     cross1=cross_closePrice_floor(freq=freq)
@@ -170,12 +186,10 @@ def apply_condition(x):
     freq=detect_freq(x.index)
     condition=combine_condition(freq)
     if isinstance(x.index,pd.MultiIndex):
-        #TODO: wrong!!!!
-        return x[condition.stack()]  #TODO: unify the format of sample control
-        return x.loc[x.index.intersection(condition.stack().dropna().index)]
+        return x[condition.stack()]
     else:
         x,condition=get_inter_frame([x,condition])
-        return x[condition.fillna(value=False)]
+        return x[condition]
 
 
 

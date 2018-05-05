@@ -29,7 +29,7 @@ class size_12M(Bivariate):
         super().__init__(indicator1,indicator2,path)
 
     #TODO: how to send paramters into a class method without inherit and overide the method
-    def fm(self):
+    def famaMacbeth(self):
 
         ll_indeVars = [['value__bm'], ['value__bm', 'beta__M_12M'], ['value__bm', 'size__size'],
                        ['value__bm', 'beta__M_12M', 'size__size'],

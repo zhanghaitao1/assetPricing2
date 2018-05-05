@@ -6,27 +6,34 @@
 # NAME:assetPricing2-analyse.py
 
 import pandas as pd
+import os
+from itertools import combinations
 
-from core.main import combine_with_datalagged, risk_adjust
+from core.main import combine_with_datalagged, risk_adjust, Bivariate
 from data.dataApi import Database
-from data.sampleControl import cross_size_groups
-from tool import assign_port_id, my_average
+from data.sampleControl import cross_size_groups, control_sid
+from empirical.cakici.get_data import PATH
+from tool import assign_port_id, my_average, correlation_mixed
 
 DATA=Database()
-indicators=['size__size','beta__D_24M',
+indicators=['size__size','beta__D_24M','value_logbm'
             'momentum__R6M','reversal__reversal',
             'liquidity__turnover1','skewness__skew_24M__D',
             'idio__vol_24M__D']
 
+all_=combine_with_datalagged(indicators)
 
-#table 1  panel A
-# by_year=comb[indicators].resample('Y',level='t').agg(lambda x:x.mean())
+def get_table1():
+    #table 1  panel A
+    by_year=all_[indicators].resample('Y',level='t').agg(lambda x:x.mean())
 
-#table 1 panel B
-# corr=correlation_mixed(comb[indicators])
+    #table 1 panel B
+    corr=correlation_mixed(all_[indicators])
+    by_year.to_csv(os.path.join(PATH,'table1_panelA'))
+    corr.to_csv(os.path.join(PATH,'table1_panelB'))
 
 
-def get_a_panel(comb,sorting_var):
+def _get_a_panel(comb, sorting_var):
     q=5
     gcol = 'g_%s' % sorting_var
     gnames=['g{}'.format(i) for i in range(1,q+1)]
@@ -64,39 +71,66 @@ def get_a_panel(comb,sorting_var):
     print(sorting_var)
     return result
 
-comb=combine_with_datalagged(indicators)
+def get_table2():
+    #table2
+    table2=pd.concat([_get_a_panel(all_, var) for var in indicators],
+                     axis=0, keys=indicators)
+    table2.to_csv(os.path.join(PATH,'table2.csv'))
 
-#table2
-table2=pd.concat([get_a_panel(comb,var) for var in indicators],axis=0,keys=indicators)
+def get_table3():
+    #table 3
+    s,m,b=cross_size_groups()
 
-#table 3
-cs,cm,cb=cross_size_groups()
-small=comb[cs]
-table3=pd.concat([get_a_panel(small,var) for var in indicators],axis=0,keys=indicators)
+    tables=[]
+    for marker in [s,m,b]:
+        cohort=all_[marker.stack()]
+        t=pd.concat([_get_a_panel(cohort, var) for var in indicators],
+                    axis=0, keys=indicators)
+        teqw=t['eqw'].unstack(level=0)
+        tvw=t['vw'].unstack(level=0)
+        tables.append(pd.concat([teqw,tvw],axis=0,keys=['eqw','vw']))
 
-table3a=table3['eqw'].unstack(level=0)
-table3b=table3['vw'].unstack(level=0)
+    table3=pd.concat(tables,axis=0,keys=['small','medium','big'])
+    table3.to_csv(os.path.join(PATH,'table3.csv'))
 
-table2a=table2['eqw'].unstack(level=0)
+def get_table4():
+    indeVars_lst=sum([list(combinations(indicators,i)) for i in range(1,len(indicators)+1)],[])
+    #TODO:what's the standard for choosing multiple regressors?
 
-table2a.head()
-table3a.head()
+    params_lst=[]
+    for indeVars in indeVars_lst:
+        params,_=Bivariate.famaMacbeth_reg(list(indeVars))
+        params_lst.append(params)
+        print(indeVars)
 
-small.notnull().sum().sum()
-comb.notnull().sum().sum()
+    index_order=params_lst[-1].index
+    table4=pd.concat(params_lst,axis=1)
+    table4=table4.reindex(index=index_order)
+    table4.to_csv(os.path.join(PATH,'table4.csv'))
+
+def get_table5():
+    # partition into SHSE and SZSE
+    idx=pd.IndexSlice
+    tables=[]
+    for cohort in ['is_sh','is_sz']:
+        sids=control_sid(cohort)
+        sub=all_.loc[idx[:,sids],]
+        t = pd.concat([_get_a_panel(sub, var) for var in indicators],
+                      axis=0, keys=indicators)
+        teqw = t['eqw'].unstack(level=0)
+        tvw = t['vw'].unstack(level=0)
+        tables.append(pd.concat([teqw, tvw], axis=0, keys=['eqw', 'vw']))
+    table5=pd.concat(tables,axis=0,keys=['sh','sz'])
+    table5.to_csv(os.path.join(PATH, 'table5.csv'))
 
 
-comb.shape
+def run():
+    get_table1()
+    get_table2()
+    get_table3()
+    get_table4()
+    get_table5()
 
-cs.shape
 
-test=comb[cs]
-test.shape
-
-test1=comb[c]
-
-cs.sum()
-
-test=comb.index.intersection(cs.dropna().index)
-
-test[:5]
+if __name__ == '__main__':
+    run()
