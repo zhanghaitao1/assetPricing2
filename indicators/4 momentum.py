@@ -41,6 +41,7 @@ def get_momentum():
     stk=stockRetM.stack()
     stk.index.names=['t','sid']
     #lagged 1 month
+    #Te one month lag is imposed to avoid the short-term reversal eﬀect frst documented by Jegadeesh (1990)
     d_lag=OrderedDict({'mom':[12,9],#since the window is 11,and we do not use the value of time t,so,here we set 12 rather than 11
                     'r12':[13,10],
                     'r6':[7,5]})

@@ -163,7 +163,7 @@ def get_SMB_HML():
     plt.plot(hml.index,hml.cumsum())
     plt.show()
 
-get_SMB_HML()
+# get_SMB_HML()
 
 
 #TODO: Here,we update the portfolios monthly,but the indicators related to

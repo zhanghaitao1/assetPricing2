@@ -11,7 +11,6 @@ import numpy as np
 from config import CSV_PATH, PKL_PATH, PKL_FILTERED_PATH
 from data.base import MyError
 from data.check import check_data_structure, check_axis_order, check_axis_info
-from data.outlier import detect_outliers
 from zht.data.gta.api import read_gta
 
 

@@ -14,6 +14,7 @@ import scipy
 import pandas as pd
 from pandas.io.formats.format import format_percentiles
 import statsmodels.formula.api as sm
+from numpy.linalg import inv
 
 from zht.utils import mathu
 import pylab as plt
@@ -252,6 +253,12 @@ def GRS_test(factor,resid,alpha):
     That is if the alphas from time series Regression on N Test Assets are
     cummulatively zero.
 
+    Reference:
+        Gibbons, M.R., Ross, S., and Shanken, J. (1989). A Test of the Efficiency of a Given Portfolio. Econometrica 57, 1121–1152.
+
+    For matrix operation in numpy ,notice that matrix is different with array
+    in Numpy,refer to https://stackoverflow.com/questions/4151128/what-are-the-differences-between-numpy-arrays-and-matrices-which-one-should-i-u
+
     Args:
         factor:TxL Matrix of factor returns (the "Matrix" means numpy.matrixlib.defmatrix.matrix)
         resid: TxN Matrix of residuals from TS-regression
@@ -270,14 +277,19 @@ def GRS_test(factor,resid,alpha):
     T, N = resid.shape
     L = factor.shape[1]
 
-    mu_mean = np.mat(factor.mean(0)).reshape(L,1)  # Lx1 mean excess factor returns
-    cov_e=np.cov(resid.T).reshape(N,N)
-    cov_f=np.cov(factor.T).reshape(L,L)
-    GRS = (T * 1.0 / N) * ((T - N - L) * 1.0 / (T - L - 1)) \
-          * (alpha.T * np.linalg.inv(cov_e) * alpha)\
-          / (1 + mu_mean.T * np.linalg.inv(cov_f) * mu_mean)
-    pvalue = scipy.stats.f.sf(GRS, N, (T - N - L))
-    return GRS[0,0],pvalue[0,0]
+    mu_mean=factor.mean(0)
+    cov_e=np.cov(resid.T)
+    cov_f=np.cov(factor.T)
+
+    # matrix operation with np.ndarray
+    GRS=(T/N)*((T-N-L)/(T-L-1)) * (alpha.T @ inv(cov_e) @ alpha)/(1+mu_mean.T @ inv(cov_f) @ mu_mean)
+    GRS=GRS[0,0]
+    # for GRS mentioned in the "asset pricing,2015" of Cochrane the equation is as the following
+    # GRS1=(T-N-L)/N * (alpha.T @ inv(cov_e) @ alpha)/(1+mu_mean.T @ inv(cov_f) @ mu_mean)
+    GRSp=scipy.stats.f.sf(GRS,N,(T-N-L))
+    # critical = scipy.stats.f.isf(0.05, N, T - N - L)
+    return GRS,GRSp
+
 
 def summary_statistics(data,percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),axis=1):
     '''

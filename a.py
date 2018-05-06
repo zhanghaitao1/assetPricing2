@@ -7,22 +7,21 @@
 from data.dataTools import load_data
 import pandas as pd
 
-data=load_data('data')
-skew=load_data('skewness')
+import numpy as np
+from scipy.stats import f, norm
+import matplotlib.pyplot as plt
 
-months=skew.index.get_level_values('t').unique()
-month=months[64]
+# first f
+rv1 = f(dfn=3, dfd=15, loc=0, scale=1)
+x = np.linspace(rv1.ppf(0.0001), rv1.ppf(0.9999), 100)
+y = rv1.pdf(x)
+rv1.cdf(3)
+rv1.sf(3)
+1-rv1.cdf(3)
 
-sub1=skew.groupby('t').get_group(months[63]) #1999-7
-# sub1.to_csv(r'e:\a\sub1.csv')
 
-retD = load_data('stockRetD')
-retD = retD.stack()
-retD.index.names = ['t', 'sid']
-retD.name = 'ret'
+plt.xlim(0,5)
+plt.plot(x,y, 'b-')
+plt.show()
 
-eretD = load_data('stockEretD')
-eretD = eretD.stack()
-eretD.index.names = ['t', 'sid']
-eretD.name = 'eret'
 

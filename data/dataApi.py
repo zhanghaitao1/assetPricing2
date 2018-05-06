@@ -34,8 +34,6 @@ def combine_all_indicators():
     indicators=pd.concat(xs,axis=1)
     return indicators,info
 
-combine_all_indicators()
-
 def combine_all_benchmarks():
     models=['capmM', 'ff3M', 'ffcM', 'ff5M', 'hxz4M']
     xs=[]
@@ -136,7 +134,7 @@ class Benchmark:
         :param name:one of ['capm','ff3','ff5','ffc','hxz4']
         :return:
         '''
-        return self.data[self.info[name+'M']]
+        return self.data[self.info[name+'M']].dropna()
 
 class Database:
     def __init__(self,sample_control=True):
