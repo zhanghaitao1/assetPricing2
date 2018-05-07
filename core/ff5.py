@@ -38,7 +38,6 @@ directory=r'D:\zht\database\quantDb\researchTopics\assetPricing2\empirical\ff5'
 def _save(df,name):
     df.to_csv(os.path.join(directory,name+'.csv'))
 
-
 def construct_playingField(vars,model):
     '''
     :param vars: list
@@ -91,8 +90,6 @@ def merge_panels(panels, titles):
     table=pd.concat(newPanels,axis=0)
     return table
 
-
-
 def get_table1():
     '''
     get table 1 in page 3
@@ -131,11 +128,11 @@ def get_table2():
         small=panel[1].unstack(level='g3')
         big=panel[2].unstack(level='g3')
         small.index=['Low {}'.format(v2.split('__')[-1]),2,3,
-                     'High {}'.format(v3.split('__')[-1])]
+                     'High {}'.format(v2.split('__')[-1])]
         small.columns=['Low',2,3,'High']
 
         big.index=['Low {}'.format(v2.split('__')[-1]),2,3,
-                     'High {}'.format(v3.split('__')[-1])]
+                     'High {}'.format(v2.split('__')[-1])]
         big.columns=['Low',2,3,'High']
 
         smallPanels.append(small)
@@ -150,14 +147,15 @@ def get_table2():
     _save(smallTable,'table2_small')
     _save(bigTable,'table2_big')
 
-# smallTable,bigTable=get_table2()
-
 def model_performance(assets,riskmodel):
     '''
     calculate the indicators such as GRS,and so on to compare the different
     models based on some assets. For details about these indicators refer to
     table 5 of "A five-factor asset pricing model" (Fama and French 2015).
 
+    For the returned five indicators,except for the "grsp",for the other
+    four indicators,the smaller the values,the better the model can
+    explain the cross sectional returns of the assets
     Args:
         assets:assets constructed by function construct_playingField
         riskmodel: refer to BENCH.by_benchmark
@@ -206,7 +204,7 @@ def model_performance(assets,riskmodel):
     # ratio2
     ratio2=np.mean(np.square(alpha))/np.mean(np.square(ri))
 
-    return grs,Aai,ratio1,ratio2
+    return grs,grsp,Aai,ratio1,ratio2
 
 def get_table5():
     # for 5x5 panels
@@ -220,7 +218,7 @@ def get_table5():
         rows=[]
         for rm in riskmodels:
             rows.append(pd.Series(model_performance(assets,rm),
-                        index=['grs','Aai','ratio1','ratio2']))
+                        index=['grs','grsp','Aai','ratio1','ratio2']))
         panel=pd.concat(rows,axis=1,keys=riskmodels).T
         panels1.append(panel)
         titles1.append('25 {}-{} portfolios'.format(v1.split('__')[-1],
@@ -240,7 +238,7 @@ def get_table5():
         rows=[]
         for rm in riskmodels:
             rows.append(pd.Series(model_performance(assets,rm),
-                        index=['grs','Aai','ratio1','ratio2']))
+                        index=['grs','grsp','Aai','ratio1','ratio2']))
         panel=pd.concat(rows,axis=1,keys=riskmodels).T
         panels2.append(panel)
         titles2.append('32 {}-{}-{} portfolios'.format(
@@ -295,8 +293,6 @@ def _details_for_intercept(series,riskmodel):
     reg=sm.ols(formula,comb).fit()
     return reg.params['Intercept'],reg.tvalues['Intercept']
 
-
-
 def regression_details_5x5(riskmodel):
     '''
     as table 7 in page 13
@@ -332,7 +328,7 @@ def regression_details_5x5(riskmodel):
                                                     v2.split('__')[-1]))
 
     tablea=merge_panels(panelas1,titles1)
-    tablet=merge_panels(panelas1,titles1)
+    tablet=merge_panels(panelts1,titles1)
     return tablea,tablet
 
 def regression_details_2x4x4(riskmodel):
@@ -400,7 +396,6 @@ def regression_details_2x4x4(riskmodel):
     tablet_big = merge_panels(panelts_big, titles2)
     return tablea_small,tablet_small,tablea_big,tablet_big
 
-
 def get_table7():
     riskmodels=list(BENCH.info.keys())
     tableas_=[]
@@ -409,6 +404,7 @@ def get_table7():
         tablea,tablet=regression_details_5x5(rm)
         tableas_.append(tablea)
         tablets_.append(tablet)
+        print(rm)
     comba=pd.concat(tableas_,axis=0,keys=riskmodels)
     combt=pd.concat(tablets_,axis=0,keys=riskmodels)
     _save(comba,'table7_5x5_alpha')
@@ -418,13 +414,15 @@ def get_table7():
     for rm in riskmodels:
         # tablea_small,tablet_small,tablea_big,tablet_big=regression_details_2x4x4(rm)
         tables_ll.append(regression_details_2x4x4(rm))
-    _save(pd.concat([t[0] for t in tables_ll],axis=riskmodels),
+        print(rm)
+
+    _save(pd.concat([t[0] for t in tables_ll],axis=0,keys=riskmodels),
           'table7_2x4x4_small_alpha')
-    _save(pd.concat([t[1] for t in tables_ll],axis=riskmodels),
+    _save(pd.concat([t[1] for t in tables_ll],axis=0,keys=riskmodels),
           'table7_2x4x4_small_talpha')
-    _save(pd.concat([t[2] for t in tables_ll],axis=riskmodels),
+    _save(pd.concat([t[2] for t in tables_ll],axis=0,keys=riskmodels),
           'table7_2x4x4_big_alpha')
-    _save(pd.concat([t[3] for t in tables_ll],axis=riskmodels),
+    _save(pd.concat([t[3] for t in tables_ll],axis=0,keys=riskmodels),
           'table7_2x4x4_big_talpha')
 
 if __name__ == '__main__':
@@ -434,5 +432,20 @@ if __name__ == '__main__':
     get_table6()
     get_table7()
 
+'''
+Ideas:
+1. split samples into sz and sh
+2. split into two subsample
+3. add FF6 and so on
+4. industry indices
+5. refine hxz4 and capm
 
 
+Results:
+1. table5: capm and hxz4 is really abnormal
+2. table6: hxz4 the right hand variables may be correlated with each other
+3. table7:capm and hxz is bad
+
+The results seem to be that capm and hxz4 are highly similar,and the other three models,ff3,ffc,ff5 are almost equivalent.	
+
+'''

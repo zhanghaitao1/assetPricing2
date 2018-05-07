@@ -10,7 +10,7 @@ import numpy as np
 
 from data.dataTools import read_df_from_gta, save, read_gta, read_unfiltered, load_data
 from zht.data.resset.api import read_resset
-from zht.utils.dateu import freq_end
+from zht.utils.dateu import freq_end, get_today
 from zht.data.wind.api import read_wind
 from zht.utils.mathu import get_inter_frame
 
@@ -471,33 +471,75 @@ def get_op():
     op.columns.name='sid'
     save(op,'op')
 
+def parset_financial_report(tbname,varname,yearly=True,consolidated=True):
+    '''
+    This function will parse indicators from financial report to construct a
+    monthly DataFrame with time lag taken into consideration.
+
+    Args:
+        tbname:
+        varname:
+        yearly:True or False.If True,only get yearly data.
+        consolidated: True or False,If true,use the indicator from consolidated
+        financial statements
+
+    Returns:DataFrame
+
+    '''
+    df=read_gta(tbname)
+    if consolidated:
+        df=df[df['Typrep']=='A']# 合并报表
+
+    colname='Stkcd'
+    indname='Accper'
+    table=pd.pivot_table(df,varname,indname,colname)
+    table.index.name='t'
+    table.index=pd.to_datetime(table.index)
+    table.columns=table.columns.astype(str)
+    table.columns.name='sid'
+    if yearly:
+        return table[table.index.month==12]
+
+def yearly2monthly(df,shift=True):
+    '''
+
+    Args:
+        df:
+        shift:True or False,if True,we take time lag into consideration by
+        shifting the value forward by 6 months.
+
+    Returns:
+
+    '''
+    df=df[df.index.month==12]
+
+    if shift:
+        df=df.shift(1,freq='6M')
+
+    newIndex=pd.date_range(df.index[0],get_today(),freq='M')
+    df = df.reindex(index=pd.Index(newIndex,name='t'))
+    df = df.fillna(method='ffill', limit=11)
+    df=df.dropna(how='all')
+    return df
+
+def get_roe():
+    tbname='FI_T8'
+    varname='F080602A'
+    roe=parset_financial_report(tbname,varname)
+    roe=yearly2monthly(roe)
+    save(roe,'roe')
+
 def get_inv():
     tbname='FS_Combas'
     #book value
-    var='A001000000' # 总资产
-    df=read_gta(tbname)
-    df=df[df['Typrep']=='A'] # 合并报表
-    df['ta']=df[var]
-
-    varname = 'ta'
-    indname = 'Accper'
-    colname = 'Stkcd'
-    ta = pd.pivot_table(df, varname, indname, colname)
-    ta.index.name = 't'
-    ta.index = pd.to_datetime(ta.index)
-    ta.columns = ta.columns.astype(str)
-    ta.columns.name = 'sid'
-    ta=ta[ta.index.month==12]
+    varname='A001000000' # 总资产
+    ta=parset_financial_report(tbname,varname)
     inv=ta.pct_change()
-    inv=inv.shift(1,freq='6M')
+    inv=yearly2monthly(inv)
+    save(inv,'inv')
 
-    newIndex = pd.date_range(inv.index[0], inv.index[-1], freq='M')
-    inv = inv.reindex(index=newIndex)
-    inv = inv.fillna(method='ffill', limit=11)
-    inv.index.name = 't'
-    inv.columns.name = 'sid'
+#TODO:
 
-    save(inv, 'inv')
 
 
 # if __name__=='__main__':
