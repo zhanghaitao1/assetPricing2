@@ -186,14 +186,14 @@ def apply_condition(x):
     freq=detect_freq(x.index)
     condition=combine_condition(freq)
     if isinstance(x.index,pd.MultiIndex):
-        return x[condition.stack()]
+        stk=condition.stack()
+        interIndex=x.index.intersection(stk.index)
+        x=x.reindex(index=interIndex)
+        stk=stk.reindex(index=interIndex)
+        return x[stk]
     else:
         x,condition=get_inter_frame([x,condition])
         return x[condition]
-
-
-
-
 
 #TODO: sid add suffix
 

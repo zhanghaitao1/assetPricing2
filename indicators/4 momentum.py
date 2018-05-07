@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import load_data, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling

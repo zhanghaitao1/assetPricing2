@@ -4,24 +4,26 @@
 # Email:13163385579@163.com
 # TIME:2018-04-08  10:57
 # NAME:assetPricing2-a.py
-from data.dataTools import load_data
+
 import pandas as pd
-
 import numpy as np
-from scipy.stats import f, norm
-import matplotlib.pyplot as plt
 
-# first f
-rv1 = f(dfn=3, dfd=15, loc=0, scale=1)
-x = np.linspace(rv1.ppf(0.0001), rv1.ppf(0.9999), 100)
-y = rv1.pdf(x)
-rv1.cdf(3)
-rv1.sf(3)
-1-rv1.cdf(3)
+np.random.seed(24)
+df = pd.DataFrame({'A': np.linspace(1, 10, 10)})
+df = pd.concat([df, pd.DataFrame(np.random.randn(10, 4), columns=list('BCDE'))],
+               axis=1)
+df.iloc[0, 2] = np.nan
 
 
-plt.xlim(0,5)
-plt.plot(x,y, 'b-')
-plt.show()
+def color_negative_red(val):
+    """
+    Takes a scalar and returns a string with
+    the css property `'color: red'` for negative
+    strings, black otherwise.
+    """
+    color = 'red' if val < 0 else 'black'
+    return 'color: %s' % color
 
 
+
+s = df.style.applymap(color_negative_red)

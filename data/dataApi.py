@@ -15,7 +15,8 @@ from indicators.indicators_filter import refine
 
 
 def combine_all_indicators():
-    fns=['size','beta','value','momentum','reversal','liquidity','skewness','idio']
+    fns=['size','beta','value','momentum','reversal','liquidity',
+         'skewness','idio','op','inv']
 
     xs=[]
     info={}
@@ -134,7 +135,10 @@ class Benchmark:
         :param name:one of ['capm','ff3','ff5','ffc','hxz4']
         :return:
         '''
-        return self.data[self.info[name+'M']].dropna()
+        if name.endswith('M'):
+            return self.data[self.info[name]].dropna()
+        else:
+            return self.data[self.info[name+'M']].dropna()
 
 class Database:
     def __init__(self,sample_control=True):

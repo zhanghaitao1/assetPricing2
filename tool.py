@@ -279,7 +279,10 @@ def GRS_test(factor,resid,alpha):
 
     mu_mean=factor.mean(0)
     cov_e=np.cov(resid.T)
-    cov_f=np.cov(factor.T)
+    # when there is only factor,np.cov(factor.T) will return a one
+    # dimensional array,which does not support operator "@",so we use .reshape
+    # to convert it into a 2 dimendional ndarray
+    cov_f=np.cov(factor.T).reshape((L,L))
 
     # matrix operation with np.ndarray
     GRS=(T/N)*((T-N-L)/(T-L-1)) * (alpha.T @ inv(cov_e) @ alpha)/(1+mu_mean.T @ inv(cov_f) @ mu_mean)

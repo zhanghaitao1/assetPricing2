@@ -12,6 +12,7 @@ from data.dataTools import read_df_from_gta, save, read_gta, read_unfiltered, lo
 from zht.data.resset.api import read_resset
 from zht.utils.dateu import freq_end
 from zht.data.wind.api import read_wind
+from zht.utils.mathu import get_inter_frame
 
 
 def get_stockRetD():
@@ -410,6 +411,93 @@ def get_pu():
     pu = pu.set_index('t')
     pu = pu['pu']
     save(pu,'pu')
+
+def get_op():
+    # --------------operating probability---------------
+    tbname='FS_Comins'
+    # var1='B001101000' # 营业收入
+    #
+    # var2='B001201000' # 营业成本
+    # var3='B001209000' # 销售费用
+    # var4='B001210000' # 管理费用
+    # var5='B001211000' # 财务费用
+
+    var6='B001300000' # 营业利润
+    # var7='Bbd1102203' # 利息支出
+
+    df=read_gta(tbname)
+    df=df[df['Typrep']=='A'] #合并报表
+    # df['op1']=df[var1]-df[var2]-df[var3]-df[var4]-df[var5]
+    # df['op2']=df[var6]-df[var7]
+    df['op']=df[var6]
+
+    varname='op'
+    indname='Accper'
+    colname='Stkcd'
+    OP=pd.pivot_table(df, varname, indname, colname)
+    OP.index.name= 't'
+    OP.index=pd.to_datetime(OP.index)
+    OP.columns=OP.columns.astype(str)
+    OP.columns.name= 'sid'
+
+    #----------------book value---------------
+    tbname='FS_Combas'
+    #book value
+    var1='A003000000' # 所有者权益合计
+    var2='A003100000' # 归属于母公司所有者权益合计
+    df=read_gta(tbname)
+    df=df[df['Typrep']=='A'] # 合并报表
+    df['bv1']=df[var1]
+    df['bv']=df[var2]
+
+    varname='bv'
+    indname='Accper'
+    colname='Stkcd'
+    BV=pd.pivot_table(df, varname, indname, colname)
+    BV.index.name= 't'
+    BV.index=pd.to_datetime(BV.index)
+    BV.columns=BV.columns.astype(str)
+    BV.columns.name= 'sid'
+
+    OP,BV=get_inter_frame([OP,BV])
+
+    op=OP/BV
+    op=op[op.index.month==12]
+    op=op.shift(1,freq='6M')
+    newIndex=pd.date_range(op.index[0],op.index[-1],freq='M')
+    op=op.reindex(index=newIndex)
+    op=op.fillna(method='ffill',limit=11)
+    op.index.name='t'
+    op.columns.name='sid'
+    save(op,'op')
+
+def get_inv():
+    tbname='FS_Combas'
+    #book value
+    var='A001000000' # 总资产
+    df=read_gta(tbname)
+    df=df[df['Typrep']=='A'] # 合并报表
+    df['ta']=df[var]
+
+    varname = 'ta'
+    indname = 'Accper'
+    colname = 'Stkcd'
+    ta = pd.pivot_table(df, varname, indname, colname)
+    ta.index.name = 't'
+    ta.index = pd.to_datetime(ta.index)
+    ta.columns = ta.columns.astype(str)
+    ta.columns.name = 'sid'
+    ta=ta[ta.index.month==12]
+    inv=ta.pct_change()
+    inv=inv.shift(1,freq='6M')
+
+    newIndex = pd.date_range(inv.index[0], inv.index[-1], freq='M')
+    inv = inv.reindex(index=newIndex)
+    inv = inv.fillna(method='ffill', limit=11)
+    inv.index.name = 't'
+    inv.columns.name = 'sid'
+
+    save(inv, 'inv')
 
 
 # if __name__=='__main__':
