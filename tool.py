@@ -195,7 +195,7 @@ def grouping(x,q,labels,axis=0,thresh=None):
             return x.T.apply(lambda s:_grouping_1d(s,q,labels,thresh))
 
 
-def assign_port_id(s, q, labels, thresh=None):
+def assign_port_id(s, q, labels=None, thresh=None):
     '''
     this function will first dropna and then asign porfolio id.
 
@@ -213,6 +213,12 @@ def assign_port_id(s, q, labels, thresh=None):
             thresh = q * 10  # TODO: thresh self.q*10？
         elif isinstance(q,(list,tuple)):
             thresh=50
+
+    if not labels:
+        if isinstance(q,int):
+            labels=range(1,q+1)
+        elif isinstance(q,(list,tuple)):
+            labels=range(1,len(q))
 
     if s.shape[0] > thresh:
         result = pd.qcut(s, q, labels)

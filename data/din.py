@@ -8,7 +8,8 @@
 import pandas as pd
 import numpy as np
 
-from data.dataTools import read_df_from_gta, save, read_gta, read_unfiltered, load_data
+from data.dataTools import read_df_from_gta, save, \
+    read_gta, read_unfiltered
 from zht.data.resset.api import read_resset
 from zht.utils.dateu import freq_end, get_today
 from zht.data.wind.api import read_wind
@@ -253,7 +254,7 @@ def get_rpD():
     save(rpD,'rpD')
 
 def get_capmM():
-    rpM=load_data('rpM')
+    rpM=read_unfiltered('rpM')
     rpM.name='rp'
     save(rpM,'capmM',axis_info=False)
 
@@ -315,19 +316,19 @@ def get_ff5M():
 
     save(df,'ff5M')
 
-def get_hxz4M():
-    '''
-    D:\app\python27\zht\researchTopics\assetPricing\calFactors.py\get_hxz4Factors()
-
-    :return:
-    '''
-
-    fp=r'D:\zht\database\quantDb\researchTopics\assetPricing\benchmarkModel\hxz4.csv'
-    df=pd.read_csv(fp,index_col=0)
-    df.index=freq_end(df.index,'M')
-    df.index.name='t'
-    df.columns.name='type'
-    save(df,'hxz4M')
+# def get_hxz4M():
+#     '''
+#     D:\app\python27\zht\researchTopics\assetPricing\calFactors.py\get_hxz4Factors()
+#
+#     :return:
+#     '''
+#
+#     fp=r'D:\zht\database\quantDb\researchTopics\assetPricing\benchmarkModel\hxz4.csv'
+#     df=pd.read_csv(fp,index_col=0)
+#     df.index=freq_end(df.index,'M')
+#     df.index.name='t'
+#     df.columns.name='type'
+#     save(df,'hxz4M')
 
 def get_ff3D():
     tbname='STK_MKT_ThrfacDay'
@@ -412,69 +413,9 @@ def get_pu():
     pu = pu['pu']
     save(pu,'pu')
 
-def get_op():
-    # --------------operating probability---------------
-    tbname='FS_Comins'
-    # var1='B001101000' # 营业收入
-    #
-    # var2='B001201000' # 营业成本
-    # var3='B001209000' # 销售费用
-    # var4='B001210000' # 管理费用
-    # var5='B001211000' # 财务费用
-
-    var6='B001300000' # 营业利润
-    # var7='Bbd1102203' # 利息支出
-
-    df=read_gta(tbname)
-    df=df[df['Typrep']=='A'] #合并报表
-    # df['op1']=df[var1]-df[var2]-df[var3]-df[var4]-df[var5]
-    # df['op2']=df[var6]-df[var7]
-    df['op']=df[var6]
-
-    varname='op'
-    indname='Accper'
-    colname='Stkcd'
-    OP=pd.pivot_table(df, varname, indname, colname)
-    OP.index.name= 't'
-    OP.index=pd.to_datetime(OP.index)
-    OP.columns=OP.columns.astype(str)
-    OP.columns.name= 'sid'
-
-    #----------------book value---------------
-    tbname='FS_Combas'
-    #book value
-    var1='A003000000' # 所有者权益合计
-    var2='A003100000' # 归属于母公司所有者权益合计
-    df=read_gta(tbname)
-    df=df[df['Typrep']=='A'] # 合并报表
-    df['bv1']=df[var1]
-    df['bv']=df[var2]
-
-    varname='bv'
-    indname='Accper'
-    colname='Stkcd'
-    BV=pd.pivot_table(df, varname, indname, colname)
-    BV.index.name= 't'
-    BV.index=pd.to_datetime(BV.index)
-    BV.columns=BV.columns.astype(str)
-    BV.columns.name= 'sid'
-
-    OP,BV=get_inter_frame([OP,BV])
-
-    op=OP/BV
-    op=op[op.index.month==12]
-    op=op.shift(1,freq='6M')
-    newIndex=pd.date_range(op.index[0],op.index[-1],freq='M')
-    op=op.reindex(index=newIndex)
-    op=op.fillna(method='ffill',limit=11)
-    op.index.name='t'
-    op.columns.name='sid'
-    save(op,'op')
-
-def parset_financial_report(tbname,varname,yearly=True,consolidated=True):
+def parse_financial_report(tbname, varname, yearly=True, consolidated=True):
     '''
-    This function will parse indicators from financial report to construct a
-    monthly DataFrame with time lag taken into consideration.
+    This function will parse indicator from financial report.
 
     Args:
         tbname:
@@ -522,23 +463,64 @@ def yearly2monthly(df,shift=True):
     df=df.dropna(how='all')
     return df
 
-def get_roe():
-    tbname='FI_T8'
-    varname='F080602A'
-    roe=parset_financial_report(tbname,varname)
-    roe=yearly2monthly(roe)
-    save(roe,'roe')
+def get_op():
+    '''
+    calculate operating profitability as in FF5
+
+    It seems to be the same as ROE in hxz
+
+    Returns:
+
+    '''
+
+    # --------------operating probability---------------
+    tbname = 'FS_Comins'
+    # var1='B001101000' # 营业收入
+    # var2='B001201000' # 营业成本
+    # var3='B001209000' # 销售费用
+    # var4='B001210000' # 管理费用
+    # var5='B001211000' # 财务费用
+    var = 'B001300000'  # 营业利润
+    # var7='Bbd1102203' # 利息支出
+    OP=parse_financial_report(tbname,var)
+
+    # ----------------book value---------------
+    tbname = 'FS_Combas'
+    # var1 = 'A003000000'  # 所有者权益合计
+    var = 'A003100000'  # 归属于母公司所有者权益合计
+    BV=parse_financial_report(tbname,var)
+
+    OP, BV = get_inter_frame([OP, BV])
+    op = OP / BV
+    op.index.name='t'
+    op.columns.name='sid'
+    op=yearly2monthly(op)
+    save(op,'op')
 
 def get_inv():
+    '''
+    calculate the growth of total asset:
+        I/A in Hou, Xue, and Zhang, “Digesting Anomalies.”
+        inv in Fama and French, “A Five-Factor Asset Pricing Model.”
+
+    this indicator is the same as ROE calculated as follows:
+        tbname='FI_T8'
+        varname='F080602A'
+        roe=parse_financial_report(tbname, varname)
+        roe=yearly2monthly(roe)
+
+    Returns:
+
+    '''
     tbname='FS_Combas'
     #book value
     varname='A001000000' # 总资产
-    ta=parset_financial_report(tbname,varname)
+    ta=parse_financial_report(tbname, varname)
     inv=ta.pct_change()
     inv=yearly2monthly(inv)
     save(inv,'inv')
 
-#TODO:
+
 
 
 

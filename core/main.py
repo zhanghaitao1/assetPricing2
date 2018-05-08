@@ -20,9 +20,9 @@ from zht.utils.mathu import winsorize, get_outer_frame
 DATA=Database(sample_control=True) #TODO: use controlled data
 # In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
 
-def combine_with_datalagged(indicators):
-    datalagged = DATA.by_indicators(indicators + ['weight'])
-    datat = DATA.by_indicators(['stockEretM'])
+def combine_with_datalagged(indicators,sample_control=True):
+    datalagged=Database(sample_control).by_indicators(indicators + ['weight'])
+    datat = Database(sample_control).by_indicators(['stockEretM'])
     '''
     sort the lagged characteristics to construct portfolios
     Notice:

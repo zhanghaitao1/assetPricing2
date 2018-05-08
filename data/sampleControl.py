@@ -94,17 +94,37 @@ def cross_year_after_list(freq='M'):
         # 1 rather than 0,exclude the first month,since most of
         # year_later won't be monthend.
     else:
-        listInfo['year_later']=listInfo['year_later']+pd.offsets.DateOffset(days=1)
+        listInfo['year_later']=listInfo['year_later']+\
+                               pd.offsets.DateOffset(days=1)
 
     mask=listInfo[['year_later']].copy()
     mask.columns=['t']
     mask['bool']=True
     mask=mask.reset_index().set_index(['t','sid'])['bool']
     mask=mask.unstack()
-    mask=mask.reindex(index=pd.Index(pd.date_range(mask.index[0],mask.index[-1],freq=freq),name=mask.index.name))
+    mask=mask.reindex(index=pd.Index(pd.date_range(
+        mask.index[0],mask.index[-1],freq=freq),name=mask.index.name))
     mask=mask.ffill()
     mask=mask.fillna(value=False) # replace nan or None with False
     return mask
+
+def cross_filter_out_less_than_120_records_in_past_12_months():
+    '''
+    refer to A.1 in Appendix of Liu, Stambaugh, and Yuan, “Size and Value in China.”
+
+    We also impose several filters: First,we exclude stocks that have become
+    public within the past six months. Second,we exclude stocks having less
+    than 120 days of trading records during the past 12 monbths. We also
+    exclude stocks having less than 15 days of trading records during the
+    most recent months. The above filters are intended to prevent our results
+    from being influenced by returns that follow long trading suspensions.
+
+    Returns:
+
+    '''
+
+    pass
+
 
 def cross_not_st(freq='M'):
     '''

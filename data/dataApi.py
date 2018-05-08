@@ -11,7 +11,7 @@ from config import PKL_PATH
 from data.dataTools import load_data, save, save_to_filtered, read_unfiltered
 import pandas as pd
 from data.sampleControl import apply_condition
-from indicators.indicators_filter import refine
+
 
 
 def combine_all_indicators():
@@ -36,7 +36,7 @@ def combine_all_indicators():
     return indicators,info
 
 def combine_all_benchmarks():
-    models=['capmM', 'ff3M', 'ffcM', 'ff5M', 'hxz4M']
+    models=['capmM', 'ff3M', 'ffcM', 'ff5M', 'hxz4M','ff6M']
     xs=[]
     info={}
     for model in models:

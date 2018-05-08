@@ -68,16 +68,16 @@ def single_sorting_factor(indicator, q, weight=False):
     factor=panel[labels[-1]]-panel[labels[0]]
     return factor
 
-def data_for_bivariate(v1, v2, q1, q2, independent=True):
-    comb=combine_with_datalagged([v1,v2])
+def data_for_bivariate(v1, v2, q1, q2,independent=True,**kwargs):
+    comb=combine_with_datalagged([v1,v2],**kwargs)
     comb=comb.dropna()
 
     if independent:
         comb['g1'] = comb.groupby('t', group_keys=False).apply(
-            lambda df: assign_port_id(df[v1], q1,range(1,q1+1)))
+            lambda df: assign_port_id(df[v1], q1))
 
         comb['g2'] = comb.groupby('t', group_keys=False).apply(
-            lambda df: assign_port_id(df[v2], q2,range(1,q2+1)))
+            lambda df: assign_port_id(df[v2], q2))
     else: #dependent
         '''
         v2 is conditional on v1,that is,we first group stocks into n1 portfolios
@@ -85,14 +85,14 @@ def data_for_bivariate(v1, v2, q1, q2, independent=True):
         into n2 portfolios based on v2
         '''
         comb['g1'] = comb.groupby('t', group_keys=False).apply(
-            lambda df: assign_port_id(df[v1], q1, range(1,q1+1)))
+            lambda df: assign_port_id(df[v1], q1))
 
         comb['g2'] = comb.groupby(['t', 'g1'], group_keys=False).apply(
-            lambda df: assign_port_id(df[v2], q2, range(1,q2+1)))
+            lambda df: assign_port_id(df[v2], q2))
 
     return comb
 
-def two_sorting_factor(v1, v2, q1, q2,independent=True, weight=True):
+def two_sorting_factor(v1, v2, q1, q2,independent=True, weight=True,**kwargs):
     '''
     just like the way we construct SMB and HML
 
@@ -104,7 +104,7 @@ def two_sorting_factor(v1, v2, q1, q2,independent=True, weight=True):
     :param weight:
     :return: a tuple of two Series
     '''
-    comb=data_for_bivariate(v1, v2, q1, q2, independent=independent)
+    comb=data_for_bivariate(v1, v2, q1, q2,independent=independent,**kwargs)
 
     if weight:
         s=comb.groupby(['t','g1','g2']).apply(
@@ -113,10 +113,10 @@ def two_sorting_factor(v1, v2, q1, q2,independent=True, weight=True):
         s = comb.groupby(['t', 'g1','g2'])['stockEretM'].mean()
 
     panel1=s.groupby(['t','g1']).mean().unstack(level='g1')
-    factor1=panel1[q1]-panel1[1]
+    factor1=panel1[panel1.columns.max()]-panel1[1]
 
     panel2=s.groupby(['t','g2']).mean().unstack(level='g2')
-    factor2=panel2[q2]-panel2[1]
+    factor2=panel2[panel2.columns.max()]-panel2[1]
     return factor1,factor2
 
 def three_sorting_factor(v1, v2, v3, q1, q2, q3, weight=True):

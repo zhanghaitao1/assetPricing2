@@ -12,13 +12,21 @@ from config import CSV_PATH, PKL_PATH, PKL_FILTERED_PATH
 from data.base import MyError
 from data.check import check_data_structure, check_axis_order, check_axis_info
 from zht.data.gta.api import read_gta
-
+'''
+Three layers:
+    1. read_src:read gta src data,it can not call the following two functions
+    2. read_raw: parse and calculate indicators.It can call read_src or call it
+        self,but it can not call the following function (load_data)
+    3. sample constrol,detect outliers,filter out abnormal
+    4. load_data
+    5. only apply conditions before calculating factors,construcing models.At the
+        other conditions,such as calculating indicators,do not apply conditions
+'''
 
 def read_df_from_gta(tbname, varname, indname, colname):
     table=read_gta(tbname)
     df=pd.pivot_table(table,varname,indname,colname)
     return df
-
 
 def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
     if suffix== 'pkl':
@@ -27,6 +35,18 @@ def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
         df = pd.read_csv(os.path.join(CSV_PATH, tbname + '.csv'),*args,**kwargs)
         # TODO: datetime,axis dtypes
     return df
+
+def load_data(name):
+    fns1=os.listdir(PKL_FILTERED_PATH)
+    fns2=os.listdir(PKL_PATH)
+    if name+'.pkl' in fns1:
+        x=pd.read_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
+    elif name+'.pkl' in fns2:
+        x=read_unfiltered(name)
+    else:
+        raise MyError('There is no such data named "{}.pkl" in the repository!'.format(name))
+    return x
+
 
 def save(x, name, data_structure=True,axis_info=True,sort_axis=True):
     '''
@@ -72,17 +92,6 @@ def detect_freq(axis):
         return 'M'
     else:
         raise ValueError
-
-def load_data(name):
-    fns1=os.listdir(PKL_FILTERED_PATH)
-    fns2=os.listdir(PKL_PATH)
-    if name+'.pkl' in fns1:
-        x=pd.read_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
-    elif name+'.pkl' in fns2:
-        x=read_unfiltered(name)
-    else:
-        raise MyError('There is no such data named "{}.pkl" in the repository!'.format(name))
-    return x
 
 def save_to_filtered(x, name):
 

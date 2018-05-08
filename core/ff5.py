@@ -31,7 +31,7 @@ import pandas as pd
 import statsmodels.formula.api as sm
 import numpy as np
 import os
-
+import matplotlib.pyplot as plt
 BENCH=Benchmark()
 directory=r'D:\zht\database\quantDb\researchTopics\assetPricing2\empirical\ff5'
 
@@ -432,14 +432,19 @@ if __name__ == '__main__':
     get_table6()
     get_table7()
 
+
+
 '''
 Ideas:
 1. split samples into sz and sh
 2. split into two subsample
 3. add FF6 and so on
 4. industry indices
-5. refine hxz4 and capm
+5. explain funds
+6. refine hxz4 and capm
 
+Concerns:
+1. this seems to be playing home game,
 
 Results:
 1. table5: capm and hxz4 is really abnormal
