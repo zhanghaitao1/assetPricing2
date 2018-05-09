@@ -205,7 +205,7 @@ def get_capM():
 # financial indicators-------------------------------------------
 def get_bps():
     tbname = 'FI_T9'
-    varname = 'F091001A'
+    varname = 'F091001A' # 每股净资产
     indname = 'Accper'
     colname = 'Stkcd'
     df=read_df_from_gta(tbname, varname, indname, colname)
@@ -521,7 +521,12 @@ def get_inv():
     save(inv,'inv')
 
 
-
+def get_bp():
+    tbname='FI_T10'
+    varname='F100401A' # 市净率
+    bp=parse_financial_report(tbname,varname,consolidated=False)
+    bp=yearly2monthly(bp)
+    save(bp,'bp')
 
 
 # if __name__=='__main__':

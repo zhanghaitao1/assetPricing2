@@ -163,14 +163,6 @@ def model_performance(assets,riskmodel):
     Returns:
 
     '''
-    '''
-    table 5 of "A five-factor asset pricing model" (Fama and French 2015).
-
-    :param vars:list
-    :param model:refer to construct_playingField
-    :param riskmodel:refer to BENCH.by_benchmark
-    :return:
-    '''
     # change the column names,since sm.ols do not support numerical regressor.
     anames=['a{}'.format(i) for i in range(1,assets.shape[1]+1)]
     assets.columns=anames
@@ -284,20 +276,19 @@ def test_orthogonalize():
     riskmodel='ff5'
     orth=orthogonalize(riskmodel,factor)
 
-def _details_for_intercept(series,riskmodel):
+def _details_for_intercept(series,bench):
     series.name='y'
-    bench=BENCH.by_benchmark(riskmodel)
     comb=pd.concat([series,bench],axis=1)
     comb=comb.dropna()
     formula='y ~ {}'.format(' + '.join(bench.columns))
     reg=sm.ols(formula,comb).fit()
     return reg.params['Intercept'],reg.tvalues['Intercept']
 
-def regression_details_5x5(riskmodel):
+def regression_details_5x5(bench):
     '''
     as table 7 in page 13
     Args:
-        riskmodel:
+        bench:
 
     Returns:
 
@@ -313,7 +304,7 @@ def regression_details_5x5(riskmodel):
         panela=pd.DataFrame()
         panelt=pd.DataFrame()
         for col,s in assets.items():
-            alpha,talpha=_details_for_intercept(s,riskmodel)
+            alpha,talpha=_details_for_intercept(s,bench)
             panela.at[col[0],col[1]]=alpha
             panelt.at[col[0],col[1]]=talpha
         panela.index=['Small',2,3,4,'Big']
@@ -331,11 +322,11 @@ def regression_details_5x5(riskmodel):
     tablet=merge_panels(panelts1,titles1)
     return tablea,tablet
 
-def regression_details_2x4x4(riskmodel):
+def regression_details_2x4x4(bench):
     '''
     as table 11 in page 18
     Args:
-        riskmodel:
+        bench:
 
     Returns:
 
@@ -358,7 +349,7 @@ def regression_details_2x4x4(riskmodel):
         panela_big = pd.DataFrame()
         panelt_big = pd.DataFrame()
         for col, s in assets.items():
-            alpha, talpha = _details_for_intercept(s, riskmodel)
+            alpha, talpha = _details_for_intercept(s, bench)
             if col[0] == 1:
                 panela_small.at[col[1], col[2]] = alpha
                 panelt_small.at[col[1], col[2]] = talpha
@@ -401,7 +392,8 @@ def get_table7():
     tableas_=[]
     tablets_=[]
     for rm in riskmodels:
-        tablea,tablet=regression_details_5x5(rm)
+        bench=BENCH.by_benchmark(rm)
+        tablea,tablet=regression_details_5x5(bench)
         tableas_.append(tablea)
         tablets_.append(tablet)
         print(rm)
@@ -413,7 +405,8 @@ def get_table7():
     tables_ll=[]
     for rm in riskmodels:
         # tablea_small,tablet_small,tablea_big,tablet_big=regression_details_2x4x4(rm)
-        tables_ll.append(regression_details_2x4x4(rm))
+        bench=BENCH.by_benchmark(rm)
+        tables_ll.append(regression_details_2x4x4(bench))
         print(rm)
 
     _save(pd.concat([t[0] for t in tables_ll],axis=0,keys=riskmodels),
