@@ -16,7 +16,7 @@ from data.sampleControl import apply_condition
 
 def combine_all_indicators():
     fns=['size','beta','value','momentum','reversal','liquidity',
-         'skewness','idio','op','inv']
+         'skewness','idio','op','inv','roe']
 
     xs=[]
     info={}
@@ -147,6 +147,7 @@ class Database:
         else:
             self.data=load_data('data')
         self.info=load_data('info')
+        self.all_indicators=[ele for l in self.info.values() for ele in l]
 
     def by_factor(self,factorname):
         return self.data[self.info[factorname]].copy(deep=True).dropna(how='all')

@@ -413,14 +413,14 @@ def get_pu():
     pu = pu['pu']
     save(pu,'pu')
 
-def parse_financial_report(tbname, varname, yearly=True, consolidated=True):
+def parse_financial_report(tbname, varname, freq='Y', consolidated=True):
     '''
     This function will parse indicator from financial report.
 
     Args:
         tbname:
         varname:
-        yearly:True or False.If True,only get yearly data.
+        freq:{'Y','Q'},'Y' means yearly,'Q' means quartly
         consolidated: True or False,If true,use the indicator from consolidated
         financial statements
 
@@ -438,10 +438,12 @@ def parse_financial_report(tbname, varname, yearly=True, consolidated=True):
     table.index=pd.to_datetime(table.index)
     table.columns=table.columns.astype(str)
     table.columns.name='sid'
-    if yearly:
+    if freq=='Y':
         return table[table.index.month==12]
+    elif freq=='Q':
+        return table[table.index.month.isin([3,6,9,12])]
 
-def yearly2monthly(df,shift=True):
+def toMonthly(df, shift="6M"):
     '''
 
     Args:
@@ -452,22 +454,25 @@ def yearly2monthly(df,shift=True):
     Returns:
 
     '''
-    df=df[df.index.month==12]
-
     if shift:
-        df=df.shift(1,freq='6M')
+        df=df.shift(1,freq=shift)
 
     newIndex=pd.date_range(df.index[0],get_today(),freq='M')
     df = df.reindex(index=pd.Index(newIndex,name='t'))
+    # even for quartly data,we ffill with 11 month
     df = df.fillna(method='ffill', limit=11)
     df=df.dropna(how='all')
     return df
 
+'''
+refer to this link for details about the relationship between income,
+operating income,and so on.
+'''
+
+
 def get_op():
     '''
     calculate operating profitability as in FF5
-
-    It seems to be the same as ROE in hxz
 
     Returns:
 
@@ -494,7 +499,7 @@ def get_op():
     op = OP / BV
     op.index.name='t'
     op.columns.name='sid'
-    op=yearly2monthly(op)
+    op=toMonthly(op)
     save(op,'op')
 
 def get_inv():
@@ -507,7 +512,10 @@ def get_inv():
         tbname='FI_T8'
         varname='F080602A'
         roe=parse_financial_report(tbname, varname)
-        roe=yearly2monthly(roe)
+        roe=toMonthly(roe)
+
+    References:
+        Hou, K., Xue, C., and Zhang, L. (2014). Digesting Anomalies: An Investment Approach. Review of Financial Studies 28, 650–705.
 
     Returns:
 
@@ -517,15 +525,47 @@ def get_inv():
     varname='A001000000' # 总资产
     ta=parse_financial_report(tbname, varname)
     inv=ta.pct_change()
-    inv=yearly2monthly(inv)
+    inv=toMonthly(inv)
     save(inv,'inv')
+
+def get_roe():
+    '''
+    roe in HXZ
+
+    References:
+        Hou, K., Xue, C., and Zhang, L. (2014). Digesting Anomalies:An Investment Approach. Review of Financial Studies 28, 650–705.
+
+
+    Returns:
+
+    '''
+    tbname1='FS_Comins'
+    varname1='B002000000' # 净利润
+
+    income=parse_financial_report(tbname1,varname1,freq='Q')
+
+    tbname2 = 'FS_Combas'
+    # var1 = 'A003000000'  # 所有者权益合计
+    var2 = 'A003100000'  # 归属于母公司所有者权益合计
+    BV = parse_financial_report(tbname2, var2,freq='Q')
+    BV[BV<=0]=np.nan # exclude firms with negative book equity
+    roe=income/BV.shift(1,freq='3M') # divide by one-quarter-lagged book equity
+    #TODO: adjust with the announcement date
+    '''
+    It is a little different with the paper.To take time lag into consideration,we 
+    just shift forward 6 month here but what the paper has done is " Earnings data
+    in Compustat quarterly files are used in the months immediately after the most 
+    recent public quarterly earnings announcement dates."
+    '''
+    roe=toMonthly(roe,shift='6M')
+    save(roe,'roe')
 
 
 def get_bp():
     tbname='FI_T10'
     varname='F100401A' # 市净率
     bp=parse_financial_report(tbname,varname,consolidated=False)
-    bp=yearly2monthly(bp)
+    bp=toMonthly(bp)
     save(bp,'bp')
 
 

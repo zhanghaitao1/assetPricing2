@@ -4,24 +4,27 @@
 # Email:13163385579@163.com
 # TIME:2018-05-07  21:16
 # NAME:assetPricing2-10 hxz.py
+from core.constructFactor import two_sorting_factor
 from core.main import combine_with_datalagged
-from data.dataTools import load_data, save
+from data.dataTools import load_data, save, read_unfiltered
 from data.outlier import detect_outliers
 from tool import assign_port_id, my_average
 import matplotlib.pyplot as plt
 import pandas as pd
 
-'''
-This replication has some difference with that of Hou, Xue, and Zhang,
- “Digesting Anomalies.”
-
-
-'''
-
 def get_hxz4():
+    '''
+    calculate hxz4 factors,refer to din.py for details about the indicators
+
+    References:
+        Hou, K., Mo, H., Xue, C., and Zhang, L. (2018). Motivating Factors (Rochester, NY: Social Science Research Network).
+
+    Returns:
+
+    '''
     v1='size__size'
     v2='inv__inv' #I/A
-    v3='op__op' # ROE
+    v3='roe__roe' # ROE
 
     comb = combine_with_datalagged([v1, v2, v3],sample_control=True)
     comb = comb.dropna()
@@ -55,15 +58,5 @@ def get_hxz4():
 
 
 
-
-#TODO: here,we can only get the data after applying condition on the samples,
-#TODO:
-
-'''
-1. First layer:base function
-2. Second layer:based on First layer
-3. application layer call the second layer function
-
-'''
-
-
+if __name__ == '__main__':
+    get_hxz4()

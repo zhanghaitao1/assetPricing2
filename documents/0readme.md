@@ -4,6 +4,11 @@
 3. load_data
 
 
+# project structure  
+1. First layer:base function
+2. Second layer:based on First layer
+3. application layer call the second layer function
+
 
 
 # recheck

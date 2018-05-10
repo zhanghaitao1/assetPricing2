@@ -4,6 +4,7 @@
 # Email:13163385579@163.com
 # TIME:2018-03-22  15:03
 # NAME:assetPricing2-dataTools.py
+import multiprocessing
 from functools import partial
 
 from config import WINSORIZE_LIMITS
@@ -562,3 +563,10 @@ def correlation_mixed(multiDf):
                         columns=corrpAvg.columns)
     np.fill_diagonal(corr.values, np.NaN)
     return corr
+
+def multi_processing(task,params,pool_size=8,**kwargs):
+    pool=multiprocessing.Pool(pool_size)
+    local_multiprocessing_func=partial(task,**kwargs)
+    result=pool.map(local_multiprocessing_func,params)
+    pool.close()
+    return result
