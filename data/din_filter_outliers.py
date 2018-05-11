@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import os
 
-from config import PKL_PATH
+from config import PKL_UNFILTERED_PATH
 from data.dataApi import Database
 from data.dataTools import read_unfiltered, save_to_filtered, load_data
 from data.outlier import detect_outliers, delete_outliers
@@ -25,7 +25,7 @@ def handle_outliers(tbname):
     save_to_filtered(x1,tbname)
 
 def filter_all():
-    tbnames=[fn[:-4] for fn in os.listdir(PKL_PATH)]
+    tbnames=[fn[:-4] for fn in os.listdir(PKL_UNFILTERED_PATH)]
     for tbname in tbnames:
         try:
             handle_outliers(tbname)

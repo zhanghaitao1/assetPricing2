@@ -7,12 +7,11 @@
 import os
 import pickle
 
-from config import PKL_PATH
-from data.dataTools import load_data, save, save_to_filtered, read_unfiltered
+from config import PKL_UNFILTERED_PATH
+from data.dataTools import load_data, save, save_to_filtered, read_unfiltered, \
+    read_filtered
 import pandas as pd
 from data.sampleControl import apply_condition
-
-
 
 def combine_all_indicators():
     fns=['size','beta','value','momentum','reversal','liquidity',
@@ -109,7 +108,7 @@ def join_all():
     data.index.name=['t','sid']
     data.columns.name='type'
 
-    pickle.dump(info,open(os.path.join(PKL_PATH,'info.pkl'),'wb'))
+    pickle.dump(info, open(os.path.join(PKL_UNFILTERED_PATH, 'info.pkl'), 'wb'))
 
     # save info as df
     infoDf=pd.concat([pd.Series(v,name=k) for k,v in info.items()],axis=1)
@@ -143,9 +142,9 @@ class Benchmark:
 class Database:
     def __init__(self,sample_control=True):
         if sample_control:
-            self.data=load_data('data_controlled')
+            self.data=read_filtered('data_controlled')
         else:
-            self.data=load_data('data')
+            self.data=read_unfiltered('data')
         self.info=load_data('info')
         self.all_indicators=[ele for l in self.info.values() for ele in l]
 
@@ -163,7 +162,6 @@ class Database:
             return self.data[list(indicators)].copy(deep=True).dropna(how='all')
         else:
             return self.data[[indicators]].copy(deep=True).dropna(how='all')
-
 
 if __name__ == '__main__':
     join_all()

@@ -13,8 +13,8 @@ DATA_PATH=os.path.join(PROJECT_PATH, 'data')
 TMP_PATH=os.path.join(PROJECT_PATH,'tmp')
 WINSORIZE_LIMITS=(0.01,0.01)
 
-CSV_PATH=os.path.join(DATA_PATH,'csv')
-PKL_PATH=os.path.join(DATA_PATH,'pkl')
+CSV_UNFILTERED_PATH=os.path.join(DATA_PATH, 'csv_unfiltered')
+PKL_UNFILTERED_PATH=os.path.join(DATA_PATH, 'pkl_unfiltered')
 
 OUTLIER_PATH=os.path.join(DATA_PATH,'outlier')
 CSV_FILTERED_PATH=os.path.join(DATA_PATH,'csv_filtered')

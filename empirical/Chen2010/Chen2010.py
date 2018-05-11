@@ -5,7 +5,7 @@
 # TIME:2018-05-09  16:23
 # NAME:assetPricing2-Chen2010.py
 from core.constructFactor import single_sorting_factor
-from core.ff5 import regression_details_5x5
+from core.ff5 import regression_details_5x5, ts_panel
 from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
 from data.din import parse_financial_report, toMonthly
@@ -18,7 +18,6 @@ from multiprocessing.pool import Pool
 import numpy as np
 
 BENCH=Benchmark()
-
 
 
 direc= r'D:\zht\database\quantDb\researchTopics\assetPricing2\data\FI'
@@ -208,7 +207,6 @@ indicators=['idio__idioVol_ff3_1M__D',
          'liquidity__turnover1',
          'momentum__R3M',
          'reversal__reversal',
-         'size__size',
          'skewness__skew_24M__D',
          'idio__idioVol_capm_1M__D',
          'inv__inv',
@@ -266,7 +264,7 @@ def get_bivariate_panel(v1, v2='size__size'):
 
     ss=[]
     for v in [v1,v2]:
-        if v in Database().all_indicators:
+        if v in Database(sample_control=sampleControl).all_indicators:
             s=Database(sample_control=sampleControl).by_indicators([v])
         else:
             s=_read(v).stack()
@@ -294,16 +292,37 @@ def get_bivariate_panel(v1, v2='size__size'):
     print(v1)
     return panel
 
-get_bivariate_panel('inv__inv')
-
-
-
 def _get_panel(indicator):
     panel=get_bivariate_panel(indicator)
     panel.to_pickle(os.path.join(dirPanels,'{}.pkl'.format(indicator)))
 
 def multi_get_panel():
     multi_processing(_get_panel,indicators,pool_size=5)
+
+panels=[]
+for indicator in indicators:
+    panel=pd.read_pickle(os.path.join(dirPanels,'{}.pkl'.format(indicator)))
+    panels.append(panel)
+
+panel=panels[0]
+
+mymodel = select_a_model()
+bs = list(Benchmark().info.keys())
+benchNames = ['pure', 'my'] + bs
+benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
+
+rs=[]
+for bench in benchs:
+    r=ts_panel(panel,bench)
+    rs.append(r)
+
+result=pd.concat(rs,axis=0,keys=benchNames)
+
+result.to_csv(r'e:\a\result.csv')
+
+
+
+
 
 
 

@@ -8,7 +8,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from config import CSV_PATH, PKL_PATH, PKL_FILTERED_PATH
+from config import CSV_UNFILTERED_PATH, PKL_UNFILTERED_PATH, PKL_FILTERED_PATH, CSV_FILTERED_PATH
 from data.base import MyError
 from data.check import check_data_structure, check_axis_order, check_axis_info
 from zht.data.gta.api import read_gta
@@ -30,22 +30,42 @@ def read_df_from_gta(tbname, varname, indname, colname):
 
 def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
     if suffix== 'pkl':
-        df = pd.read_pickle(os.path.join(PKL_PATH, tbname + '.pkl'))
+        df = pd.read_pickle(os.path.join(PKL_UNFILTERED_PATH, tbname + '.pkl'))
     else:
-        df = pd.read_csv(os.path.join(CSV_PATH, tbname + '.csv'),*args,**kwargs)
+        df = pd.read_csv(os.path.join(CSV_UNFILTERED_PATH, tbname + '.csv'), *args, **kwargs)
         # TODO: datetime,axis dtypes
     return df
 
+def read_filtered(tbname, suffix='pkl', *args, **kwargs):
+    if suffix== 'pkl':
+        df = pd.read_pickle(os.path.join(PKL_FILTERED_PATH, tbname + '.pkl'))
+    else:
+        df = pd.read_csv(os.path.join(CSV_FILTERED_PATH, tbname + '.csv'), *args, **kwargs)
+        # TODO: datetime,axis dtypes
+    return df
+
+
 def load_data(name):
+    '''
+    By default,it will load filtered data if there is,or it will load unfiltered
+    data.
+
+    Args:
+        name:
+
+    Returns:
+
+    '''
     fns1=os.listdir(PKL_FILTERED_PATH)
-    fns2=os.listdir(PKL_PATH)
+    fns2=os.listdir(PKL_UNFILTERED_PATH)
     if name+'.pkl' in fns1:
         x=pd.read_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
+        return x
     elif name+'.pkl' in fns2:
         x=read_unfiltered(name)
+        return x
     else:
         raise MyError('There is no such data named "{}.pkl" in the repository!'.format(name))
-    return x
 
 
 def save(x, name, data_structure=True,axis_info=True,sort_axis=True):
@@ -74,11 +94,11 @@ def save(x, name, data_structure=True,axis_info=True,sort_axis=True):
 
     # save csv
     if x.ndim==1:
-        x.to_frame().to_csv(os.path.join(CSV_PATH, name + '.csv'))
+        x.to_frame().to_csv(os.path.join(CSV_UNFILTERED_PATH, name + '.csv'))
     else:
-        x.to_csv(os.path.join(CSV_PATH, name + '.csv'))
+        x.to_csv(os.path.join(CSV_UNFILTERED_PATH, name + '.csv'))
 
-    x.to_pickle(os.path.join(PKL_PATH, name + '.pkl'))
+    x.to_pickle(os.path.join(PKL_UNFILTERED_PATH, name + '.pkl'))
 
 def detect_freq(axis):
     ts=axis.get_level_values('t').unique()
@@ -94,12 +114,11 @@ def detect_freq(axis):
         raise ValueError
 
 def save_to_filtered(x, name):
-
     # save csv
     if x.ndim==1:
         x.to_frame().to_csv(os.path.join(PKL_FILTERED_PATH, name + '.csv'))
     else:
-        x.to_csv(os.path.join(CSV_PATH, name + '.csv'))
+        x.to_csv(os.path.join(CSV_FILTERED_PATH, name + '.csv'))
 
     x.to_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
 

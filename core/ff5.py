@@ -147,7 +147,7 @@ def get_table2():
     _save(smallTable,'table2_small')
     _save(bigTable,'table2_big')
 
-def model_performance(assets,riskmodel):
+def model_performance(assets,bench):
     '''
     calculate the indicators such as GRS,and so on to compare the different
     models based on some assets. For details about these indicators refer to
@@ -166,7 +166,6 @@ def model_performance(assets,riskmodel):
     # change the column names,since sm.ols do not support numerical regressor.
     anames=['a{}'.format(i) for i in range(1,assets.shape[1]+1)]
     assets.columns=anames
-    bench=BENCH.by_benchmark(riskmodel)
     comb=pd.concat([assets,bench],axis=1)
     comb=comb.dropna()
 
@@ -209,7 +208,7 @@ def get_table5():
         riskmodels=BENCH.info.keys()
         rows=[]
         for rm in riskmodels:
-            rows.append(pd.Series(model_performance(assets,rm),
+            rows.append(pd.Series(model_performance(assets,BENCH.by_benchmark(rm)),
                         index=['grs','grsp','Aai','ratio1','ratio2']))
         panel=pd.concat(rows,axis=1,keys=riskmodels).T
         panels1.append(panel)
@@ -276,13 +275,23 @@ def test_orthogonalize():
     riskmodel='ff5'
     orth=orthogonalize(riskmodel,factor)
 
-def _details_for_intercept(series,bench):
-    series.name='y'
-    comb=pd.concat([series,bench],axis=1)
-    comb=comb.dropna()
-    formula='y ~ {}'.format(' + '.join(bench.columns))
-    reg=sm.ols(formula,comb).fit()
-    return reg.params['Intercept'],reg.tvalues['Intercept']
+def _details_for_intercept(s, bench=None):
+    s.name= 'y'
+    s=s.to_frame()
+    if bench is not None:
+        comb = pd.concat([s, bench], axis=1)
+        comb = comb.dropna()
+        formula='y ~ {}'.format(' + '.join(bench.columns))
+        reg=sm.ols(formula,comb).fit()
+    else:
+        formula='y ~ 1'
+        reg=sm.ols(formula, s).fit()
+    return pd.Series([reg.params['Intercept'],reg.tvalues['Intercept']],
+                     index=['alpha','t'])
+
+
+def ts_panel(panel,bench):
+    return panel.apply(lambda s:_details_for_intercept(s,bench))
 
 def regression_details_5x5(bench):
     '''
@@ -304,9 +313,9 @@ def regression_details_5x5(bench):
         panela=pd.DataFrame()
         panelt=pd.DataFrame()
         for col,s in assets.items():
-            alpha,talpha=_details_for_intercept(s,bench)
-            panela.at[col[0],col[1]]=alpha
-            panelt.at[col[0],col[1]]=talpha
+            result=_details_for_intercept(s,bench)
+            panela.at[col[0],col[1]]=result['alpha']
+            panelt.at[col[0],col[1]]=result['t']
         panela.index=['Small',2,3,4,'Big']
         panela.columns=['Low',2,3,4,'High']
 
@@ -349,13 +358,13 @@ def regression_details_2x4x4(bench):
         panela_big = pd.DataFrame()
         panelt_big = pd.DataFrame()
         for col, s in assets.items():
-            alpha, talpha = _details_for_intercept(s, bench)
+            result=_details_for_intercept(s,bench)
             if col[0] == 1:
-                panela_small.at[col[1], col[2]] = alpha
-                panelt_small.at[col[1], col[2]] = talpha
+                panela_small.at[col[1], col[2]] = result['alpha']
+                panelt_small.at[col[1], col[2]] = result['t']
             elif col[0] == 2:
-                panela_big.at[col[1], col[2]] = alpha
-                panelt_big.at[col[1], col[2]] = talpha
+                panela_big.at[col[1], col[2]] = result['alpha']
+                panelt_big.at[col[1], col[2]] = result['t']
 
         panela_small.index = ['Low {}'.format(v2.split('__')[-1]), 2, 3,
                               'High {}'.format(v2.split('__')[-1])]

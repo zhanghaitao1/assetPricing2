@@ -9,8 +9,7 @@ import datetime
 import numpy as np
 import pandas as pd
 from data.base import MyError
-from data.dataTools import read_unfiltered, detect_freq, load_data, save_to_filtered
-from data.outlier import detect_outliers, delete_outliers
+from data.dataTools import read_unfiltered, detect_freq
 from pandas.tseries.offsets import MonthEnd
 from zht.utils.mathu import get_inter_frame
 
