@@ -32,6 +32,25 @@ from data.base import MyError
 from tool import assign_port_id, my_average
 import matplotlib.pyplot as plt
 
+def get_single_sorting_assets(indicator, q, weight=True):
+    if isinstance(q, int):
+        labels = ['g{}'.format(i) for i in range(1, q + 1)]
+    elif isinstance(q, (list,tuple)):
+        labels = ['g{}'.format(i) for i in range(1, len(q))]
+    else:
+        raise MyError('q:"{}"  is wrong!'.format(repr(q)))
+
+    comb=combine_with_datalagged([indicator])
+    comb['g'] = comb.groupby('t', group_keys=False).apply(
+        lambda df: assign_port_id(df[indicator], q, labels))
+
+    if weight:
+        assets=comb.groupby(['t','g']).apply(
+            lambda df:my_average(df,'stockEretM',wname='weight'))\
+            .unstack(level=['g'])
+    else:
+        assets=comb.groupby(['t','g'])['stockEretM'].mean().unstack(level=['g'])
+    return assets
 
 def single_sorting_factor(indicator, q, weight=False):
     # method1 independent way

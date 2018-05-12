@@ -147,7 +147,7 @@ def get_table2():
     _save(smallTable,'table2_small')
     _save(bigTable,'table2_big')
 
-def model_performance(assets,bench):
+def model_performance(panel,bench):
     '''
     calculate the indicators such as GRS,and so on to compare the different
     models based on some assets. For details about these indicators refer to
@@ -163,6 +163,9 @@ def model_performance(assets,bench):
     Returns:
 
     '''
+    # make sure that we do not change the panel,since panel may be reused
+    # outside this function
+    assets=panel.copy()
     # change the column names,since sm.ols do not support numerical regressor.
     anames=['a{}'.format(i) for i in range(1,assets.shape[1]+1)]
     assets.columns=anames
@@ -195,7 +198,8 @@ def model_performance(assets,bench):
     # ratio2
     ratio2=np.mean(np.square(alpha))/np.mean(np.square(ri))
 
-    return grs,grsp,Aai,ratio1,ratio2
+    return pd.Series([grs,grsp,Aai,ratio1,ratio2],
+                     index=['grs','grsp','Aai','ratio1','ratio2'])
 
 def get_table5():
     # for 5x5 panels
@@ -208,8 +212,7 @@ def get_table5():
         riskmodels=BENCH.info.keys()
         rows=[]
         for rm in riskmodels:
-            rows.append(pd.Series(model_performance(assets,BENCH.by_benchmark(rm)),
-                        index=['grs','grsp','Aai','ratio1','ratio2']))
+            rows.append(model_performance(assets,BENCH.by_benchmark(rm)))
         panel=pd.concat(rows,axis=1,keys=riskmodels).T
         panels1.append(panel)
         titles1.append('25 {}-{} portfolios'.format(v1.split('__')[-1],
@@ -228,8 +231,7 @@ def get_table5():
         riskmodels=BENCH.info.keys()
         rows=[]
         for rm in riskmodels:
-            rows.append(pd.Series(model_performance(assets,rm),
-                        index=['grs','grsp','Aai','ratio1','ratio2']))
+            rows.append(model_performance(assets,rm))
         panel=pd.concat(rows,axis=1,keys=riskmodels).T
         panels2.append(panel)
         titles2.append('32 {}-{}-{} portfolios'.format(

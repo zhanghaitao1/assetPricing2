@@ -5,7 +5,7 @@
 # TIME:2018-05-09  16:23
 # NAME:assetPricing2-Chen2010.py
 from core.constructFactor import single_sorting_factor
-from core.ff5 import regression_details_5x5, ts_panel
+from core.ff5 import regression_details_5x5, ts_panel, model_performance
 from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
 from data.din import parse_financial_report, toMonthly
@@ -167,7 +167,6 @@ def select_a_model():
     indicator=sharpe['indicator'][0]
     factor=pd.read_pickle(os.path.join(factorPath, indicator + '.pkl'))
 
-
     ff3=read_unfiltered('ff3M')
     model=pd.concat([ff3[['rp','smb']],factor],axis=1)
     model=model.dropna()
@@ -299,27 +298,31 @@ def _get_panel(indicator):
 def multi_get_panel():
     multi_processing(_get_panel,indicators,pool_size=5)
 
-panels=[]
-for indicator in indicators:
-    panel=pd.read_pickle(os.path.join(dirPanels,'{}.pkl'.format(indicator)))
-    panels.append(panel)
 
-panel=panels[0]
+def compare_models_based_on_bivariate_assets():
+    resultLst=[]
+    psLst=[]
+    for indicator in indicators:
+        assets=pd.read_pickle(os.path.join(dirPanels,'{}.pkl'.format(indicator)))
+        mymodel = select_a_model()
+        bs = list(Benchmark().info.keys())
+        benchNames = ['pure', 'my'] + bs
+        benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
 
-mymodel = select_a_model()
-bs = list(Benchmark().info.keys())
-benchNames = ['pure', 'my'] + bs
-benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
+        rs=[]
+        ps=[]
+        for bench in benchs:
+            r=ts_panel(assets,bench)
+            rs.append(r)
+            if bench is not None:
+                p=model_performance(assets.copy(),bench)
+                ps.append(p)
+        resultLst.append(pd.concat(rs,axis=0,keys=benchNames))
+        psLst.append(pd.concat(ps,axis=1,keys=benchNames[1:]).T)
+        print(indicator)
 
-rs=[]
-for bench in benchs:
-    r=ts_panel(panel,bench)
-    rs.append(r)
-
-result=pd.concat(rs,axis=0,keys=benchNames)
-
-result.to_csv(r'e:\a\result.csv')
-
+    pd.concat(resultLst,axis=0,keys=indicators).to_csv(r'e:\a\result.csv')
+    pd.concat(psLst,axis=0,keys=indicators).to_csv(r'e:\a\performance.csv')
 
 
 
