@@ -336,15 +336,7 @@ def compare_models_based_on_bivariate_assets():
 
 
 
-'''
-ideas:
-1. find anomalies (use capm to identify)
-2. compare with time series regression,single sorts and bivariate-sorts
-3. GRS and so on.
-4. explain each other
 
-
-'''
 
 
 

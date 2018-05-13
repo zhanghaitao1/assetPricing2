@@ -535,6 +535,19 @@ def newey_west(formula,df,lags=5):
     return pd.DataFrame([reg.params,reg.tvalues],index=['coef','t'],
                         columns=reg.params.index)
 
+def get_riskAdjusted_alpha_tvalue(s, bench=None):
+    s.name = 'y'
+    s=s.to_frame()
+    if bench is not None:
+        df=pd.concat([s,bench],axis=1)
+        formula='y ~ {}'.format(' + '.join(bench.columns.tolist()))
+        nw=newey_west(formula,df)
+        return nw['Intercept']['t']
+    else:
+        formula='y ~ 1'
+        nw = newey_west(formula, s)
+        return nw['Intercept']['t']
+
 def correlation_mixed(multiDf):
     indicators=multiDf.columns.tolist()
 
@@ -570,3 +583,5 @@ def multi_processing(task,params,pool_size=8,**kwargs):
     result=pool.map(local_multiprocessing_func,params)
     pool.close()
     return result
+
+
