@@ -57,7 +57,8 @@ database_indicators=['liquidity__turnover1',
                      'op__op',
                      'roe__roe']
 
-sig_indicators=get_significant_indicators()
+bench=Benchmark().by_benchmark('ff3') #TODO:
+sig_indicators=get_significant_indicators(bench)
 reduced_indicators=sig_indicators.index.tolist()
 
 def get_sign(indicator):
@@ -81,7 +82,7 @@ def _spread_tvalues():
         else:
             s=pd.read_pickle(os.path.join(dirSpread,indicator+'.pkl'))
 
-        s=s*get_sign(indicator)
+        # s=s*get_sign(indicator) #TODO:
         t=pd.Series([get_riskAdjusted_alpha_tvalue(s, bench) for bench in benchs], index=names)
         ts.append(t)
         print(indicator)
@@ -122,15 +123,16 @@ def compare_models_based_on_assets(assetType='25'):
 
 def compare():
     spreadInterceptTvalues=_spread_tvalues()
-    compareWithIntercept10,compareWithJointTest10=compare_models_based_on_assets(assetType='10')
-    compareWithIntercept25,compareWithJointTest25=compare_models_based_on_assets(assetType='25')
+    # compareWithIntercept10,compareWithJointTest10=compare_models_based_on_assets(assetType='10')
+    # compareWithIntercept25,compareWithJointTest25=compare_models_based_on_assets(assetType='25')
 
     spreadInterceptTvalues.to_csv(os.path.join(dirCompare,'spreadInterceptTvalues.csv'))
-    compareWithIntercept10.to_csv(os.path.join(dirCompare,'compareWithIntercept10.csv'))
-    compareWithJointTest10.to_csv(os.path.join(dirCompare,'compareWithJointTest10.csv'))
-    compareWithIntercept25.to_csv(os.path.join(dirCompare,'compareWithIntercept25.csv'))
-    compareWithJointTest25.to_csv(os.path.join(dirCompare,'compareWithJointTest25.csv'))
+    # compareWithIntercept10.to_csv(os.path.join(dirCompare,'compareWithIntercept10.csv'))
+    # compareWithJointTest10.to_csv(os.path.join(dirCompare,'compareWithJointTest10.csv'))
+    # compareWithIntercept25.to_csv(os.path.join(dirCompare,'compareWithIntercept25.csv'))
+    # compareWithJointTest25.to_csv(os.path.join(dirCompare,'compareWithJointTest25.csv'))
 
+compare()
 
 def clean_industryIndex():
     '''
@@ -204,4 +206,5 @@ ideas:
 4. explain each other
 
 
+#TODO: set q=5 and test run again
 '''

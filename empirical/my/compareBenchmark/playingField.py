@@ -151,13 +151,13 @@ def _get_reduced_indicators():
     return cn_indicators
 
 
-def get_significant_indicators():
+def get_significant_indicators(bench=None):
     indicators = _get_reduced_indicators()
 
     ts = []
     for ind in indicators:
         s = pd.read_pickle(os.path.join(dirSpread, ind + '.pkl'))
-        t = get_riskAdjusted_alpha_tvalue(s, None)
+        t = get_riskAdjusted_alpha_tvalue(s, bench)
         ts.append(t)
     tvalues = pd.Series(ts, index=indicators)
     tvalues = tvalues.sort_values()
