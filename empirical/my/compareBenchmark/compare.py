@@ -12,7 +12,7 @@ from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
 from data.din import parse_financial_report, toMonthly
 from empirical.my.compareBenchmark.playingField import _get_reduced_indicators, \
-    get_significant_indicators
+    get_significant_indicators, database_indicators
 from tool import assign_port_id, my_average, newey_west, multi_processing, \
     get_riskAdjusted_alpha_tvalue
 from zht.data.gta.api import read_gta
@@ -45,17 +45,13 @@ def select_a_model(i=0):
     model=model.dropna()
     return model
 
-database_indicators=['liquidity__turnover1',
-                     'idio__idioVol_capm_1M__D',
-                     'liquidity__amihud',
-                     'momentum__R3M',
-                     'skewness__skew_24M__D',
-                     'reversal__reversal',
-                     'value__bm',
-                     'inv__inv',
-                     'beta__D_1M',
-                     'op__op',
-                     'roe__roe']
+def get_all_benchs():
+    mymodel = select_a_model()
+    bs = list(Benchmark().info.keys())
+    bnames = ['pure', 'my'] + bs
+    benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
+    return benchs,bnames
+
 
 bench=Benchmark().by_benchmark('ff3') #TODO:
 sig_indicators=get_significant_indicators(bench)
@@ -69,11 +65,13 @@ def get_sign(indicator):
         return np.sign(sig_indicators[indicator])
 
 def _spread_tvalues():
+    '''
+    compare the models based on the tvalues of riskadjusted spread alpha
+    Returns:
+
+    '''
     # hxz is best
-    mymodel = select_a_model()
-    bs = list(Benchmark().info.keys())
-    names = ['pure', 'my'] + bs
-    benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
+    benchs,bnames=get_all_benchs()
 
     ts=[]
     for indicator in database_indicators+reduced_indicators:
@@ -83,7 +81,7 @@ def _spread_tvalues():
             s=pd.read_pickle(os.path.join(dirSpread,indicator+'.pkl'))
 
         # s=s*get_sign(indicator) #TODO:
-        t=pd.Series([get_riskAdjusted_alpha_tvalue(s, bench) for bench in benchs], index=names)
+        t=pd.Series([get_riskAdjusted_alpha_tvalue(s, bench) for bench in benchs], index=bnames)
         ts.append(t)
         print(indicator)
 
@@ -91,6 +89,15 @@ def _spread_tvalues():
     return tvalues
 
 def compare_models_based_on_assets(assetType='25'):
+    '''
+    compare model based on the alphas of the 25 portfolios
+
+    Args:
+        assetType:
+
+    Returns:
+
+    '''
     if assetType=='25':
         directory=dir25assets
     elif assetType=='10':
@@ -102,19 +109,15 @@ def compare_models_based_on_assets(assetType='25'):
     byJointTest=[]
     for indicator in database_indicators:
         assets=pd.read_pickle(os.path.join(directory,'{}.pkl'.format(indicator)))
-        mymodel = select_a_model()
-        bs = list(Benchmark().info.keys())
-        benchNames = ['pure', 'my'] + bs
-        benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
-
+        benchs, bnames = get_all_benchs()
         interceptResult=[]
         jointTestResult=[]
         for bench in benchs:
             interceptResult.append(ts_panel(assets,bench))
             if bench is not None:
                 jointTestResult.append(model_performance(assets.copy(),bench))
-        byInterceptLst.append(pd.concat(interceptResult,axis=0,keys=benchNames))
-        byJointTest.append(pd.concat(jointTestResult,axis=1,keys=benchNames[1:]).T)
+        byInterceptLst.append(pd.concat(interceptResult,axis=0,keys=bnames))
+        byJointTest.append(pd.concat(jointTestResult,axis=1,keys=bnames[1:]).T)
         print(indicator)
 
     compareWithIntercept=pd.concat(byInterceptLst,axis=0,keys=database_indicators)
@@ -123,16 +126,15 @@ def compare_models_based_on_assets(assetType='25'):
 
 def compare():
     spreadInterceptTvalues=_spread_tvalues()
-    # compareWithIntercept10,compareWithJointTest10=compare_models_based_on_assets(assetType='10')
-    # compareWithIntercept25,compareWithJointTest25=compare_models_based_on_assets(assetType='25')
+    compareWithIntercept10,compareWithJointTest10=compare_models_based_on_assets(assetType='10')
+    compareWithIntercept25,compareWithJointTest25=compare_models_based_on_assets(assetType='25')
 
+    #TODO: adjust the order of the columns,it is not monotonical
     spreadInterceptTvalues.to_csv(os.path.join(dirCompare,'spreadInterceptTvalues.csv'))
-    # compareWithIntercept10.to_csv(os.path.join(dirCompare,'compareWithIntercept10.csv'))
-    # compareWithJointTest10.to_csv(os.path.join(dirCompare,'compareWithJointTest10.csv'))
-    # compareWithIntercept25.to_csv(os.path.join(dirCompare,'compareWithIntercept25.csv'))
-    # compareWithJointTest25.to_csv(os.path.join(dirCompare,'compareWithJointTest25.csv'))
-
-compare()
+    compareWithIntercept10.to_csv(os.path.join(dirCompare,'compareWithIntercept10.csv'))
+    compareWithJointTest10.to_csv(os.path.join(dirCompare,'compareWithJointTest10.csv'))
+    compareWithIntercept25.to_csv(os.path.join(dirCompare,'compareWithIntercept25.csv'))
+    compareWithJointTest25.to_csv(os.path.join(dirCompare,'compareWithJointTest25.csv'))
 
 def clean_industryIndex():
     '''
@@ -163,11 +165,8 @@ def compare_models_based_on_industryIndex(fn):
     industryIndex=pd.read_pickle(os.path.join(dirIndustryIndex,'{}.pkl'.format(fn)))
     ts = []
     for name,s in industryIndex.items():
-        mymodel = select_a_model()
-        bs = list(Benchmark().info.keys())
-        names = ['pure', 'my'] + bs
-        benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
-        t = pd.Series([get_riskAdjusted_alpha_tvalue(s, bench) for bench in benchs], index=names)
+        benchs,bnames=get_all_benchs()
+        t = pd.Series([get_riskAdjusted_alpha_tvalue(s, bench) for bench in benchs], index=bnames)
         ts.append(t)
         print(name)
 
@@ -176,16 +175,12 @@ def compare_models_based_on_industryIndex(fn):
 
 def compare_models_based_on_industryIndex_assets(fn):
     assets=pd.read_pickle(os.path.join(dirIndustryIndex,'{}.pkl'.format(fn)))
-    mymodel = select_a_model()
-    bs = list(Benchmark().info.keys())
-    benchNames = ['pure', 'my'] + bs
-    benchs = [None, mymodel] + [Benchmark().by_benchmark(r) for r in bs]
-
+    benchs,bnames=get_all_benchs()
     jointTestResult = []
     for bench in benchs:
         if bench is not None:
             jointTestResult.append(model_performance(assets.copy(), bench))
-    result=pd.concat(jointTestResult, axis=1, keys=benchNames[1:]).T
+    result=pd.concat(jointTestResult, axis=1, keys=bnames[1:]).T
     return result
 
 def analyse_with_industryIndex():

@@ -36,7 +36,6 @@ dirIndustryIndex=r'D:\zht\database\quantDb\researchTopics\assetPricing2\my\indus
 def _read_indicator(name):
     return pd.read_pickle(os.path.join(dirFI,name+'.pkl'))
 
-#parse all the financial indicators
 def _filter_indicators(lst):
     newlst=[]
     mark=[]
@@ -145,6 +144,11 @@ def analyse_corr():
 
 
 def _get_reduced_indicators():
+    '''
+    only keep one indicator in each category
+    Returns:
+
+    '''
     indicators = [el[:-4] for el in os.listdir(dirSpread)]
     g = group_with(indicators, lambda x: x.split('__')[1][:5])
     cn_indicators = [v[0] for v in g.values()]
@@ -189,7 +193,7 @@ def plot_all_spread():
     sp=pd.DataFrame(tup,columns=['indicator','sharpe'])
     sp.to_pickle(os.path.join(dirProj,'sharpe.pkl'))
 
-def get_10assets_and_spread_for_all_databaseIndicator():
+def get_all_10assets_and_spread_of_databaseIndicator():
     q=10
     info = Database().info
     indicators = [ele for l in info.values() for ele in l]
@@ -229,6 +233,7 @@ def plot_all_databaseSpread():
     sp=sp.set_index('indicator')['sharpe']
     sp.to_pickle(os.path.join(dirProj,'sharpe_databaseSpread.pkl'))
 
+# selected indicators from database
 database_indicators=['liquidity__turnover1',
                      'idio__idioVol_capm_1M__D',
                      'liquidity__amihud',
@@ -240,7 +245,6 @@ database_indicators=['liquidity__turnover1',
                      'beta__D_1M',
                      'op__op',
                      'roe__roe']
-
 
 def get_25assets(v1, v2):
     sampleControl = False
@@ -259,9 +263,9 @@ def get_25assets(v1, v2):
     weight = Database(sample_control=sampleControl).by_indicators(['weight'])
     datalagged = pd.concat(ss+[weight], axis=1)
     datalagged = datalagged.groupby('sid').shift(1)
-
     # data t
     datat = Database(sample_control=sampleControl).by_indicators(['stockEretM'])
+
     comb = pd.concat([datalagged, datat], axis=1)
     comb = comb.dropna()
 
@@ -276,6 +280,14 @@ def get_25assets(v1, v2):
     return assets
 
 def _save_25assets(indicator):
+    '''
+    sort independently
+    Args:
+        indicator:
+
+    Returns:
+
+    '''
     v2 = 'size__size'
     assets=get_25assets(indicator,v2)
     assets.to_pickle(os.path.join(dir25assets,'{}.pkl'.format(indicator)))

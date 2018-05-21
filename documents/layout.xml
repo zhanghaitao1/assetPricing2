@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+  <window_info anchor="bottom" id="TODO" order="7" sideWeight="0.49262735" weight="0.39044943" />
+  <window_info anchor="bottom" id="Event Log" order="5" sideWeight="0.50268096" side_tool="true" weight="0.55133617" />
+  <window_info anchor="bottom" id="Database Changes" order="4" show_stripe_button="false" />
+  <window_info anchor="right" id="Version Control" order="8" sideWeight="0.58426964" side_tool="true" weight="0.2935657" />
+  <window_info active="true" anchor="right" x="31" y="248" width="1474" height="337" id="Python Console" order="9" sideWeight="0.5070225" visible="true" weight="0.44235924" />
+  <window_info anchor="right" id="Run" order="6" sideWeight="0.5323034" side_tool="true" weight="0.50402147" />
+  <window_info anchor="right" id="Terminal" order="7" sideWeight="0.5603933" side_tool="true" weight="0.36595175" />
+  <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6427567" visible="true" weight="0.16957104" />
+  <window_info anchor="bottom" id="Docker" order="3" show_stripe_button="false" />
+  <window_info anchor="bottom" id="Database" order="6" sideWeight="0.50268096" side_tool="true" weight="0.5519663" />
+  <window_info anchor="bottom" id="Find" order="8" sideWeight="0.49731904" weight="0.5519663" />
+  <window_info anchor="right" x="593" y="178" width="869" height="592" id="SciView" order="5" sideWeight="0.53370786" side_tool="true" weight="0.50402147" />
+  <window_info anchor="right" id="Structure" order="10" sideWeight="0.49157304" side_tool="true" weight="0.44235924" />
+  <window_info id="Favorites" order="1" sideWeight="0.35724333" side_tool="true" weight="0.1494638" />
+  <window_info anchor="right" id="Debug" order="4" sideWeight="0.46629214" weight="0.50402147" />
+  <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+  <window_info anchor="bottom" id="Inspection" order="2" weight="0.4" />
+  <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+  <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+  <window_info anchor="right" x="0" y="0" width="337" height="648" id="Documentation" order="3" sideWeight="0.40486726" side_tool="true" weight="0.31233245" />
+  <window_info anchor="bottom" id="Message" order="0" />
+  <window_info anchor="bottom" id="Cvs" order="1" weight="0.25" />
+</layout>
+
