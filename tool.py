@@ -316,17 +316,17 @@ def summary_statistics(data,percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),axis=1):
     '''
     #TODO: upgrade this function,refer to https://pandas.pydata.org/pandas-docs/stable/basics.html#custom-describe
 
-    def describe_1d(series,percentiles):
-        stat_index=(['mean','std','skew','kurt','min']+
-                    format_percentiles(percentiles)+['max','n'])
-        d=([series.mean(),series.std(),series.skew(),series.kurt(),series.min()]+
-            [series.quantile(x) for x in percentiles]+[series.max(),series.count()])
-        return pd.Series(d,index=stat_index,name=series.name)
+    def describe_1d(s, pcts):
+        stat_index=(['mean','std','skew','kurt','min'] +
+                    format_percentiles(pcts) + ['max', 'n'])
+        d=([s.mean(), s.std(), s.skew(), s.kurt(), s.min()] +
+           [s.quantile(x) for x in pcts] + [s.max(), s.count()])
+        return pd.Series(d, index=stat_index, name=s.name)
 
     if data.ndim==1:
         return describe_1d(data,percentiles)
     else:
-        ss=data.apply(partial(describe_1d,percentiles=percentiles),axis=axis)
+        ss=data.apply(partial(describe_1d,pcts=percentiles),axis=axis)
         return ss
 
 def cal_corr(df,method='pearson',winsorize=False):

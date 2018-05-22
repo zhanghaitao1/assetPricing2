@@ -130,7 +130,7 @@ def delete_outliers(x,method,thresh,pooled=True):#TODO: thresh?
         ps1_pooled_mad=delete_outliers(ps1,method='mad',thresh=6,pooled=True)
 
     :param x:
-    :param by:
+    :param method:{'mad','percentile'}
     :return: the same data structure as x,but the shape may be different.
     '''
     def _for_series(s):

@@ -68,7 +68,8 @@ def load_data(name):
         raise MyError('There is no such data named "{}.pkl" in the repository!'.format(name))
 
 
-def save(x, name, data_structure=True,axis_info=True,sort_axis=True):
+def save(x, name, data_structure=True,axis_info=True,sort_axis=True,
+         inf2nan=True):
     '''
         before saving the data as pkl,we can check whether the data accords with
     our standard in respect of data structure,axis info,and the order of axis.
@@ -88,6 +89,10 @@ def save(x, name, data_structure=True,axis_info=True,sort_axis=True):
 
     if sort_axis:
         x=check_axis_order(x)
+
+    if inf2nan:
+        # replace inf with nan
+        x=x.replace([np.inf,-np.inf],np.nan)
 
     # if outliers:
     #     detect_outliers(x,name)

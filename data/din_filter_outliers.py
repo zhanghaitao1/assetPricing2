@@ -13,14 +13,13 @@ from config import PKL_UNFILTERED_PATH
 from data.dataApi import Database
 from data.dataTools import read_unfiltered, save_to_filtered, load_data
 from data.outlier import detect_outliers, delete_outliers
-from data.sampleControl import start_end
 
 #TODO: Do not apply_condition in this module
 
 def handle_outliers(tbname):
     x=read_unfiltered(tbname)
     detect_outliers(x,tbname)
-    x1=delete_outliers(x,6)
+    x1=delete_outliers(x,'mad',6)
     detect_outliers(x1,'filtered_'+tbname)
     save_to_filtered(x1,tbname)
 
