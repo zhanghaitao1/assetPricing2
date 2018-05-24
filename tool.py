@@ -231,7 +231,7 @@ def monitor(func):
 
     def wrapper(*args,**kwargs):
         print('{}   starting -> {}'.format(time.strftime('%Y-%m-%d %H:%M:%S'),func.__name__))
-        func(*args,**kwargs)
+        return func(*args,**kwargs)
 
     return wrapper
 
