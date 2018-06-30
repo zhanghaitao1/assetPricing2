@@ -126,6 +126,7 @@ def groupby_rolling(multiIndDF, prefix, dict, type_func):
 
     for history, thresh in dict.items():
         days = multiIndDF.index.get_level_values('t').unique()
+        # or (days+MonthEnd(0)).unique()
         months=pd.date_range(start=days[0],end=days[-1],freq='M')
         value = multiIndDF.groupby('sid').apply(
             lambda df: _rolling_for_series(df, months, history, thresh, type_func))

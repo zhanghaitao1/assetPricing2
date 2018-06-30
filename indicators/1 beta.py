@@ -29,7 +29,7 @@ def _get_comb():
     return tuple(combs)
 
 
-def _beta(subx):
+def _beta(subx):#TODO: use scipy or numpy rather than sm.ols
     beta=sm.ols('eret ~ rp',data=subx).fit().params['rp']
     return beta
 
