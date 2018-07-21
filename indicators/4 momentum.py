@@ -10,9 +10,7 @@ import numpy as np
 
 
 from data.dataTools import load_data, save
-import statsmodels.formula.api as sm
 from collections import OrderedDict
-from tool import groupby_rolling
 
 
 def __cal_cumulative_return(s):

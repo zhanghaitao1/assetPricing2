@@ -8,10 +8,10 @@
 from multiprocessing.pool import Pool
 
 from core.constructFactor import get_single_sorting_assets
-from core.ff5 import ts_panel, model_performance
+from core.myff5 import ts_panel, model_performance
 from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
-from data.din import parse_financial_report, toMonthly
+from data.din import parse_financial_report, quaterly2monthly
 from empirical.my.compareBenchmark.playingField import _get_reduced_indicators, \
     get_significant_indicators
 from tool import assign_port_id, my_average, newey_west, multi_processing, \

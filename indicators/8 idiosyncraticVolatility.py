@@ -11,29 +11,29 @@ from functools import partial
 from multiprocessing.pool import Pool
 
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import read_unfiltered, save
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling, groupby_rolling1
 
 
 def _get_comb():
-    eretD=load_data('stockEretD')
+    eretD=read_unfiltered('stockEretD')
     eretD = eretD.stack()
     eretD.index.names = ['t', 'sid']
     eretD.name = 'ret'
-    ff3D=load_data('ff3D')
-    mktD=load_data('mktRetD')
+    ff3D=read_unfiltered('ff3D')
+    mktD=read_unfiltered('mktRetD')
     mktD.columns=['mkt']
     combD = eretD.to_frame().join(ff3D)
     combD=combD.join(mktD)
 
-    eretM=load_data('stockEretM')
+    eretM=read_unfiltered('stockEretM')
     eretM = eretM.stack()
     eretM.index.names = ['t', 'sid']
     eretM.name = 'ret'
-    ffcM=load_data('ffcM')
-    mktM=load_data('mktRetM')
+    ffcM=read_unfiltered('ffcM')
+    mktM=read_unfiltered('mktRetM')
     mktM.columns=['mkt']
     combM = eretM.to_frame().join(ffcM)
     combM=combM.join(mktM)
@@ -84,8 +84,7 @@ def task(arg):
     print(arg[1].func.__name__,arg[2],arg[3])
     return result
 
-
-if __name__ == '__main__':
+def run():
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
     combD,combM=_get_comb()
@@ -109,5 +108,8 @@ if __name__ == '__main__':
         xs.append(x)
 
     save(pd.concat(xs,axis=1),'idio',sort_axis=False)
+
+if __name__ == '__main__':
+    run()
 
 

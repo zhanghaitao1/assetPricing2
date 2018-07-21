@@ -59,7 +59,6 @@ def analyse_outliers(data):
     detect_outliers(skew_24M__D_pooled,'skew_24M__D_pooled')
 
 def refine(data):
-
     dic={'liquidity':['amihud','ps1','ps2'],
          'skewness':['idioskew_24M__D','skew_12M__D','skew_24M__D']}
     for category,indicators in dic.items():

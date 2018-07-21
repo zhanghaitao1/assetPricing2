@@ -8,7 +8,7 @@
 import os
 DATA_SRC=r'D:\zht\database\quantDb\sourceData\gta\data\csv'
 
-PROJECT_PATH=r'D:\zht\database\quantDb\researchTopics\assetPricing3'
+PROJECT_PATH=r'D:\zht\database\quantDb\researchTopics\assetPricing2_new'
 DATA_PATH=os.path.join(PROJECT_PATH, 'data')
 
 TMP_PATH=os.path.join(PROJECT_PATH,'tmp')

@@ -10,19 +10,21 @@ from multiprocessing.pool import Pool
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import save, read_unfiltered
 import statsmodels.formula.api as sm
 from collections import OrderedDict
-from tool import groupby_rolling, groupby_rolling1
+from tool import groupby_rolling
 
 
 def _get_comb():
     #page 123
     combs=[]
     for freq in ['D','M']:
-        eret=load_data('stockEret'+freq).stack()
+        eret=read_unfiltered('stockEret'+freq).stack()
+        # eret=load_data('stockEret'+freq).stack()
         eret.name='eret'
-        rp=load_data('rp'+freq)
+        rp=read_unfiltered('rp'+freq)
+        # rp=load_data('rp'+freq)
         rp.name='rp'
         comb=eret.to_frame().join(rp)
         combs.append(comb)

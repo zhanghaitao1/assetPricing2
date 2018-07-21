@@ -8,11 +8,12 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import save, read_unfiltered
 
 
 def cal_sizes():
-    mktCap=load_data('capM')
+    # mktCap=load_data('capM')
+    mktCap=read_unfiltered('capM')
     mktCap[mktCap<=0]=np.nan
     size=np.log(mktCap)
 

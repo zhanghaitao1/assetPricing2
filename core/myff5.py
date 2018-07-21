@@ -3,7 +3,7 @@
 # Author:Zhang Haitao
 # Email:13163385579@163.com
 # TIME:2018-05-05  23:45
-# NAME:assetPricing2-ff5.py
+# NAME:assetPricing2-myff5.py
 
 '''
 Preface:
@@ -290,7 +290,6 @@ def _details_for_intercept(s, bench=None):
         reg=sm.ols(formula, s).fit()
     return pd.Series([reg.params['Intercept'],reg.tvalues['Intercept']],
                      index=['alpha','t'])
-
 
 def ts_panel(panel,bench):
     return panel.apply(lambda s:_details_for_intercept(s,bench))

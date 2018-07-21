@@ -8,7 +8,7 @@
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save
+from data.dataTools import save, read_unfiltered
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 
@@ -149,14 +149,14 @@ def get_liquidity_ps():
     lm=pd.Series([regr(df.loc[:month][-window:].dropna()) for month in df.index],index=df.index)
     lm.name='lm'
 
-    ret=load_data('stockRetM')
-    rf=load_data('rfM')
+    ret=read_unfiltered('stockRetM')
+    rf=read_unfiltered('rfM')
     eret = ret.sub(rf['rf'], axis=0)
     eret = eret.stack()
     eret.index.names=['t','sid']
     eret.name='eret'
 
-    ff3=load_data('ff3M')
+    ff3=read_unfiltered('ff3M')
     factors=pd.concat([ff3,lm],axis=1)
 
     comb=eret.to_frame().join(factors)

@@ -8,8 +8,7 @@ import os
 import pickle
 
 from config import PKL_UNFILTERED_PATH
-from data.dataTools import load_data, save, save_to_filtered, read_unfiltered, \
-    read_filtered
+from data.dataTools import load_data, save_to_filtered,read_filtered
 import pandas as pd
 from data.sampleControl import apply_condition
 
@@ -114,10 +113,16 @@ def join_all():
     infoDf=pd.concat([pd.Series(v,name=k) for k,v in info.items()],axis=1)
     infoDf.to_csv('info.csv')
 
-    save(data,'data')
+    save_to_filtered(data,'data')
+    # save(data,'data')
 
 def refine_data():
-    data=read_unfiltered('data')
+    '''
+    apply condition on the sample, refer to function apply_condition
+    Returns:
+
+    '''
+    data=read_filtered('data')
     # data=refine(data) #TODO: filter out the abnormal values
     # save_to_filtered(data,'data')
 
@@ -144,7 +149,7 @@ class Database:
         if sample_control:
             self.data=read_filtered('data_controlled')
         else:
-            self.data=read_unfiltered('data')
+            self.data=read_filtered('data')
         self.info=load_data('info')
         self.all_indicators=[ele for l in self.info.values() for ele in l]
 

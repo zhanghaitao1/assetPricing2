@@ -9,9 +9,9 @@ import pandas as pd
 import numpy as np
 import multiprocessing
 from data.dataTools import read_df_from_gta, save, \
-    read_gta, read_unfiltered
+    read_gta, read_unfiltered, quaterly2monthly
 from zht.data.resset.api import read_resset
-from zht.utils.dateu import freq_end, get_today
+from zht.utils.dateu import freq_end
 from zht.data.wind.api import read_wind
 from zht.utils.mathu import get_inter_frame
 
@@ -472,26 +472,7 @@ def parse_financial_report(tbname, varname, freq='Y', consolidated=True):
     elif freq=='Q':
         return table[table.index.month.isin([3,6,9,12])]
 
-def toMonthly(df, shift="6M"):
-    '''
 
-    Args:
-        df:
-        shift:True or False,if True,we take time lag into consideration by
-        shifting the value forward by 6 months.
-
-    Returns:
-
-    '''
-    if shift:
-        df=df.shift(1,freq=shift)
-
-    newIndex=pd.date_range(df.index[0],get_today(),freq='M')
-    df = df.reindex(index=pd.Index(newIndex,name='t'))
-    # even for quartly data,we ffill with 11 month
-    df = df.fillna(method='ffill', limit=11)
-    df=df.dropna(how='all')
-    return df
 
 '''
 refer to this link for details about the relationship between income,
@@ -527,7 +508,7 @@ def get_op():
     op = OP / BV
     op.index.name='t'
     op.columns.name='sid'
-    op=toMonthly(op)
+    op=quaterly2monthly(op)
     save(op,'op')
 
 def get_inv():
@@ -540,7 +521,7 @@ def get_inv():
         tbname='FI_T8'
         varname='F080602A'
         roe=parse_financial_report(tbname, varname)
-        roe=toMonthly(roe)
+        roe=quaterly2monthly(roe)
 
     References:
         Hou, K., Xue, C., and Zhang, L. (2014). Digesting Anomalies: An Investment Approach. Review of Financial Studies 28, 650–705.
@@ -554,7 +535,7 @@ def get_inv():
     ta=parse_financial_report(tbname, varname)
     ta[ta<=0]=np.nan#trick: delete samples with negative denominator
     inv=ta.pct_change()
-    inv=toMonthly(inv)
+    inv=quaterly2monthly(inv)
     save(inv,'inv')
 
 #fixme: sometimes, we may use yearly data, and sometimes we use quarterly data, is that right?
@@ -588,14 +569,14 @@ def get_roe():
     in Compustat quarterly files are used in the months immediately after the most 
     recent public quarterly earnings announcement dates."
     '''
-    roe=toMonthly(roe,shift='6M')
+    roe=quaterly2monthly(roe, shift='6M')
     save(roe,'roe')
 
 def get_bp():
     tbname='FI_T10'
     varname='F100401A' # 市净率
     bp=parse_financial_report(tbname,varname,consolidated=False)
-    bp=toMonthly(bp)
+    bp=quaterly2monthly(bp)
     save(bp,'bp')
 
 def task(f):

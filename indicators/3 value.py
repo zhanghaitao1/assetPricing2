@@ -10,7 +10,8 @@ from zht.utils.mathu import get_inter_frame
 import numpy as np
 import pandas as pd
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import save, read_unfiltered, \
+    quaterly2monthly
 
 
 #compare the bps of wind with bv of gta
@@ -20,9 +21,10 @@ def compare_wind_gta_bps():
 
     :return:
     '''
-    bps_wind=load_data('bps_wind')
-    bps=load_data('bps')
-
+    bps_wind=read_unfiltered('bps_wind')
+    # bps_wind=load_data('bps_wind')
+    # bps=load_data('bps')
+    bps=read_unfiltered('bps')
     # bps_wind.columns=[str(int(col[:-3])) for col in bps_wind.columns] #this method will lead to the missing of columns.name
     bps_wind.columns=pd.Index([str(int(col[:-3])) for col in bps_wind.columns],
                                      name=bps_wind.columns.name)
@@ -33,7 +35,6 @@ def compare_wind_gta_bps():
 
     detect_outliers(bps_wind,'a1')
     detect_outliers(bps,'a2')
-
 
 def get_bm():
     '''
@@ -46,18 +47,16 @@ def get_bm():
 
     :return:
     '''
-    be=load_data('bps')
+    # be=load_data('bps')
+    be=read_unfiltered('bps')
     be=be[be.index.month==12]
-    me=load_data('stockCloseY')
+    me=read_unfiltered('stockCloseY')
+    # me=load_data('stockCloseY')
     be,me=get_inter_frame([be,me])
+    # me[me<=0]=np.nan
     bm=be/me
     bm[bm<=0]=np.nan #delete those samples with bm<0
-    bm=bm.shift(1,freq='6M')
-
-    newIndex=pd.date_range(bm.index[0],bm.index[-1],freq='M')
-    bm=bm.reindex(index=newIndex)
-    bm=bm.fillna(method='ffill',limit=11) #TODO:some stock may have been delisted in the following year,so this method has some problems.
-
+    bm=quaterly2monthly(bm, shift='6M')
     logbm=np.log(bm)
 
     bm=bm.stack()

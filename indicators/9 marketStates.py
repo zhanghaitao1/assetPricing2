@@ -7,7 +7,7 @@
 
 import pandas as pd
 
-from data.dataTools import load_data, save
+from data.dataTools import read_unfiltered, save
 
 
 def get_upDown():
@@ -16,7 +16,8 @@ def get_upDown():
 
     :return:
     '''
-    mktRetM=load_data('mktRetM')
+    
+    mktRetM=read_unfiltered('mktRetM')
     windows=[12,24,36]
     series=[]
     for window in windows:
@@ -41,7 +42,7 @@ def cal_market_states():
 
     :return:
     '''
-    upDown=load_data('upDown')
+    upDown=read_unfiltered('upDown')
     pass
 
 if __name__ == '__main__':

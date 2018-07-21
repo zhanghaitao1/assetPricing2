@@ -7,10 +7,10 @@
 from multiprocessing.pool import Pool
 
 from core.constructFactor import get_single_sorting_assets
-from core.ff5 import ts_panel, model_performance
+from core.myff5 import ts_panel, model_performance
 from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
-from data.din import parse_financial_report, toMonthly
+from data.din import parse_financial_report, quaterly2monthly
 from tool import assign_port_id, my_average, newey_west, multi_processing, \
     get_riskAdjusted_alpha_tvalue
 from zht.data.gta.api import read_gta
@@ -63,7 +63,7 @@ def parse_all_financial_indicators():
         varnames=_filter_indicators(varnames)
         for varname in varnames:
             df=parse_financial_report(tbname,varname,consolidated=consolidated)
-            df=toMonthly(df)
+            df=quaterly2monthly(df)
             df.to_pickle(os.path.join(dirFI,'{}__{}.pkl'.format(tbname,varname)))
             print(tbname,varname)
 

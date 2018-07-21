@@ -76,6 +76,7 @@ def _for_2d(df,fn):
 
         fig.suptitle('outliers for 2d')
         savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
+        plt.close()
     elif df.columns.name=='type':
         for col,s in df.iteritems():
             _for_1d(s,'{}_{}'.format(fn,col))
@@ -90,6 +91,7 @@ def _for_1d(s,fn):
         ax.set_title('{};outliers:{}'.format(type,len(outliers)))
     fig.suptitle('sample:{},mean:{:.6f},median:{:.6f}'.format(len(s),np.mean(s),np.median(s)), size=14)
     savefig(os.path.join(OUTLIER_PATH, fn + '.png'))
+    plt.close()
 
 def _for_2d_multiIndex(multiDf,fn):
     for col,s in multiDf.iteritems():

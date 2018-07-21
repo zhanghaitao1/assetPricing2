@@ -21,7 +21,7 @@ DATA=Database(sample_control=True) #TODO: use controlled data
 # In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
 
 def combine_with_datalagged(indicators,sample_control=True):
-    datalagged=Database(sample_control).by_indicators(indicators + ['weight'])
+    datalagged=Database(sample_control).by_indicators(indicators + ['weight'])#trick:
     datat = Database(sample_control).by_indicators(['stockEretM'])
     '''
     sort the lagged characteristics to construct portfolios
@@ -79,7 +79,7 @@ def risk_adjust(panel,riskmodels=None):
     :param panel:
     :return:
     '''
-    if not riskmodels:
+    if riskmodels is None:
         riskmodels=[None,'capm','ff3','ffc','ff5','hxz4']
 
     return pd.concat([adjust_with_riskModel(panel,rm)

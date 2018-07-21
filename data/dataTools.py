@@ -12,6 +12,8 @@ from config import CSV_UNFILTERED_PATH, PKL_UNFILTERED_PATH, PKL_FILTERED_PATH, 
 from data.base import MyError
 from data.check import check_data_structure, check_axis_order, check_axis_info
 from zht.data.gta.api import read_gta
+from zht.utils.dateu import get_today
+
 '''
 Three layers:
     1. read_src:read gta src data,it can not call the following two functions
@@ -128,3 +130,23 @@ def save_to_filtered(x, name):
     x.to_pickle(os.path.join(PKL_FILTERED_PATH, name + '.pkl'))
 
 
+def quaterly2monthly(df, shift="6M"):
+    '''
+
+    Args:
+        df:DataFrame, the datatime index is quarterly
+        shift:True or False,if True,we take time lag into consideration by
+        shifting the value forward by 6 months.
+
+    Returns:
+
+    '''
+    if shift:
+        df=df.shift(1,freq=shift)
+
+    newIndex=pd.date_range(df.index[0],get_today(),freq='M')
+    df = df.reindex(index=pd.Index(newIndex,name='t'))
+    # even for quartly data,we ffill with 11 month
+    df = df.fillna(method='ffill', limit=11)
+    df=df.dropna(how='all')
+    return df

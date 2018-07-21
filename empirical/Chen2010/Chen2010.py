@@ -5,10 +5,10 @@
 # TIME:2018-05-09  16:23
 # NAME:assetPricing2-Chen2010.py
 from core.constructFactor import single_sorting_factor
-from core.ff5 import regression_details_5x5, ts_panel, model_performance
+from core.myff5 import regression_details_5x5, ts_panel, model_performance
 from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
-from data.din import parse_financial_report, toMonthly
+from data.din import parse_financial_report, quaterly2monthly
 from tool import assign_port_id, my_average, multi_processing, newey_west
 from zht.data.gta.api import read_gta
 import os
@@ -65,7 +65,7 @@ def parse_all_financial_indicators():
         varnames=_filter_indicators(varnames)
         for varname in varnames:
             df=parse_financial_report(tbname,varname,consolidated=consolidated)
-            df=toMonthly(df)
+            df=quaterly2monthly(df)
             _save(df,'{}__{}'.format(tbname,varname))
 
             print(tbname,varname)

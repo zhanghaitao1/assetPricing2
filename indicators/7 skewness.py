@@ -8,7 +8,7 @@
 import pandas as pd
 from multiprocessing.pool import Pool
 
-from data.dataTools import load_data, save_to_filtered, save
+from data.dataTools import save, read_unfiltered
 import statsmodels.formula.api as sm
 from collections import OrderedDict
 from tool import groupby_rolling, groupby_rolling1
@@ -20,18 +20,18 @@ def _get_comb():
 
     :return:
     '''
-    retD=load_data('stockRetD')
+    retD=read_unfiltered('stockRetD')
     retD=retD.stack()
     retD.index.names=['t','sid']
     retD.name='ret'
 
-    eretD=load_data('stockEretD')
+    eretD=read_unfiltered('stockEretD')
     eretD = eretD.stack()
     eretD.index.names = ['t', 'sid']
     eretD.name = 'eret'
 
-    ff3D=load_data('ff3D')
-    mktD=load_data('mktRetD').to_frame()
+    ff3D=read_unfiltered('ff3D')
+    mktD=read_unfiltered('mktRetD').to_frame()
     mktD.columns=['mkt']
     mktD['mkt_square']=mktD['mkt']**2
     multi_comb_D=pd.concat([eretD,retD],axis=1)
@@ -39,18 +39,18 @@ def _get_comb():
     combD=multi_comb_D.join(single_comb_D)
 
     #monthly
-    retM=load_data('stockRetM')
+    retM=read_unfiltered('stockRetM')
     retM = retM.stack()
     retM.index.names = ['t', 'sid']
     retM.name = 'ret'
 
-    eretM=load_data('stockEretM')
+    eretM=read_unfiltered('stockEretM')
     eretM = eretM.stack()
     eretM.index.names = ['t', 'sid']
     eretM.name = 'eret'
 
-    ff3M=load_data('ff3M')
-    mktM=load_data('mktRetM').to_frame()
+    ff3M=read_unfiltered('ff3M')
+    mktM=read_unfiltered('mktRetM').to_frame()
     mktM.columns = ['mkt']
     mktM['mkt_square'] = mktM['mkt'] ** 2
     multi_comb_M = pd.concat([eretM, retM], axis=1)
@@ -93,7 +93,7 @@ def task(arg):
     print(arg[1].__name__,arg[2],arg[3])
     return result
 
-if __name__=='__main__':
+def run():
     # cal_skewnewss()
     dictD = OrderedDict({'1M': 15, '3M': 50, '6M': 100, '12M': 200, '24M': 450})
     dictM = OrderedDict({'12M': 10, '24M': 20, '36M': 24, '60M': 24})
@@ -108,18 +108,22 @@ if __name__=='__main__':
     dfDs = p.map(task, argsD)
     dfMs = p.map(task, argsM)
 
-    xs=[]
-    for freq,dfs,args in zip(['D','M'],[dfDs,dfMs],[argsD,argsM]):
+    xs = []
+    for freq, dfs, args in zip(['D', 'M'], [dfDs, dfMs], [argsD, argsM]):
         x = pd.concat([df.stack() for df in dfs], axis=1,
-                      keys=['{}_{}__{}'.format(func.__name__[1:],history,freq)
-                            for _,func,history,_ in args])
+                      keys=['{}_{}__{}'.format(func.__name__[1:], history, freq)
+                            for _, func, history, _ in args])
 
-        x=x.reorder_levels(order=['t','sid']).sort_index()
+        x = x.reorder_levels(order=['t', 'sid']).sort_index()
         x.columns.name = 'type'
         xs.append(x)
 
-    save(pd.concat(xs,axis=1),'skewness',sort_axis=False)
+    save(pd.concat(xs, axis=1), 'skewness', sort_axis=False)
 
+
+if __name__=='__main__':
+    run()
+    
 
 
 

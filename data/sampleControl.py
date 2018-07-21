@@ -125,19 +125,37 @@ def cross_filter_out_less_than_120_records_in_past_12_months():
     pass
 
 
-def cross_not_st(freq='M'):
+stinfoD=pd.read_pickle(r'D:\zht\database\quantDb\researchTopics\assetPricing2\data\pkl_unfiltered\stinfoD.pkl')
+statusD=pd.read_pickle(r'D:\zht\database\quantDb\researchTopics\assetPricing2_new\data\pkl_unfiltered\tradingStatusD.pkl')
+
+
+# def cross_not_st(freq='M'):
+#     '''
+#     filter out st stocks
+#     :param freq:
+#     :return: DataFrame filled with True or False
+#     '''
+#     if freq=='M':
+#         stInfo=read_unfiltered('stInfoM')
+#     elif freq=='D':
+#         stInfo=read_unfiltered('stInfoD')
+#     else:
+#         raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
+#     return stInfo.fillna(value=False) # replace nan or None with False
+
+def cross_is_normal(freq='M'):
     '''
-    filter out st stocks
-    :param freq:
-    :return: DataFrame filled with True or False
+    trading status is normal or not
+
+    Args:
+        freq:
+
+    Returns: DataFrame, contains True or False,denoteing the tradint status 
+    of the the stocks in a given time.
+
     '''
-    if freq=='M':
-        stInfo=read_unfiltered('stInfoM')
-    elif freq=='D':
-        stInfo=read_unfiltered('stInfoD')
-    else:
-        raise MyError('freq must belong to ["M","D"] rather than {}'.format(freq))
-    return stInfo.fillna(value=False) # replace nan or None with False
+    status=read_unfiltered('tradingStatus{}'.format(freq))
+    return status.fillna(value=False)
 
 def cross_size_groups(freq='M'):
     '''
@@ -188,7 +206,7 @@ def combine_condition(freq):
     t=control_t(start='1997-01-01',freq=freq)
     cross1=cross_closePrice_floor(freq=freq)
     cross2=cross_year_after_list(freq=freq)
-    cross3=cross_not_st(freq=freq)
+    cross3=cross_is_normal(freq=freq)
     cross1,cross2,cross3=get_inter_frame([cross1,cross2,cross3])
     comb=cross1 & cross2 & cross3
     comb=comb.reindex(index=pd.Index(t,name='t'),columns=pd.Index(sids,name='sid'))
