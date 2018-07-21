@@ -10,8 +10,7 @@ import numpy as np
 import os
 
 from config import PKL_UNFILTERED_PATH
-from data.dataApi import Database
-from data.dataTools import read_unfiltered, save_to_filtered, load_data
+from data.dataTools import read_unfiltered, save_to_filtered
 from data.outlier import detect_outliers, delete_outliers
 
 #TODO: Do not apply_condition in this module
