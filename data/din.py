@@ -7,7 +7,7 @@
 
 import pandas as pd
 import numpy as np
-
+import multiprocessing
 from data.dataTools import read_df_from_gta, save, \
     read_gta, read_unfiltered
 from zht.data.resset.api import read_resset
@@ -30,11 +30,12 @@ def get_stockRetD():
     df.columns=df.columns.astype(str)
 
     save(df, 'stockRetD')
+    return df
 
 def get_stockCloseD():
     #get daily stock close price
     tbname='TRD_Dalyr'
-    varname='Clsprc'
+    varname='Adjprcwd'# adjusted close price with dividend taken into consideration
     indname='Trddt'
     colname='Stkcd'
     df=read_df_from_gta(tbname, varname, indname, colname)
@@ -48,17 +49,18 @@ def get_stockCloseD():
     df=df.sort_index(axis=1)
 
     save(df, 'stockCloseD')
+    return df
 
 def get_mktRetD():
     # get daily market return
 
     tbname = 'TRD_Cndalym'
     indVar = 'Trddt'
-    targetVar = 'Cdretwdos'  # 考虑现金红利再投资的综合日市场回报率(流通市值加权平均法)
+    targetVar = 'Cdretwdos'  #trick 考虑现金红利再投资的综合日市场回报率(流通市值加权平均法)
     df=read_gta(tbname)
 
 
-    condition1=df['Markettype']==21 # 21=综合A股和创业板
+    condition1=df['Markettype']==21 #trick 21=综合A股和创业板
     df=df[condition1]
 
     df = df.set_index(indVar)
@@ -84,7 +86,7 @@ def _get_rf(freq):
     src = read_gta(tname)
     #NRI01=定期-整存整取-一年利率；TBC=国债票面利率,根据复利计算方法，
     # 将年度的无风险利率转化为月度数据
-    src=src[src['Nrr1']=='NRI01']
+    src=src[src['Nrr1']=='NRI01']#trick: choose the type of risk free rate
     src=src.set_index('Clsdt')
 
     rf=src[dic[freq]][2:]#delete the first two rows
@@ -95,33 +97,27 @@ def _get_rf(freq):
     if freq in ['W','M']:
         rf=rf.resample(freq).agg(lambda x:x[round(x.shape[0]/2)])
 
-    return rf/100.0 #the unit of rf in the file is %,we adjust it to be actual value.
+    return rf/100.0 #trick:the unit of rf in the file is %,we adjust it to be actual value.
 
 def get_rfD():
-    '''
-    get daily risk free return
-    :return:
-    '''
-    df=_get_rf(freq='D')
+    df=_get_rf('D')
     save(df,'rfD')
+    return df
 
 def get_rfM():
-    '''
-    get monthly risk free return
-
-    :return:
-    '''
-    df=_get_rf(freq='M')
+    df=_get_rf('M')
     save(df,'rfM')
+    return df
 
 def get_stockEretD():
-    stockRetD=read_unfiltered('stockRetD')
-    rfD=read_unfiltered('rfD')
+    stockRetD=get_stockRetD()
+    rfD=get_rfD()
     stockEretD=stockRetD.sub(rfD,axis=0)
     # The date for stockRetD is buisiness date,but for rfD, it is calendar date.
     stockEretD=stockEretD.dropna(axis=0,how='all')# use this to ajust the index from calendar date to buisiness date
 
     save(stockEretD,'stockEretD')
+    return stockEretD
 
 def get_stockRetM():
     '''
@@ -141,37 +137,44 @@ def get_stockRetM():
     df.columns=df.columns.astype(str)
 
     save(df, 'stockRetM')
+    return df
 
 def get_stockCloseM():
-    '''
-    monthly stock close price
-    :return:
-    '''
-    tbname = 'TRD_Mnth'
-    varname='Mclsprc'
-    indname='Trdmnt'
-    colname='Stkcd'
+    closeD=get_stockCloseD()
+    closeM=closeD.resample('M').last()
+    save(closeM,'stockCloseM')
+    return closeM
 
-    df=read_df_from_gta(tbname, varname, indname, colname)
-
-    #TODO: identify the axis and convert the axis automatically
-    df.index.name='t'
-    df.columns.name='sid'
-    df.index=freq_end(df.index, 'M')
-    df.columns=df.columns.astype(str)
-
-    save(df, 'stockCloseM')
+# def get_stockCloseM_old():#debug: this may be wrong, it may not be adjusted close price
+#     '''
+#     monthly stock close price
+#     :return:
+#     '''
+#     tbname = 'TRD_Mnth'
+#     varname='Mclsprc'
+#     indname='Trdmnt'
+#     colname='Stkcd'
+#
+#     df=read_df_from_gta(tbname, varname, indname, colname)
+#
+#     #TODO: identify the axis and convert the axis automatically
+#     df.index.name='t'
+#     df.columns.name='sid'
+#     df.index=freq_end(df.index, 'M')
+#     df.columns=df.columns.astype(str)
+#
+#     save(df, 'stockCloseM')
 
 def get_stockEretM():
-    stockRetM=read_unfiltered('stockRetM')
-    rfM=read_unfiltered('rfM')
-    stockEretM=stockRetM.sub(rfM,axis=0)
-    save(stockEretM,'stockEretM')
+    stockRetM=get_stockRetM()
+    rfM=get_rfM()
+    stockEretM = stockRetM.sub(rfM, axis=0)
+    save(stockEretM, 'stockEretM')
 
 def get_mktRetM():
     tbname = 'TRD_Cnmont'
     indVar = 'Trdmnt'
-    targetVar = 'Cmretwdos'  # 考虑现金红利再投资的综合日市场回报率(流通市值加权平均法)
+    targetVar = 'Cmretwdos'  #trick:考虑现金红利再投资的综合日市场回报率(流通市值加权平均法)
 
     df = read_gta(tbname)
     df=df[df['Markettype']==21]# 21=综合A股和创业板
@@ -192,7 +195,8 @@ def get_capM():
     :return:
     '''
     tbname='TRD_Mnth'
-    varname='Msmvosd' #月个股流通市值，单位 千元 #TODO:the unit convert it to million as Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
+    varname='Msmvosd' #trick:月个股流通市值，单位 千元
+    # TODO:the unit convert it to million as Cakici, Chan, and Topyan, “Cross-Sectional Stock Return Predictability in China.”
     indname='Trdmnt'
     colname='Stkcd'
     df=read_df_from_gta(tbname, varname, indname, colname)
@@ -229,34 +233,25 @@ def get_bps_wind():
 
     save(df,'bps_wind')
 
-#get stock close price yearly
 def get_stockCloseY():
-    tbname='TRD_Year'
-    varname='Yclsprc'
-    indname='Trdynt'
-    colname='Stkcd'
-    df=read_df_from_gta(tbname, varname, indname, colname)
-    df.index=freq_end(df.index,'Y')
-    df.index.name='t'
-    df.columns=df.columns.astype(str)
-    df.columns.name='sid'
+    closeD=get_stockCloseD()
+    closeY=closeD.resample('Y').last()
+    save(closeY,'stockCloseY')
+    return closeY
 
-    save(df,'stockCloseY')
-
-def get_rpM():
-    rpM=read_unfiltered('ff3M')['rp']
-    rpM.name='rpM'
-    save(rpM,'rpM')
-
-def get_rpD():
-    rpD=read_unfiltered('ff3D')['rp']
-    rpD.name='rpD'
-    save(rpD,'rpD')
-
-def get_capmM():
-    rpM=read_unfiltered('rpM')
-    rpM.name='rp'
-    save(rpM,'capmM',axis_info=False)
+#get stock close price yearly
+# def get_stockCloseY_old():
+#     tbname='TRD_Year'
+#     varname='Yclsprc' #fixme: this is not adjusted price
+#     indname='Trdynt'
+#     colname='Stkcd'
+#     df=read_df_from_gta(tbname, varname, indname, colname)
+#     df.index=freq_end(df.index,'Y')
+#     df.index.name='t'
+#     df.columns=df.columns.astype(str)
+#     df.columns.name='sid'
+#
+#     save(df,'stockCloseY')
 
 def get_ff3M_resset():
     '''
@@ -277,21 +272,22 @@ def get_ff3M_resset():
     df.columns.name='type'
     save(df,'ff3M_resset')
 
-def get_ff3M():
+def get_ff3M():#fixme: there are some abnormal values
     df=read_gta('STK_MKT_ThrfacMonth')
-    #P9709 全部A股市场包含沪深A股和创业板
-    #流通市值加权
+    #trick:P9709 全部A股市场包含沪深A股和创业板
+    #trick:流通市值加权
     df=df[df['MarkettypeID']=='P9709'][['TradingMonth','RiskPremium1','SMB1','HML1']]
     df.columns=['t','rp','smb','hml']
     df=df.set_index('t')
     df.index=freq_end(df.index,'M')
     df.columns.name='type'
     save(df,'ff3M')
+    return df
 
 def get_ffcM():
     df=read_gta('STK_MKT_CarhartFourFactors')
-    # P9709 全部A股市场包含沪深A股和创业板
-    # 流通市值加权
+    #trick: P9709 全部A股市场包含沪深A股和创业板
+    #trick: 流通市值加权
     df = df[df['MarkettypeID'] == 'P9709'][
         ['TradingMonth', 'RiskPremium1', 'SMB1', 'HML1', 'UMD2']]
     df.columns = ['t', 'rp', 'smb', 'hml', 'mom']
@@ -303,9 +299,9 @@ def get_ffcM():
 
 def get_ff5M():
     df=read_gta('STK_MKT_FivefacMonth')
-    #P9709 全部A股市场包含沪深A股和创业板
-    #流通市值加权
-    #2*3 投资组合
+    #trick:P9709 全部A股市场包含沪深A股和创业板
+    #trick:流通市值加权
+    #trick: 2*3 投资组合
     df=df[(df['MarkettypeID']=='P9709') & (df['Portfolios']==1)][
         ['TradingMonth','RiskPremium1','SMB1','HML1','RMW1','CMA1']]
     df.columns=['t','rp','smb','hml','rmw','cma']
@@ -313,7 +309,6 @@ def get_ff5M():
     df=df.set_index('t')
     df.index=freq_end(df.index,'M')
     # df.index.name='t'
-
     save(df,'ff5M')
 
 # def get_hxz4M():
@@ -343,6 +338,24 @@ def get_ff3D():
     df = df.set_index('t')
     df.index=freq_end(df.index,'D')
     save(df,'ff3D')
+    return df
+
+def get_rpM():
+    ff3M=get_ff3M()
+    rpM=ff3M['rp']
+    rpM.name='rpM'
+    save(rpM,'rpM')
+
+def get_rpD():
+    ff3D=get_ff3D()
+    rpD=ff3D['rp']
+    rpD.name='rpD'
+    save(rpD,'rpD')
+
+def get_capmM():
+    ff3M=get_ff3M()
+    rpM=ff3M['rp']
+    save(rpM,'capmM',axis_info=False)
 
 def get_listInfo():
     df=read_gta('IPO_Cobasic', encoding='gbk')
@@ -352,7 +365,7 @@ def get_listInfo():
     df.columns.name='type'
     #TODO: refer to page12 of 动量因子_164.pdf   ' 1 代表剔除金融、保险、 ST 类股票'
     df['not_financial']=df['Indcd']!=1 #financial stocks
-    df['not_cross']=~df['Crcd'].notnull()#crosss means stocks listed on multiple stock markets
+    df['not_cross']=~df['Crcd'].notnull()#cross means stocks listed on multiple stock markets
     df['is_sh']=df['Listexg']==1#listed on shanghai
     df['is_sz']=df['Listexg']==2#listed on shenzhen
     # Listdt denotes listed date ,'Ipodt' denotes IPO date
@@ -363,41 +376,57 @@ def get_listInfo():
     df=df.dropna()
     save(df,'listInfo')
 
-def get_stInfo():
-    '''
-    for freq='M',delete all the months as long as ST or *ST appear in any day of that month,
-    for freq='D',we only delete the current day with ST or *ST
-    :return:
-    '''
-    #TODO: how about PT
+def get_tradingStatusD():
     df=read_gta('TRD_Dalyr', encoding='gbk')
-    df=df[['Trddt','Stkcd','Trdsta']]
-    df.columns=['t','sid','status']
-    df.columns.name='type'
-    df['t']=pd.to_datetime(df['t'])
-    df['sid']=df['sid'].astype(str)
+    #Trick: Trdsta==1 means "正常交易"
+    df['is_normal']=df['Trdsta']==1.0
+    df['t']=pd.to_datetime(df['Trddt'])
+    df['sid']=df['Stkcd'].astype(str)
+    status=pd.pivot_table(df,values='is_normal',index='t',columns='sid')
+    save(status,'tradingStatusD')
+    return status
 
-    # df0=df[~df['status'].isin([2.0,3.0])] #TODO:
-    df0=df[df['status']==1.0].copy() #TODO:or just delete all the ST stocks rather than just delete the corresponding months or days
-    df0['not_st']=True
-    dfD=df0.set_index(['t','sid'])['not_st']
-    dfD=dfD.sort_index(level='t')
-    dfD=dfD.unstack()
+def get_tradingStatusM():
+    statusD=get_tradingStatusD()
+    statusM=statusD.resample('M').last()
+    save(statusM,'tradingStatusM')
+    return statusM
 
-    def func(x):
-        # for information about the status refer to the documents
-        result= (2.0 not in x['status'].values) & (3.0 not in x['status'].values)
-        return result
-
-    #delete st months for each stock
-    df1=df.groupby([pd.Grouper(key='t',freq='M'),'sid']).filter(func)
-    dfM=df1.groupby([pd.Grouper(key='t',freq='M'),'sid']).sum()
-    dfM['not_st']=True
-    dfM=dfM['not_st']
-    dfM=dfM.unstack()
-
-    save(dfD,'stInfoD')
-    save(dfM,'stInfoM')
+# def get_stInfo_old():
+#     '''
+#     for freq='M',delete all the months as long as ST or *ST appear in any day of that month,
+#     for freq='D',we only delete the current day with ST or *ST
+#     :return:
+#     '''
+#     #TODO: how about PT
+#     df=read_gta('TRD_Dalyr', encoding='gbk')
+#     df=df[['Trddt','Stkcd','Trdsta']]
+#     df.columns=['t','sid','status']
+#     df.columns.name='type'
+#     df['t']=pd.to_datetime(df['t'])
+#     df['sid']=df['sid'].astype(str)
+#
+#     #Trick: only get "正常交易"
+#     df0=df[df['status']==1.0].copy() #TODO:or just delete all the ST stocks rather than just delete the corresponding months or days
+#     df0['not_st']=True
+#     dfD=df0.set_index(['t','sid'])['not_st']
+#     dfD=dfD.sort_index(level='t')
+#     dfD=dfD.unstack()
+#
+#     def func(x):
+#         # for information about the status refer to the documents
+#         result= (2.0 not in x['status'].values) & (3.0 not in x['status'].values)
+#         return result
+#
+#     #delete st months for each stock
+#     df1=df.groupby([pd.Grouper(key='t',freq='M'),'sid']).filter(func)
+#     dfM=df1.groupby([pd.Grouper(key='t',freq='M'),'sid']).sum()
+#     dfM['not_st']=True
+#     dfM=dfM['not_st']
+#     dfM=dfM.unstack()
+#
+#     save(dfD,'stInfoD')
+#     save(dfM,'stInfoM')
 
 def get_pu():
     '''
@@ -469,7 +498,6 @@ refer to this link for details about the relationship between income,
 operating income,and so on.
 '''
 
-
 def get_op():
     '''
     calculate operating profitability as in FF5
@@ -494,7 +522,7 @@ def get_op():
     # var1 = 'A003000000'  # 所有者权益合计
     var = 'A003100000'  # 归属于母公司所有者权益合计
     BV=parse_financial_report(tbname,var)
-
+    BV[BV<=0]=np.nan #Trick: delete those samples with a negative denominator
     OP, BV = get_inter_frame([OP, BV])
     op = OP / BV
     op.index.name='t'
@@ -524,9 +552,12 @@ def get_inv():
     #book value
     varname='A001000000' # 总资产
     ta=parse_financial_report(tbname, varname)
+    ta[ta<=0]=np.nan#trick: delete samples with negative denominator
     inv=ta.pct_change()
     inv=toMonthly(inv)
     save(inv,'inv')
+
+#fixme: sometimes, we may use yearly data, and sometimes we use quarterly data, is that right?
 
 def get_roe():
     '''
@@ -548,8 +579,8 @@ def get_roe():
     # var1 = 'A003000000'  # 所有者权益合计
     var2 = 'A003100000'  # 归属于母公司所有者权益合计
     BV = parse_financial_report(tbname2, var2,freq='Q')
-    BV[BV<=0]=np.nan # exclude firms with negative book equity
-    roe=income/BV.shift(1,freq='3M') # divide by one-quarter-lagged book equity
+    BV[BV<=0]=np.nan #trick: delete samples with negative denominator
+    roe=income/BV.shift(1,freq='3M') #trick:divide by one-quarter-lagged book equity
     #TODO: adjust with the announcement date
     '''
     It is a little different with the paper.To take time lag into consideration,we 
@@ -560,7 +591,6 @@ def get_roe():
     roe=toMonthly(roe,shift='6M')
     save(roe,'roe')
 
-
 def get_bp():
     tbname='FI_T10'
     varname='F100401A' # 市净率
@@ -568,12 +598,18 @@ def get_bp():
     bp=toMonthly(bp)
     save(bp,'bp')
 
+def task(f):
+    print(f)
+    eval(f)()
 
-# if __name__=='__main__':
-#     fstrs=[f for f in locals().keys() if (f.startswith('get') and f!='get_ipython')]
-#     for f in fstrs:#TODO:
-#         eval(f)()
-#         print(f)
+if __name__=='__main__':
+    fstrs=[f for f in locals().keys() if (f.startswith('get') and f not in
+                                          ['get_ipython','get_inter_frame',
+                                           'get_today'])]
+    multiprocessing.Pool(6).map(task,fstrs)
+    # for f in fstrs:#TODO:
+    #     eval(f)()
+    #     print(f)
 
 
 

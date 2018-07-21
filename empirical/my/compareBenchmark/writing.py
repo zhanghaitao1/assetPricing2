@@ -7,7 +7,7 @@
 
 
 from data.dataApi import Database
-from empirical.my.compareBenchmark.compare import database_indicators
+from empirical.my.compareBenchmark.compare import DATABASE_INDICATORS
 from tool import summary_statistics, correlation_mixed
 import pandas as pd
 import os
@@ -25,18 +25,28 @@ def get_descriptive_statistics():
     The result seem to be noise, as shown in the column of kurt
     '''
     ss=[]
-    for indicator in database_indicators:
+    for indicator in DATABASE_INDICATORS:
         data=Database().by_indicators([indicator])
         s=summary_statistics(data.unstack())
         ss.append(s.mean())
 
-    table=pd.concat(ss,keys=database_indicators,axis=1).T
+    table=pd.concat(ss, keys=DATABASE_INDICATORS, axis=1).T
     _save(table,'descriptive')
 
 def get_correlation():
     '''get correlation as table 8.2 (Bali et al.,2016)'''
-    data=Database().by_indicators(database_indicators)
+    data=Database().by_indicators(DATABASE_INDICATORS)
     corr=correlation_mixed(data)
     _save(corr,'factor_correlation')
 
 #TODO: filter out abnormal prior to descriptive statistics
+
+ind='roe__roe'
+data=Database().by_indicators([ind])
+
+import seaborn as sns
+sns.distplot(data.values)
+import matplotlib.pyplot as plt
+
+
+

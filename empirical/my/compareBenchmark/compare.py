@@ -12,7 +12,7 @@ from data.dataApi import Database, Benchmark
 from data.dataTools import read_unfiltered
 from data.din import parse_financial_report, toMonthly
 from empirical.my.compareBenchmark.playingField import _get_reduced_indicators, \
-    get_significant_indicators, database_indicators
+    get_significant_indicators, DATABASE_INDICATORS
 from tool import assign_port_id, my_average, newey_west, multi_processing, \
     get_riskAdjusted_alpha_tvalue
 from zht.data.gta.api import read_gta
@@ -58,7 +58,7 @@ sig_indicators=get_significant_indicators(bench)
 reduced_indicators=sig_indicators.index.tolist()
 
 def get_sign(indicator):
-    if indicator in database_indicators:
+    if indicator in DATABASE_INDICATORS:
         sharpe=pd.read_pickle(os.path.join(dirProj,'sharpe_databaseSpread.pkl'))
         return (1,-1)[sharpe[indicator]<0]
     elif indicator in reduced_indicators:
@@ -74,8 +74,8 @@ def _spread_tvalues():
     benchs,bnames=get_all_benchs()
 
     ts=[]
-    for indicator in database_indicators+reduced_indicators:
-        if indicator in database_indicators:
+    for indicator in DATABASE_INDICATORS + reduced_indicators:
+        if indicator in DATABASE_INDICATORS:
             s=pd.read_pickle(os.path.join(dirDatabaseSpread,indicator+'.pkl'))
         else:
             s=pd.read_pickle(os.path.join(dirSpread,indicator+'.pkl'))
@@ -85,7 +85,7 @@ def _spread_tvalues():
         ts.append(t)
         print(indicator)
 
-    tvalues=pd.concat(ts, axis=1, keys=database_indicators+reduced_indicators)
+    tvalues=pd.concat(ts, axis=1, keys=DATABASE_INDICATORS + reduced_indicators)
     return tvalues
 
 def compare_models_based_on_assets(assetType='25'):
@@ -107,7 +107,7 @@ def compare_models_based_on_assets(assetType='25'):
 
     byInterceptLst=[]
     byJointTest=[]
-    for indicator in database_indicators:
+    for indicator in DATABASE_INDICATORS:
         assets=pd.read_pickle(os.path.join(directory,'{}.pkl'.format(indicator)))
         benchs, bnames = get_all_benchs()
         interceptResult=[]
@@ -120,8 +120,8 @@ def compare_models_based_on_assets(assetType='25'):
         byJointTest.append(pd.concat(jointTestResult,axis=1,keys=bnames[1:]).T)
         print(indicator)
 
-    compareWithIntercept=pd.concat(byInterceptLst,axis=0,keys=database_indicators)
-    compareWithJointTest=pd.concat(byJointTest,axis=0,keys=database_indicators)
+    compareWithIntercept=pd.concat(byInterceptLst, axis=0, keys=DATABASE_INDICATORS)
+    compareWithJointTest=pd.concat(byJointTest, axis=0, keys=DATABASE_INDICATORS)
     return compareWithIntercept,compareWithJointTest
 
 def compare():

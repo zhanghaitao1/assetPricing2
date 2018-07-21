@@ -234,7 +234,7 @@ def plot_all_databaseSpread():
     sp.to_pickle(os.path.join(dirProj,'sharpe_databaseSpread.pkl'))
 
 # selected indicators from database
-database_indicators=['liquidity__turnover1',
+DATABASE_INDICATORS=['liquidity__turnover1',
                      'idio__idioVol_capm_1M__D',
                      'liquidity__amihud',
                      'momentum__R3M',
@@ -294,6 +294,6 @@ def _save_25assets(indicator):
     print(indicator)
 
 def get_all_25assets():
-    multi_processing(_save_25assets,database_indicators,pool_size=5)
+    multi_processing(_save_25assets, DATABASE_INDICATORS, pool_size=5)
 
 
