@@ -8,8 +8,9 @@
 import pandas as pd
 import numpy as np
 import multiprocessing
-from data.dataTools import read_df_from_gta, save, \
-    read_gta, read_unfiltered, quaterly2monthly
+from data.dataTools import save,quaterly2monthly
+from zht.data.gta.api import read_df_from_gta, read_gta
+
 from zht.data.resset.api import read_resset
 from zht.utils.dateu import freq_end
 from zht.data.wind.api import read_wind

@@ -8,14 +8,16 @@ import os
 import pandas as pd
 import numpy as np
 import statsmodels.formula.api as sm
-from config import PROJECT_PATH
-from data.dataTools import load_data
-
-from dout import read_df
+from config import P_EMPIRICAL,PROJECT_PATH
+from data.dataTools import load_data, read_filtered
 from pandas.tseries.offsets import MonthEnd
 
-PATH=os.path.join(PROJECT_PATH,'cakici')
-THRESH=15 #at list 15 observes for each month.
+PATH=os.path.join(P_EMPIRICAL,'cakici')
+
+
+MIN_SAMPLES=15 #at list 15 observes for each month.
+
+
 def save(df,name):
     df.to_pickle(os.path.join(PATH,name+'.pkl'))
 
@@ -66,47 +68,13 @@ def handle_data():
 
 
 
-def get_beta():
-    #beta
-    rf=read_df('rfD','D')
-    rm=read_df('mktRetD','D')
-    ri=read_df('stockRetD','D')
-    df=ri.stack().to_frame()
-    df.columns=['ri']
-    df=df.join(pd.concat([rf,rm],axis=1))
-    df.columns=['ri','rf','rm']
-    df.index.names=['t','sid']
 
-    df['y']=df['ri']-df['rf']
-    df['x2']=df['rm']-df['rf']
-    df['x1']=df.groupby('sid')['x2'].shift(1)
 
-    def _cal_beta(x):
-        result=sm.ols('y ~ x1 + x2',data=x).fit().params[['x1','x2']]
-        return result.sum()
-
-    def _for_one_sid(x):
-        # x is multiIndex Dataframe
-        nx=x.reset_index('sid')
-        sid=nx['sid'][0]
-        print(sid)
-        _get_monthend=lambda dt:dt+MonthEnd(0)
-        #filter out those months with observations less than THRESH
-        nx=nx.groupby(_get_monthend).filter(lambda a:a.dropna().shape[0]>=THRESH)
-        if nx.shape[0]>0:
-            result=nx.groupby(_get_monthend).apply(_cal_beta)
-            return result
-
-    beta=df.groupby('sid').apply(_for_one_sid)
-    beta.index.names=['sid','t']
-    beta=beta.reorder_levels(['t','sid']).sort_index(level='t')
-    beta.name='beta'
-    beta.to_frame().to_csv(os.path.join(PATH,'beta.csv'))
 
 def get_sd():
     #sd
     #TODO: bookmark this function and add it to my repository (pandas handbook),use this method to upgrade the relevant functions
-    ri=read_df('stockRetD','D')*100 #TODO: the unit is percent (%)
+    ri=read_filtered('stockRetD','D')*100 #TODO: the unit is percent (%)
 
     #filter
     '''
@@ -117,7 +85,7 @@ def get_sd():
     directly,since you need to filter out invalid samples before calculate std
 
     def _cal_std(x):
-        if x.notnull().sum()>=THRESH: #TODO: compare with x.dropna().shape[0],which one is faster?
+        if x.notnull().sum()>=MIN_SAMPLES: #TODO: compare with x.dropna().shape[0],which one is faster?
             return x.std()
 
     sd0=ri.resample('M').agg(_cal_std)
@@ -126,7 +94,7 @@ def get_sd():
     '''
     #TODO: use resampling
     _get_monthend = lambda x: x + MonthEnd(0)
-    sd=ri.groupby(_get_monthend).apply(lambda df:df.dropna(axis=1,thresh=THRESH).std())
+    sd=ri.groupby(_get_monthend).apply(lambda df:df.dropna(axis=1, thresh=MIN_SAMPLES).std())
 
     sd.index.names=['t','sid']
     sd.name='sd'
@@ -159,7 +127,7 @@ def get_mom():
 
 def get_bkmt():
     # monthly
-    bkmt=read_df('bm','M')
+    bkmt=read_filtered('bm','M')
     bkmt=bkmt.stack()
     bkmt.name='bkmt'
     bkmt.index.names=['t','sid']
@@ -205,7 +173,7 @@ def get_ep(): #TODO: wrong! lag 6 months
     df.to_frame().to_csv(os.path.join(PATH,'ep.csv'))
 
 def get_ret():
-    ret=read_df('stockRetM','M')
+    ret=read_filtered('stockRetM','M')
     ret=ret.stack()
     ret.name='ret'
     ret.index.names=['t','sid']

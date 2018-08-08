@@ -326,10 +326,6 @@ def compare_models_based_on_bivariate_assets():
 
 
 
-
-
-
-
 # if __name__ == '__main__':
 #     multi_get_panel()
 

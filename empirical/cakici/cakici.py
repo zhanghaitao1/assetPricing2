@@ -16,7 +16,7 @@ from empirical.cakici.get_data import PATH
 from tool import assign_port_id, my_average, correlation_mixed
 
 DATA=Database()
-indicators=['size__size','beta__D_24M','value__logbm',
+indicators=['size__size','beta__D_36M','value__bm',
             'momentum__R6M','reversal__reversal',
             'liquidity__turnover1','skewness__skew_24M__D',
             'idio__vol_24M__D']

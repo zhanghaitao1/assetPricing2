@@ -11,7 +11,7 @@ import numpy as np
 from config import CSV_UNFILTERED_PATH, PKL_UNFILTERED_PATH, PKL_FILTERED_PATH, CSV_FILTERED_PATH
 from data.base import MyError
 from data.check import check_data_structure, check_axis_order, check_axis_info
-from zht.data.gta.api import read_gta
+from data.outlier import delete_outliers
 from zht.utils.dateu import get_today
 
 '''
@@ -25,10 +25,7 @@ Three layers:
         other conditions,such as calculating indicators,do not apply conditions
 '''
 
-def read_df_from_gta(tbname, varname, indname, colname):
-    table=read_gta(tbname)
-    df=pd.pivot_table(table,varname,indname,colname)
-    return df
+
 
 def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
     if suffix== 'pkl':
@@ -38,14 +35,17 @@ def read_unfiltered(tbname, suffix='pkl', *args, **kwargs):
         # TODO: datetime,axis dtypes
     return df
 
-def read_filtered(tbname, suffix='pkl', *args, **kwargs):
-    if suffix== 'pkl':
-        df = pd.read_pickle(os.path.join(PKL_FILTERED_PATH, tbname + '.pkl'))
+def read_filtered(tbname,byCach=True,suffix='pkl', *args, **kwargs):
+    if byCach:
+        if suffix== 'pkl':
+            df = pd.read_pickle(os.path.join(PKL_FILTERED_PATH, tbname + '.pkl'))
+        else:
+            df = pd.read_csv(os.path.join(CSV_FILTERED_PATH, tbname + '.csv'), *args, **kwargs)
+            # TODO: datetime,axis dtypes
+        return df
     else:
-        df = pd.read_csv(os.path.join(CSV_FILTERED_PATH, tbname + '.csv'), *args, **kwargs)
-        # TODO: datetime,axis dtypes
-    return df
-
+        df=read_unfiltered(tbname)
+        return delete_outliers(df,'mad',6)
 
 def load_data(name):
     '''

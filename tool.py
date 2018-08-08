@@ -209,6 +209,7 @@ def assign_port_id(s, q, labels=None, thresh=None):
     :param thresh:
     :return:
     '''
+    # TODO: in factor, pd.qcut will just ignore NaNs, so we do not need to drop() before applying pd.qcut
     s = s.dropna()
     if thresh is None:
         if isinstance(q,int):
@@ -353,30 +354,33 @@ def cal_corr(df,method='pearson',winsorize=False):
     elif method=='spearman':
         return df.corr(method='spearman')
 
-#persistance
 def cal_persistence(df,offsets):
     '''
-    calculate cross-sectional Pearson product-moment correlations
+        calculate cross-sectional Pearson product-moment correlations
     between indicator mesured in time t with indicator measured in
     t+offset.
-
-    Returns:
 
     References:
         chapter 4.1.1 of (Bali, Turan G., Robert F. Engle, and Scott Murray. Empirical Asset Pricing:
         The Cross Section of Stock Returns. Hoboken, New Jersey: Wiley, 2016.)
 
+    Args:
+        df:DataFrame
+        offsets: list, just like offsets=[1, 3, 6, 12, 24, 36, 48, 60, 120]
+
+    Returns:
+
     '''
-    def _cross_persistence(df,offset):
+    def _cs_persistence(df, offset):
         inds=df.index.tolist()
         series = pd.Series(name=offset)
         for i in range(len(inds[:-offset])):
             corrdf=df.iloc[[i,i+offset],:].T
             corr=corrdf.corr()
-            series[inds[i]]=corr.iloc[0,1]
+            series[inds[i+offset]]=corr.iloc[0,1]
         return series
 
-    lcorr = [_cross_persistence(df,offset) for offset in offsets]
+    lcorr = [_cs_persistence(df, offset) for offset in offsets]
     persistence = pd.concat(lcorr, axis=1)
     avg = persistence.mean()
     return avg
@@ -386,7 +390,7 @@ def cal_breakPoints(df,q):
     If the q is an integer,the function will return the breakpoints
     to break the data into q portfolios,that is it will create q+1
     breakpoints.If the q is a list of quantiles,then the function will
-    create breakpoints according the given quantiles.
+    create breakpoints according to the given quantiles.
 
     Args:
         df: dataframe
@@ -401,6 +405,7 @@ def cal_breakPoints(df,q):
     else:
         points=q
     def _for_series(s,points):
+        #trick: s.quantile will filter out the np.nan automatically
         return pd.Series([s.quantile(bp) for bp in points],index=format_percentiles(points))
 
     breakpoints=df.apply(lambda s:_for_series(s,points),axis=1)

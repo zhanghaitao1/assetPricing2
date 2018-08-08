@@ -9,7 +9,7 @@ from data.dataTools import load_data
 
 DATA=Database(sample_control=False)
 
-data=DATA.data
+data=DATA._data
 
 benchs=['capmM', 'ff3M', 'ffcM', 'ff5M', 'hxz4M']
 

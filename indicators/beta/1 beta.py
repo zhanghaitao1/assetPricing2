@@ -57,3 +57,6 @@ if __name__ == '__main__':
     cal_beta()
     #TODO: parallelize
 
+
+#fixme: why 000001.SZ is lost in so many months?
+

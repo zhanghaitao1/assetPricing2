@@ -21,14 +21,14 @@ DATA=Database(sample_control=True) #TODO: use controlled data
 # In the fm function,independent variables are winsorized,so we do not need to filter the raw data.
 
 def combine_with_datalagged(indicators,sample_control=True):
-    datalagged=Database(sample_control).by_indicators(indicators + ['weight'])#trick:
+    datalagged=Database(sample_control).by_indicators(indicators + ['weight'])
     datat = Database(sample_control).by_indicators(['stockEretM'])
     '''
     sort the lagged characteristics to construct portfolios
     Notice:
         before shift(1),we must groupby('sid').
     '''
-    #TODO:shift(1) we result in the sample loss of first month,upgrade this
+    #trick:shift(1) we result in the sample loss of first month,upgrade this
     #function to take shift in consideration.
     comb = pd.concat([datalagged.groupby('sid').shift(1), datat],axis=1)
     return comb
@@ -92,11 +92,12 @@ class OneFactor:
 
     def __init__(self, factor,path):
         self.factor=factor
-        self.path=path
+        self.path=path #project path
         self.indicators=DATA.info[factor]
-        self.df=DATA.data[self.indicators]
+        self.df=DATA.by_indicators(self.indicators)
         self.groupnames=[self.factor+str(i) for i in range(1,self.q+1)]
         self._build_environment()
+        self.results={}
 
     def _build_environment(self):
         if os.path.exists(self.path):
@@ -110,16 +111,17 @@ class OneFactor:
         for indicator in self.indicators:
             s=summary_statistics(self.df[indicator].unstack())
             series.append(s.mean())
-        pd.concat(series,keys=self.indicators,axis=1).to_csv(os.path.join(self.path,'summary.csv'))
-
+        # pd.concat(series,keys=self.indicators,axis=1).to_csv(os.path.join(self.path,'summary.csv'))
+        self.results['summary']=pd.concat(series,keys=self.indicators,axis=1)
     @monitor
     def correlation(self,indicators=None):
-        if not indicators:
-            indicators=self.indicators
-
-        comb=DATA.by_indicators(indicators)
+        if indicators is None:
+            comb=self.df
+        else:
+            comb=DATA.by_indicators(indicators)
         corr=correlation_mixed(comb)
-        corr.to_csv(os.path.join(self.path, 'corr.csv'))
+        # corr.to_csv(os.path.join(self.path, 'corr.csv'))
+        self.results['corr']=corr        
 
     @monitor
     def persistence(self):
@@ -130,7 +132,8 @@ class OneFactor:
             per = cal_persistence(self.df[indicator].unstack(),
                                   offsets=[1, 3, 6, 12, 24, 36, 48, 60, 120])
             perdf[indicator] = per
-        perdf.to_csv(os.path.join(self.path, 'persistence.csv'))
+        # perdf.to_csv(os.path.join(self.path, 'persistence.csv'))
+        self.results['persistence']=perdf
 
     @monitor
     def breakPoints_and_countGroups(self):
@@ -148,14 +151,17 @@ class OneFactor:
         result_bp = pd.concat(dfs_bp, keys=self.indicators, axis=0)
         result_count = pd.concat(dfs_count, keys=self.indicators, axis=0)
 
-        result_bp.to_csv(os.path.join(self.path, 'breakPoints.csv'))
-        result_count.to_csv(os.path.join(self.path, 'count.csv'))
-
+        # result_bp.to_csv(os.path.join(self.path, 'breakPoints.csv'))
+        # result_count.to_csv(os.path.join(self.path, 'count.csv'))
+        self.results['breakPoints']=result_bp
+        self.results['count']=result_count
+        
         # TODO:In fact,the count is not exactly the number of stocks to calculate the weighted return
         # TODO:as some stocks will be deleted due to the missing of weights.
 
     def _get_port_data(self, indicator):
         groupid = DATA.by_indicators([indicator])
+        #trick: pd.qcut will just ignore NaNs,but if all the values are NaNs it will throw an error
         groupid['g'] = groupid.groupby('t', group_keys=False).apply(
             lambda df: pd.qcut(df[indicator], self.q,
                                labels=[indicator + str(i) for i in range(1, self.q + 1)])
@@ -174,11 +180,12 @@ class OneFactor:
         comb = DATA.by_indicators(otherIndicators)
         comb = pd.concat([groupid, comb], axis=1)
         characteristics_avg = comb.groupby(['t', 'g']).mean().groupby('g').mean()
-        characteristics_avg.to_csv(os.path.join(self.path, 'portfolio characteristics.csv'))
-
+        # characteristics_avg.to_csv(os.path.join(self.path, 'portfolio characteristics.csv'))
+        self.results['portfolio characteristics']=characteristics_avg
+        
     # TODO: upgrade this function
     def _get_panel_stk_avg(self, comb, indicator, gcol):
-        panel_stk_eavg = comb.groupby(['t', gcol])['stockEretM'].mean()
+        panel_stk_eavg = comb.groupby(['t', gcol])['stockEretM'].mean() #equal weighted
         if self.factor == 'size':
             '''
             when the factor is size,we also use the indicator (sort variable) as weight
@@ -267,9 +274,12 @@ class OneFactor:
         table_w['significant_positive']=table_w.iloc[:,-1].map(lambda v:1 if v>2 else np.nan)
         table_w['significant_negative']=table_w.iloc[:,-2].map(lambda v:-1 if v<-2 else np.nan)
 
-        table_e.to_csv(os.path.join(self.path, 'univariate portfolio analysis-equal weighted.csv'))
-        table_w.to_csv(os.path.join(self.path, 'univariate portfolio analysis-value weighted.csv'))
+        # table_e.to_csv(os.path.join(self.path, 'univariate portfolio analysis-equal weighted.csv'))
+        # table_w.to_csv(os.path.join(self.path, 'univariate portfolio analysis-value weighted.csv'))
 
+        self.results['uni_port_analysis_eq']=table_e
+        self.results['uni_port_analysis_vw']=table_w
+        
     def _one_indicator(self, indicator):
         ns = range(1, 13)
         all_indicators=[indicator,'weight','stockEretM']
@@ -299,8 +309,11 @@ class OneFactor:
             comb[eret_name] = eret.shift(-n).stack()
 
             group_eavg_ts = comb.groupby(['t', 'g'])[eret_name].mean()
-            group_wavg_ts = comb.groupby(['t', 'g']).apply(
-                lambda df: np.average(df[eret_name], weights=df['weight']))
+            group_wavg_ts=comb.groupby(['t','g']).apply(
+                lambda df:my_average(df,eret_name,'weight')
+            )
+            # group_wavg_ts = comb.groupby(['t', 'g']).apply(
+            #     lambda df: np.average(df[eret_name], weights=df['weight']))#fixme: what if there is nan values?
             #TODO: If we are analyzing size,the weights should be the indicator
             #we are analyzing,rather than weight
             s_e = _one_indicator_one_weight_type(group_eavg_ts, indicator)
@@ -326,9 +339,11 @@ class OneFactor:
         eq = pd.concat(eq_tables, axis=0, keys=self.indicators)
         vw = pd.concat(vw_tables, axis=0, keys=self.indicators)
 
-        eq.to_csv(os.path.join(self.path, 'univariate portfolio analysis_k-month-ahead-returns-eq.csv'))
-        vw.to_csv(os.path.join(self.path, 'univariate portfolio analysis_k-month-ahead-returns-vw.csv'))
-
+        # eq.to_csv(os.path.join(self.path, 'univariate portfolio analysis_k-month-ahead-returns-eq.csv'))
+        # vw.to_csv(os.path.join(self.path, 'univariate portfolio analysis_k-month-ahead-returns-vw.csv'))
+        self.results['uni_port_analysis_ahead_k_eq']=eq
+        self.results['uni_port_analysis_ahead_k_vw']=vw
+    
     @monitor
     def fm(self):
         comb=combine_with_datalagged(self.indicators)
@@ -362,11 +377,14 @@ class OneFactor:
 
         result = pd.DataFrame(data, index=self.indicators,
                               columns=['slope', 't', 'Intercept', 'Intercept_t', 'adj_r2', 'n']).T
-        result.to_csv(os.path.join(self.path, 'fama macbeth regression analysis.csv'))
-
+        # result.to_csv(os.path.join(self.path, 'fama macbeth regression analysis.csv'))
         parameters = pd.concat(ps, axis=1, keys=self.indicators)
-        parameters.to_csv(os.path.join(self.path, 'fama macbeth regression parameters in first stage.csv'))
+        # parameters.to_csv(os.path.join(self.path, 'fama macbeth regression parameters in first stage.csv'))
 
+        self.results['fm']=result
+        self.results['fm_first_stage']=parameters
+    
+        
     @monitor
     def parameter_ts_fig(self):
         '''
@@ -375,15 +393,23 @@ class OneFactor:
         :return:
         '''
         #TODO: Why not plot rolling parameters?
-        parameters = pd.read_csv(os.path.join(self.path, 'fama macbeth regression parameters in first stage.csv'),
-                                 index_col=[0], parse_dates=True)
+
+        parameters=self.results['fm_first_stage']
+        # parameters = pd.read_csv(os.path.join(self.path, 'fama macbeth regression parameters in first stage.csv'),
+        #                          index_col=[0], parse_dates=True)
         parameters['zero'] = 0.0
         for indicator in self.indicators:
             s=parameters[indicator].dropna()
             positive_ratio=(s>0).sum()/s.shape[0]
             fig = parameters[[indicator, 'zero']].plot(title='positive ratio: {:.3f}'.format(positive_ratio)).get_figure()
             fig.savefig(os.path.join(self.path, 'fm parameter ts fig-{}.png'.format(indicator)))
+    
+    def save_results(self):
+        excelWriter=pd.ExcelWriter(os.path.join(self.path,self.factor+'.xlsx'))
+        for k in self.results:
+            self.results[k].to_excel(excelWriter,k)
 
+    
     def run(self):
         self.summary()
         self.correlation()
@@ -394,7 +420,9 @@ class OneFactor:
         self.portfolio_analysis()
         self.fm()
         self.parameter_ts_fig()
-
+        self.save_results()
+    
+        
     def __call__(self):
         self.run()
 
@@ -406,6 +434,7 @@ class Bivariate:
         self.indicator2=indicator2
         self.path=proj_path
         self._build_environment()
+        self.results={}
 
     def _build_environment(self):
         if os.path.exists(self.path):
@@ -423,44 +452,33 @@ class Bivariate:
         comb['g2']=comb.groupby('t',group_keys=False).apply(
             lambda df:assign_port_id(df[self.indicator2], self.q,
                                      [self.indicator2 + str(i) for i in range(1,self.q + 1)]))
-
-        # comb['g1']=comb.groupby('t',group_keys=False).apply(
-        #     lambda df:pd.qcut(df[self.indicator1],self.q,
-        #                       labels=[self.indicator1+str(i) for i in range(1,self.q+1)])
-        # )
-        #
-        # comb['g2']=comb.groupby('t',group_keys=False).apply(
-        #     lambda df:pd.qcut(df[self.indicator2],self.q,
-        #                       labels=[self.indicator2+str(i) for i in range(1,self.q+1)])
-        # )
-
         return comb
 
-    def _get_dependent_data(self,indicators):
+    def _get_dependent_data(self,control,target):
         '''
 
         :param indicators:list with two elements,the first is the controlling variable
         :return:
         '''
-        comb=combine_with_datalagged(indicators)
+        comb=combine_with_datalagged([control,target])
         comb=comb.dropna()
         comb['g1']=comb.groupby('t',group_keys=False).apply(
-            lambda df:assign_port_id(df[indicators[0]], self.q,
-                                     [indicators[0] + str(i) for i in range(1,self.q + 1)]))
+            lambda df:assign_port_id(df[control], self.q,
+                                     [control + str(i) for i in range(1,self.q + 1)]))
 
         comb['g2']=comb.groupby(['t','g1'],group_keys=False).apply(
-            lambda df:assign_port_id(df[indicators[1]], self.q,
-                                     [indicators[1] + str(i) for i in range(1,self.q + 1)]))
+            lambda df:assign_port_id(df[target], self.q,
+                                     [target + str(i) for i in range(1,self.q + 1)]))
 
         return comb
 
     def _get_eret(self,comb):
         group_eavg_ts = comb.groupby(['g1', 'g2', 't'])['stockEretM'].mean()
         group_wavg_ts = comb.groupby(['g1', 'g2', 't']).apply(
-            lambda df: np.average(df['stockEretM'], weights=df['weight']))
+            lambda df:my_average(df,'stockEretM','weight'))
         return group_eavg_ts,group_wavg_ts
 
-    def _dependent_portfolio_analysis(self, group_ts, controlGroup='g1', targetGroup='g2'):
+    def _cal_portfolio_return(self, group_ts, controlGroup='g1', targetGroup='g2'):
         # Table 9.6
         controlIndicator = group_ts.index.get_level_values(controlGroup)[0][:-1]
         targetName = group_ts.index.get_level_values(targetGroup)[0][:-1]
@@ -492,7 +510,7 @@ class Bivariate:
 
         return pd.concat([_a, _b1, _b2], axis=0)
 
-    def _dependent_portfolio_analysis_twin(self, group_ts, controlGroup='g2', targetGroup='g1'):
+    def _average_control_variable_portfolios(self, group_ts, controlGroup='g2', targetGroup='g1'):
         # table 10.5 panel B
         targetIndicator = group_ts.index.get_level_values(targetGroup)[0][:-1]  # targetGroup
         # controlIndicator = group_ts.index.get_level_values(controlGroup)[0][:-1]  # controlGroup
@@ -512,8 +530,8 @@ class Bivariate:
 
     def _independent_portfolio_analysis(self, group_ts):
         # table 9.8
-        table1 = self._dependent_portfolio_analysis(group_ts, controlGroup='g1', targetGroup='g2')
-        table2 = self._dependent_portfolio_analysis(group_ts, controlGroup='g2', targetGroup='g1').T
+        table1 = self._cal_portfolio_return(group_ts, controlGroup='g1', targetGroup='g2')
+        table2 = self._cal_portfolio_return(group_ts, controlGroup='g2', targetGroup='g1').T
         table1, table2 = get_outer_frame([table1, table2])
         table = table1.fillna(table2)
         return table
@@ -525,49 +543,57 @@ class Bivariate:
 
         table_eavg = self._independent_portfolio_analysis(group_eavg_ts)
         table_wavg = self._independent_portfolio_analysis(group_wavg_ts)
-        table_eavg.to_csv(os.path.join(self.path,
-                                       'bivariate independent-sort portfolio analysis_equal weighted_%s_%s.csv' % (
-                                       self.indicator1, self.indicator2)))
-        table_wavg.to_csv(os.path.join(self.path,
-                                       'bivariate independent-sort portfolio analysis_value weighted_%s_%s.csv' % (
-                                       self.indicator1, self.indicator2)))
+        self.results['ind_eq_{}_{}'.format(self.indicator1,self.indicator2)]=table_eavg
+        self.results['ind_vw_{}_{}'.format(self.indicator1,self.indicator2)]=table_wavg
+
+        # table_eavg.to_csv(os.path.join(self.path,
+        #                                'bivariate independent-sort portfolio analysis_equal weighted_%s_%s.csv' % (
+        #                                self.indicator1, self.indicator2)))
+        # table_wavg.to_csv(os.path.join(self.path,
+        #                                'bivariate independent-sort portfolio analysis_value weighted_%s_%s.csv' % (
+        #                                self.indicator1, self.indicator2)))
 
     @monitor
     def dependent_portfolio_analysis(self):
-        def _f(indicators):
-            comb = self._get_dependent_data(indicators)
+        def _f(control,target):
+            comb = self._get_dependent_data(control,target)
             group_eavg_ts, group_wavg_ts = self._get_eret(comb)
 
-            table_eavg = self._dependent_portfolio_analysis(group_eavg_ts)
-            table_wavg = self._dependent_portfolio_analysis(group_wavg_ts)
-            table_eavg.to_csv(os.path.join(self.path,
-                                           'bivariate dependent-sort portfolio analysis_equal weighted_%s_%s.csv' % (
-                                           indicators[0], indicators[1])))
-            table_wavg.to_csv(os.path.join(self.path,
-                                           'bivariate dependent-sort portfolio analysis_value weighted_%s_%s.csv' % (
-                                           indicators[0], indicators[1])))
+            table_eavg = self._cal_portfolio_return(group_eavg_ts)
+            table_wavg = self._cal_portfolio_return(group_wavg_ts)
+            self.results['de_eq_{}_{}'.format(control,target)]=table_eavg
+            self.results['de_vw_{}_{}'.format(control,target)]=table_wavg
 
-        _f([self.indicator1,self.indicator2])
-        _f([self.indicator2,self.indicator1])
+            # table_eavg.to_csv(os.path.join(self.path,
+            #                                'bivariate dependent-sort portfolio analysis_equal weighted_%s_%s.csv' % (
+            #                                indicators[0], indicators[1])))
+            # table_wavg.to_csv(os.path.join(self.path,
+            #                                'bivariate dependent-sort portfolio analysis_value weighted_%s_%s.csv' % (
+            #                                indicators[0], indicators[1])))
+
+        _f(self.indicator1,self.indicator2)
+        _f(self.indicator2,self.indicator1)
 
     @monitor
     def dependent_portfolio_analysis_twin(self):
-        def _f(indicators):
-            comb = self._get_dependent_data(indicators)
+        '''table 10.5 panel B'''
+        def _f(control,target):
+            comb = self._get_dependent_data(control,target)
             group_eavg_ts, group_wavg_ts = self._get_eret(comb)
 
-            table_eavg = self._dependent_portfolio_analysis_twin(group_eavg_ts)
-            table_wavg = self._dependent_portfolio_analysis_twin(group_wavg_ts)
+            table_eavg = self._average_control_variable_portfolios(group_eavg_ts)
+            table_wavg = self._average_control_variable_portfolios(group_wavg_ts)
+            self.results['de1_eq_{}_{}'.format(control,target)]=table_eavg
+            self.results['de1_vw_{}_{}'.format(control,target)]=table_wavg
+            # table_eavg.to_csv(os.path.join(self.path,
+            #                                'bivariate dependent-sort portfolio analysis_twin_equal weighted_%s_%s.csv' % (
+            #                                    indicators[0], indicators[1])))
+            # table_wavg.to_csv(os.path.join(self.path,
+            #                                'bivariate dependent-sort portfolio analysis_twin_weighted_%s_%s.csv' % (
+            #                                    indicators[0], indicators[1])))
 
-            table_eavg.to_csv(os.path.join(self.path,
-                                           'bivariate dependent-sort portfolio analysis_twin_equal weighted_%s_%s.csv' % (
-                                               indicators[0], indicators[1])))
-            table_wavg.to_csv(os.path.join(self.path,
-                                           'bivariate dependent-sort portfolio analysis_twin_weighted_%s_%s.csv' % (
-                                               indicators[0], indicators[1])))
-
-        _f([self.indicator1, self.indicator2])
-        _f([self.indicator2, self.indicator1])
+        _f(self.indicator1, self.indicator2)
+        _f(self.indicator2, self.indicator1)
 
     @staticmethod
     def famaMacbeth_reg(indeVars):
@@ -585,14 +611,15 @@ class Bivariate:
         comb=combine_with_datalagged(indeVars)
         comb=comb.dropna()
 
+        #trick: the data is already winsorized before calling dataApi
         # winsorize
-        comb[indeVars]=comb.groupby('t')[indeVars].apply(
-            lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
+        # comb[indeVars]=comb.groupby('t')[indeVars].apply(
+        #     lambda x:winsorize(x,limits=WINSORIZE_LIMITS,axis=0))
         namedict={inde:'name{}'.format(i) for i,inde in enumerate(indeVars)}
         comb=comb.rename(columns=namedict)
         formula = 'stockEretM ~ ' + ' + '.join(namedict.values())
         # TODO:lags?
-        r, adj_r2, n, firstStage_params = famaMacBeth(formula, 't', comb, lags=5)  # TODO:
+        r, adj_r2, n, firstStage_params = famaMacBeth(formula, 't', comb, lags=5)
         r = r.rename(index={v:k for k,v in namedict.items()})
         # save the first stage regression parameters
         firstStage_params = firstStage_params.rename(
@@ -611,19 +638,30 @@ class Bivariate:
         '''
         if isinstance(x[0],str):
             p, firstStage_params = self.famaMacbeth_reg(x)
-            firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(x) + '.csv'))
-            p.to_csv(os.path.join(os.path.join(self.path,'fama macbeth regression analysis.csv')))
+            self.results['fm_para']=firstStage_params
+            self.results['fm']=p
+            # firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(x) + '.csv'))
+            # p.to_csv(os.path.join(os.path.join(self.path,'fama macbeth regression analysis.csv')))
         if isinstance(x[0],list):
             ps=[]
             for indeVars in x:
                 p,firstStage_params=self.famaMacbeth_reg(indeVars)
-                firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(indeVars) + '.csv'))
+                self.results['fm_para']=firstStage_params
+                # firstStage_params.to_csv(os.path.join(self.path, 'first stage parameters ' + '_'.join(indeVars) + '.csv'))
                 ps.append(p)
-            table = pd.concat(ps, axis=1, keys=range(1, len(x) + 1))
+            table = pd.concat(ps, axis=1, keys=range(1, len(x) + 1),sort=True)
             all_indeVars = list(set(var for l_indeVars in x for var in l_indeVars))
             newIndex = [var + ' ' + suffix for var in all_indeVars for suffix in ['coef', 'tvalue']] + \
                        ['Intercept coef', 'Intercept tvalue', 'adj_r2', 'n']
             table = table.reindex(index=newIndex)
-            table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
+            # table.to_csv(os.path.join(os.path.join(self.path, 'fama macbeth regression analysis.csv')))
+            self.results['fm']=table
+
+    def save_results(self):
+        excelWriter=pd.ExcelWriter(os.path.join(self.path,'{}_{}.xlsx'.format(self.indicator1,self.indicator2)))
+        for k in self.results:
+            self.results[k].to_excel(excelWriter,k)
+
 
 #TODO: wrong!!!! For predictors with accounting data updated annually
+

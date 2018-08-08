@@ -9,7 +9,7 @@ import os
 from core.main import OneFactor,Bivariate
 
 # testdir = r'D:\zht\database\quantDb\researchTopics\assetPricing2\20180427'
-testdir=r'D:\zht\database\quantDb\researchTopics\assetPricing2\apply_condition_result'
+testdir=r'D:\zht\database\quantDb\researchTopics\assetPricing2_new\playingfield\apply_condition_result'
 
 
 
@@ -23,8 +23,8 @@ def test_OneFactor():
 
 class size_12M(Bivariate):
     def __init__(self):
-        indicator1='size'
-        indicator2='D_12M'
+        indicator1='size__size'
+        indicator2='beta__D_12M'
         path=os.path.join(testdir,'test_lewellen')
         super().__init__(indicator1,indicator2,path)
 
@@ -40,7 +40,8 @@ class size_12M(Bivariate):
     def run(self):
         self.dependent_portfolio_analysis()
         self.independent_portfolio_analysis()
-        self.fm()
+        self.famaMacbeth()
+        self.save_results()
 
     def __call__(self):
         self.run()
@@ -50,7 +51,7 @@ def test_Bivariate():
 
 
 if __name__ == '__main__':
-    test_OneFactor()
-    # test_Bivariate()
+    # test_OneFactor()
+    test_Bivariate()
 
 

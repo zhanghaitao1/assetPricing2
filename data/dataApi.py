@@ -8,7 +8,7 @@ import os
 import pickle
 
 from config import PKL_UNFILTERED_PATH
-from data.dataTools import load_data, save_to_filtered,read_filtered
+from data.dataTools import save_to_filtered, read_filtered, read_unfiltered
 import pandas as pd
 from data.sampleControl import apply_condition
 
@@ -19,7 +19,7 @@ def combine_all_indicators():
     xs=[]
     info={}
     for fn in fns:
-        x=load_data(fn)
+        x=read_filtered(fn)
         # stack those panel with only one indicators such as reversal
         if not isinstance(x.index,pd.MultiIndex):
             if x.columns.name=='sid':
@@ -38,7 +38,7 @@ def combine_all_benchmarks():
     xs=[]
     info={}
     for model in models:
-        x=load_data(model)
+        x=read_filtered(model)
         if x.ndim==1:# such as capmM
             x.name='{}__{}'.format(model,x.name)
         else:
@@ -85,18 +85,18 @@ def join_all():
     '''
 
     # --------------------time T-1 (Backward) ---------------------------------
-    weight=load_data('size')['mktCap']
+    weight=read_filtered('size')['mktCap']
     weight.name='weight'
     indicators,info=combine_all_indicators()
 
     # -----------------------------time T--------------------------------------
-    stockEretM=load_data('stockEretM')
+    stockEretM=read_filtered('stockEretM')
     stockEretM=stockEretM.stack()
     stockEretM.name='stockEretM'
 
-    rfM=load_data('rfM')
-    mktRetM=load_data('mktRetM')
-    rpM=load_data('rpM')
+    rfM=read_filtered('rfM')
+    mktRetM=read_filtered('mktRetM')
+    rpM=read_filtered('rpM')
 
     #combine singleIndexedr
     single=pd.concat([rfM,mktRetM,rpM],axis=1)
@@ -147,14 +147,14 @@ class Benchmark:
 class Database:
     def __init__(self,sample_control=True):
         if sample_control:
-            self.data=read_filtered('data_controlled')
+            self._data=read_filtered('data_controlled')
         else:
-            self.data=read_filtered('data')
-        self.info=load_data('info')
+            self._data=read_filtered('data')
+        self.info=read_unfiltered('info')
         self.all_indicators=[ele for l in self.info.values() for ele in l]
 
     def by_factor(self,factorname):
-        return self.data[self.info[factorname]].copy(deep=True).dropna(how='all')
+        return self._data[self.info[factorname]].copy(deep=True).dropna(how='all')
 
     def by_indicators(self,indicators):
         '''
@@ -164,9 +164,9 @@ class Database:
         :return: DataFrame
         '''
         if isinstance(indicators,(list,tuple)):
-            return self.data[list(indicators)].copy(deep=True).dropna(how='all')
+            return self._data[list(indicators)].copy(deep=True).dropna(how='all')
         else:
-            return self.data[[indicators]].copy(deep=True).dropna(how='all')
+            return self._data[[indicators]].copy(deep=True).dropna(how='all')
 
 if __name__ == '__main__':
     join_all()

@@ -22,5 +22,7 @@ CSV_FILTERED_PATH=os.path.join(DATA_PATH,'csv_filtered')
 PKL_FILTERED_PATH=os.path.join(DATA_PATH, 'pkl_filtered')
 
 
+P_EMPIRICAL=os.path.join(PROJECT_PATH,'empirical')
+
 
 
