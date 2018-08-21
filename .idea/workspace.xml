@@ -7,17 +7,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e1fcdbc-b153-43ec-8d30-b77a774a42d1" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../../projects/a.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../projects/download_youtube/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../projects/download_youtube/download.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/add_tags.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/check/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/check/check_benchmarks.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/empirical/cakici/combine_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/indicators/beta/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/indicators/beta/beta_sw_dm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/indicators/cakici.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../data/wind/wind_api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../tmp/HaiTong_hp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../tmp/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../tmp/a.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../tmp/kogan_part2_new_hp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/zht.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/zht.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../internship/FT/.idea/FT.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../internship/FT/.idea/FT.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../internship/FT/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../internship/FT/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../internship/FT/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../internship/FT/config.py" afterDir="false" />
@@ -29,127 +25,11 @@
       <change beforePath="$PROJECT_DIR$/../../projects/Coursera-Asset-Pricing" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/Coursera-Asset-Pricing" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../projects/Python-Financial-Tools" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/Python-Financial-Tools" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../projects/financial text analyse/document_cluster" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/financial text analyse/document_cluster" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../projects/financial text analyse/unsupervised-learning-document-clustering" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/financial text analyse/unsupervised-learning-document-clustering" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/base_on_foxit.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/base_on_foxit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/a.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/a.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/by_parse_xfdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/annotation_to_xmind.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$" beforeDir="false" afterPath="$PROJECT_DIR$" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/test_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/test_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/dataApi.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/dataApi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/dataTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/dataTools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/din.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/din.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/dout.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/observe benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/observe benchmark.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/documents/assetPricing2.xmind" beforeDir="false" afterPath="$PROJECT_DIR$/documents/assetPricing2.xmind" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dout.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/empirical/Chen2010/Chen2010.py" beforeDir="false" afterPath="$PROJECT_DIR$/empirical/Chen2010/Chen2010.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/empirical/cakici/cakici.py" beforeDir="false" afterPath="$PROJECT_DIR$/empirical/cakici/cakici.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/empirical/cakici/get_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/empirical/cakici/get_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/indicators/1 beta.py" beforeDir="false" afterPath="$PROJECT_DIR$/indicators/beta/1 beta.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/indicators/1 beta_new.py" beforeDir="false" afterPath="$PROJECT_DIR$/indicators/beta/1 beta_new.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/indicators/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/indicators/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/tool.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/.idea/assetPricing3.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/.idea/dictionaries/zht.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/a.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/analyse_factors.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/b.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/c.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/core/constructFactor.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/core/ff5.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/core/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/core/test_main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/base.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/check.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/dataApi.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/dataTools.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/din.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/din_filter_outliers.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/dout.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/info.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/observe benchmark.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/outlier.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/data/sampleControl.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/dataset.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/documents/0readme.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/documents/UML.xmind" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/documents/layout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/documents/results.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/documents/settings.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/dout.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/Artmann/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/Artmann/artmann.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/Chen2010/Chen2010.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/Chen2010/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/cakici/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/cakici/cakici.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/cakici/get_data.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/lewellen/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/lewellen/lewellen.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/compareBenchmark/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/compareBenchmark/analyse_result.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/compareBenchmark/compare.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/compareBenchmark/playingField.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/compareBenchmark/readme.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/compareBenchmark/writing.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/policyUncertainty/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/empirical/my/policyUncertainty/policyUncertainty.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/1 beta.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/10 hxz.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/11 FF6.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/2 size.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/3 value.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/4 momentum.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/5 reversal.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/6 liquidity.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/7 skewness.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/8 idiosyncraticVolatility.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/9 marketStates.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/indicators_filter.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/indicators/test.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/info.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/miscellaneous.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/multi_base.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/1size.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/2beta.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/3value.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/4momentum.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/5reversal.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/6liquidity.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/7skewness.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/8idiosyncraticVolatility.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/9market_states.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/din.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/old/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/Example_Fama-MacBeth_regression.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/FamaFrench.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/GRS_R" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/GRS_matlab.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/GRS_stata.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/assetPricing_Siriwardane.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/fama_macbeth_Kevin_Sheppard.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/fama_macbeth_Vincent_Grégoire.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/getBaseData.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/relevant/reg.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/test/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/test/core/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/test/core/test_constructFactor.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/test_main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/test_tool.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../assetPricing3/tool.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../utils/assetPricing.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../utils/assetPricing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../utils/backup.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../utils/backup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../utils/dateu.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../utils/dateu.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -383,9 +263,9 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-9" />
-    <option name="y" value="-9" />
-    <option name="width" value="1938" />
+    <option name="x" value="-128" />
+    <option name="y" value="51" />
+    <option name="width" value="1940" />
     <option name="height" value="1060" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -402,16 +282,6 @@
             <path>
               <item name="assetPricing2" type="b2602c69:ProjectViewProjectNode" />
               <item name="assetPricing2" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="assetPricing2" type="b2602c69:ProjectViewProjectNode" />
-              <item name="assetPricing2" type="462c0819:PsiDirectoryNode" />
-              <item name="check" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="assetPricing2" type="b2602c69:ProjectViewProjectNode" />
-              <item name="assetPricing2" type="462c0819:PsiDirectoryNode" />
-              <item name="core" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -965,28 +835,28 @@
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="848" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6427567" visible="true" weight="0.14362416" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.6427567" visible="true" weight="0.147651" />
       <window_info anchor="bottom" id="TODO" order="7" sideWeight="0.49262735" weight="0.39044943" />
       <window_info anchor="bottom" id="Docker" order="3" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="5" sideWeight="0.50268096" side_tool="true" weight="0.55133617" />
-      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.5949367" weight="0.4213483" />
-      <window_info active="true" anchor="right" x="31" y="248" width="1474" height="337" id="Python Console" order="7" sideWeight="0.40308988" visible="true" weight="0.2946309" />
       <window_info anchor="right" id="Run" order="5" sideWeight="0.67025864" side_tool="true" weight="0.39658847" />
+      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.5949367" weight="0.4213483" />
+      <window_info anchor="right" x="31" y="248" width="1474" height="337" id="Python Console" order="7" sideWeight="0.4016854" weight="0.2946309" />
       <window_info anchor="right" x="593" y="178" width="869" height="592" id="SciView" order="4" sideWeight="0.6885776" side_tool="true" weight="0.25053304" />
       <window_info anchor="right" id="Structure" order="8" sideWeight="0.3193096" side_tool="true" weight="0.4488273" />
-      <window_info anchor="right" id="Terminal" order="6" sideWeight="0.5969101" side_tool="true" visible="true" weight="0.2946309" />
-      <window_info id="Favorites" order="1" sideWeight="0.35724333" side_tool="true" weight="0.1494638" />
+      <window_info anchor="right" id="Terminal" order="6" sideWeight="0.5983146" side_tool="true" weight="0.2946309" />
       <window_info anchor="right" id="Debug" order="3" sideWeight="0.41163793" weight="0.4339019" />
+      <window_info id="Favorites" order="1" sideWeight="0.35724333" side_tool="true" weight="0.1494638" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="2" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="1" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="8" sideWeight="0.49731904" weight="0.70689654" />
       <window_info anchor="right" x="0" y="0" width="337" height="648" id="Documentation" order="9" sideWeight="0.40486726" side_tool="true" weight="0.34161073" />
       <window_info anchor="bottom" id="Database" order="6" sideWeight="0.50268096" side_tool="true" weight="0.5519663" />
       <window_info anchor="bottom" id="Database Changes" order="4" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Cvs" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="8" sideWeight="0.49731904" weight="0.70689654" />
+      <window_info anchor="bottom" id="Message" order="0" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1209,9 +1079,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="228">
           <caret line="23" column="6" selection-start-line="23" selection-start-column="6" selection-end-line="23" selection-end-column="6" />
-          <folding>
-            <element signature="e#249#268#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1276,9 +1143,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-2395">
           <caret line="26" lean-forward="true" selection-start-line="26" selection-end-line="26" />
-          <folding>
-            <element signature="e#1027#1072#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1464,9 +1328,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="361">
           <caret line="19" selection-start-line="19" selection-end-line="19" />
-          <folding>
-            <element signature="e#118#127#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1540,9 +1401,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2185">
           <caret line="121" column="4" selection-start-line="121" selection-start-column="4" selection-end-line="121" selection-end-column="4" />
-          <folding>
-            <element signature="e#143#174#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1557,16 +1415,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="459">
           <caret line="33" column="26" selection-start-line="33" selection-start-column="26" selection-end-line="33" selection-end-column="26" />
-          <folding>
-            <element signature="e#143#152#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tool.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="626">
-          <caret line="239" selection-start-line="239" selection-end-line="239" />
         </state>
       </provider>
     </entry>
@@ -1581,19 +1429,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="540">
           <caret line="40" column="56" selection-start-line="40" selection-start-column="56" selection-end-line="40" selection-end-column="56" />
-          <folding>
-            <element signature="e#145#164#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="445">
-          <caret line="61" column="21" selection-start-line="61" selection-start-column="21" selection-end-line="61" selection-end-column="21" />
-          <folding>
-            <element signature="e#140#149#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1601,6 +1436,20 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="880">
           <caret line="299" selection-start-line="299" selection-end-line="299" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tool.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="284">
+          <caret line="486" column="68" selection-start-line="486" selection-start-column="68" selection-end-line="486" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="365">
+          <caret line="621" column="45" selection-start-line="621" selection-start-column="45" selection-end-line="621" selection-end-column="45" />
         </state>
       </provider>
     </entry>
