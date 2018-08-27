@@ -437,9 +437,59 @@ def count_groups(df,q):
     count=df.apply(lambda s:_for_series(s,lbs),axis=1)
     return count
 
+def famaMacBeth_old(formula, time_label, df, lags=5):
+    res = df.groupby(time_label,sort=True).apply(lambda x: sm.ols(
+        formula, data=x).fit())
+    if time_label in df.columns:
+        groups=df[time_label].unique()
+    else:# The time label comes from the index
+        groups=df.index.get_level_values(time_label).unique()
+
+    p=pd.DataFrame([x.params for x in res],index=groups)
+    N=np.mean([x.nobs for x in res])
+    adj_r2=np.mean([x.rsquared_adj for x in res])
+
+    means = {}
+    params_labels = res.iloc[0].params.index
+
+    for x in p.columns:
+        if lags is 0:
+            means[x] = sm.ols(formula=x + ' ~ 1',
+                              data=p[[x]]).fit(use_t=True)
+        else:
+            means[x] = sm.ols(formula=x + ' ~ 1',
+                              data=p[[x]]).fit(cov_type='HAC',
+                                cov_kwds={'maxlags': lags},
+                                use_t=True)
+
+    params = []
+    stderrs = []
+    tvalues = []
+    pvalues = []
+    for x in params_labels:
+        params.append(means[x].params['Intercept'])
+        stderrs.append(means[x].bse['Intercept'])
+        tvalues.append(means[x].tvalues['Intercept'])
+        pvalues.append(means[x].pvalues['Intercept'])
+
+    result = pd.DataFrame([params, stderrs, tvalues, pvalues]).T
+    result.index = params_labels
+    result.columns = ['coef', 'stderr', 'tvalue', 'pvalue']
+    result['stars'] = ''
+    result.loc[result.pvalue < 0.1, 'stars'] = '*'
+    result.loc[result.pvalue < 0.05, 'stars'] = '**'
+    result.loc[result.pvalue < 0.01, 'stars'] = '***'
+
+    return result,adj_r2,N,p
+
+
 def famaMacBeth(formula, time_label, df, lags=5):
     '''
     Fama-MacBeth regression with Newey-West correction.
+
+    The regression will include 'const' as the first independent variable
+    in the right hand of the regression automatically, and df should not
+    include such a column.
 
         The only input required for the Newey and West (1987) adjustment is
     the number of lags to use when performing the adjustment. As discussed
@@ -487,21 +537,13 @@ def famaMacBeth(formula, time_label, df, lags=5):
         x          1.035586  0.025883  40.010988  1.893637e-11   ***
 
     '''
-
-    res = df.groupby(time_label,sort=True).apply(lambda x: sm.ols(
+    res = df.groupby(time_label, sort=True).apply(lambda x: sm.ols(
         formula, data=x).fit())
-    if time_label in df.columns:
-        groups=df[time_label].unique()
-    else:# The time label comes from the index
-        groups=df.index.get_level_values(time_label).unique()
-
-    p=pd.DataFrame([x.params for x in res],index=groups)
-    N=np.mean([x.nobs for x in res])
-    adj_r2=np.mean([x.rsquared_adj for x in res])
+    p = pd.DataFrame([x.params for x in res], index=res.index)
+    N = np.mean([x.nobs for x in res])
+    adj_r2 = np.mean([x.rsquared_adj for x in res])
 
     means = {}
-    params_labels = res.iloc[0].params.index
-
     for x in p.columns:
         if lags is 0:
             means[x] = sm.ols(formula=x + ' ~ 1',
@@ -509,28 +551,16 @@ def famaMacBeth(formula, time_label, df, lags=5):
         else:
             means[x] = sm.ols(formula=x + ' ~ 1',
                               data=p[[x]]).fit(cov_type='HAC',
-                                cov_kwds={'maxlags': lags},
-                                use_t=True)
+                                               cov_kwds={'maxlags': lags},
+                                               use_t=True)
+    result = pd.DataFrame([
+        [means[x].params['Intercept'], means[x].bse['Intercept'],
+         means[x].tvalues['Intercept'], means[x].pvalues['Intercept']]
+        for x in p.columns
+    ], index=p.columns, columns=['coef', 'stderr', 'tvalue', 'pvalue'])
+    result['stars'] = result['pvalue'].map(lambda x: '***' if x < 0.01 else ('**' if x < 0.05 else ('*' if x < 0.1 else '')))
+    return result, adj_r2, N, p
 
-    params = []
-    stderrs = []
-    tvalues = []
-    pvalues = []
-    for x in params_labels:
-        params.append(means[x].params['Intercept'])
-        stderrs.append(means[x].bse['Intercept'])
-        tvalues.append(means[x].tvalues['Intercept'])
-        pvalues.append(means[x].pvalues['Intercept'])
-
-    result = pd.DataFrame([params, stderrs, tvalues, pvalues]).T
-    result.index = params_labels
-    result.columns = ['coef', 'stderr', 'tvalue', 'pvalue']
-    result['stars'] = ''
-    result.loc[result.pvalue < 0.1, 'stars'] = '*'
-    result.loc[result.pvalue < 0.05, 'stars'] = '**'
-    result.loc[result.pvalue < 0.01, 'stars'] = '***'
-
-    return result,adj_r2,N,p
 
 def newey_west(formula,df,lags=5):
     #TODO: other t values such as bootstrapped standard errors of Murphy and Topel, “Estimation and Inference in Two-Step Econometric Models.”

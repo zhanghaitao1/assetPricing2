@@ -7,13 +7,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e1fcdbc-b153-43ec-8d30-b77a774a42d1" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/../../data/wind/wind_api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../tmp/HaiTong_hp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../tmp/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../tmp/a.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../tmp/kogan_part2_new_hp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/zht.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/zht.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../data/wind/wind_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../data/wind/wind_api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../internship/FT/.idea/FT.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../../internship/FT/.idea/FT.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../internship/FT/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../internship/FT/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../internship/FT/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../internship/FT/config.py" afterDir="false" />
@@ -25,11 +20,11 @@
       <change beforePath="$PROJECT_DIR$/../../projects/Coursera-Asset-Pricing" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/Coursera-Asset-Pricing" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../projects/Python-Financial-Tools" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/Python-Financial-Tools" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../projects/financial text analyse/document_cluster" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/financial text analyse/document_cluster" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/a.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/a.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/by_parse_xfdf.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/annotation_to_xmind.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/annotation_to_xmind.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../projects/zotero_xmind_pdf/annotation_to_xmind.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$" beforeDir="false" afterPath="$PROJECT_DIR$" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../utils/dateu.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../utils/dateu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/tool.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../tmp/kogan_part2_new_hp.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../tmp/kogan_part2_new_hp.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -106,7 +101,26 @@
     </favorites_list>
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf>
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/main.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="502">
+              <caret line="370" column="35" selection-start-line="370" selection-start-column="35" selection-end-line="370" selection-end-column="35" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tool.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/tool.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="228">
+              <caret line="538" column="7" lean-forward="true" selection-start-line="538" selection-start-column="7" selection-end-line="538" selection-end-column="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -145,9 +159,9 @@
       <find>negative</find>
       <find>load_data</find>
       <find>to_csv</find>
-      <find>qcut</find>
       <find>average</find>
       <find>benchm</find>
+      <find>qcut</find>
     </findStrings>
     <replaceStrings>
       <replace>cal_corr</replace>
@@ -247,9 +261,9 @@
         <option value="$PROJECT_DIR$/indicators/beta/beta_sw_dm.py" />
         <option value="$PROJECT_DIR$/empirical/cakici/combine_data.py" />
         <option value="$PROJECT_DIR$/empirical/Chen2010/Chen2010.py" />
-        <option value="$PROJECT_DIR$/tool.py" />
-        <option value="$PROJECT_DIR$/core/main.py" />
         <option value="$PROJECT_DIR$/data/dataApi.py" />
+        <option value="$PROJECT_DIR$/core/main.py" />
+        <option value="$PROJECT_DIR$/tool.py" />
       </list>
     </option>
   </component>
@@ -263,10 +277,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-128" />
-    <option name="y" value="51" />
-    <option name="width" value="1940" />
-    <option name="height" value="1060" />
+    <option name="x" value="-1429" />
+    <option name="y" value="-10" />
+    <option name="width" value="980" />
+    <option name="height" value="840" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -276,17 +290,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="assetPricing2" type="b2602c69:ProjectViewProjectNode" />
-              <item name="assetPricing2" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
       <pane id="Scope">
         <subPane subId="Project Files">
           <expand>
@@ -302,6 +305,17 @@
             <path>
               <item name="Root" type="cbb8eebc:String" user="Root" />
               <item name="assetPricing2" type="cbb8eebc:String" user="assetPricing2" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="assetPricing2" type="b2602c69:ProjectViewProjectNode" />
+              <item name="assetPricing2" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -833,30 +847,30 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="848" extended-state="6" />
+    <frame x="-1928" y="-8" width="1936" height="1066" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.6427567" visible="true" weight="0.147651" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.6427567" visible="true" weight="0.11886994" />
       <window_info anchor="bottom" id="TODO" order="7" sideWeight="0.49262735" weight="0.39044943" />
       <window_info anchor="bottom" id="Docker" order="3" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="5" sideWeight="0.50268096" side_tool="true" weight="0.55133617" />
-      <window_info anchor="right" id="Run" order="5" sideWeight="0.67025864" side_tool="true" weight="0.39658847" />
       <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.5949367" weight="0.4213483" />
       <window_info anchor="right" x="31" y="248" width="1474" height="337" id="Python Console" order="7" sideWeight="0.4016854" weight="0.2946309" />
+      <window_info anchor="right" id="Run" order="5" sideWeight="0.67025864" side_tool="true" weight="0.39658847" />
       <window_info anchor="right" x="593" y="178" width="869" height="592" id="SciView" order="4" sideWeight="0.6885776" side_tool="true" weight="0.25053304" />
       <window_info anchor="right" id="Structure" order="8" sideWeight="0.3193096" side_tool="true" weight="0.4488273" />
       <window_info anchor="right" id="Terminal" order="6" sideWeight="0.5983146" side_tool="true" weight="0.2946309" />
-      <window_info anchor="right" id="Debug" order="3" sideWeight="0.41163793" weight="0.4339019" />
       <window_info id="Favorites" order="1" sideWeight="0.35724333" side_tool="true" weight="0.1494638" />
+      <window_info anchor="right" id="Debug" order="3" sideWeight="0.41163793" weight="0.4339019" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="2" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="1" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="8" sideWeight="0.49731904" weight="0.70689654" />
+      <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="right" x="0" y="0" width="337" height="648" id="Documentation" order="9" sideWeight="0.40486726" side_tool="true" weight="0.34161073" />
       <window_info anchor="bottom" id="Database" order="6" sideWeight="0.50268096" side_tool="true" weight="0.5519663" />
       <window_info anchor="bottom" id="Database Changes" order="4" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Cvs" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="8" sideWeight="0.49731904" weight="0.70689654" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -903,17 +917,17 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/core/main.py</url>
-          <line>318</line>
+          <line>320</line>
           <option name="timeStamp" value="783" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/core/main.py</url>
-          <line>293</line>
+          <line>295</line>
           <option name="timeStamp" value="784" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/core/main.py</url>
-          <line>297</line>
+          <line>299</line>
           <option name="timeStamp" value="785" />
         </line-breakpoint>
       </breakpoints>
@@ -1439,17 +1453,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tool.py">
+    <entry file="file://$PROJECT_DIR$/core/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="284">
-          <caret line="486" column="68" selection-start-line="486" selection-start-column="68" selection-end-line="486" selection-end-column="68" />
+        <state relative-caret-position="502">
+          <caret line="370" column="35" selection-start-line="370" selection-start-column="35" selection-end-line="370" selection-end-column="35" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/main.py">
+    <entry file="file://$PROJECT_DIR$/tool.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="365">
-          <caret line="621" column="45" selection-start-line="621" selection-start-column="45" selection-end-line="621" selection-end-column="45" />
+        <state relative-caret-position="228">
+          <caret line="538" column="7" lean-forward="true" selection-start-line="538" selection-start-column="7" selection-end-line="538" selection-end-column="7" />
         </state>
       </provider>
     </entry>

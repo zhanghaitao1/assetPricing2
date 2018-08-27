@@ -164,7 +164,8 @@ class OneFactor:
         #trick: pd.qcut will just ignore NaNs,but if all the values are NaNs it will throw an error
         groupid['g'] = groupid.groupby('t', group_keys=False).apply(
             lambda df: pd.qcut(df[indicator], self.q,
-                               labels=[indicator + str(i) for i in range(1, self.q + 1)])
+                               labels=[indicator + str(i) for i in range(1, self.q + 1)],
+                               duplicates='drop')#trick: drop the duplicated bins
         )
         return groupid
 
@@ -287,7 +288,8 @@ class OneFactor:
         comb = comb.dropna()
         comb['g'] = comb.groupby('t', group_keys=False).apply(
             lambda df: pd.qcut(df[indicator], self.q,
-                               labels=[indicator + str(i) for i in range(1, self.q + 1)])
+                               labels=[indicator + str(i) for i in range(1, self.q + 1)],
+                               duplicates='drop')#trick: drop the duplicated bins
         )
 
         def _one_indicator_one_weight_type(group_ts, indicator):
