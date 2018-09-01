@@ -162,11 +162,17 @@ class OneFactor:
     def _get_port_data(self, indicator):
         groupid = DATA.by_indicators([indicator])
         #trick: pd.qcut will just ignore NaNs,but if all the values are NaNs it will throw an error
-        groupid['g'] = groupid.groupby('t', group_keys=False).apply(
-            lambda df: pd.qcut(df[indicator], self.q,
-                               labels=[indicator + str(i) for i in range(1, self.q + 1)],
-                               duplicates='drop')#trick: drop the duplicated bins
-        )
+        try:
+            groupid['g'] = groupid.groupby('t', group_keys=False).apply(
+                lambda df: pd.qcut(df[indicator], self.q,
+                                   labels=[indicator + str(i) for i in range(1, self.q + 1)],
+                                   duplicates='raise')#trick: drop the duplicated bins
+            )
+        except ValueError:#trick:qcut with non unique values https://stackoverflow.com/questions/20158597/how-to-qcut-with-non-unique-bin-edges
+            groupid['g'] = groupid.groupby('t', group_keys=False).apply(
+                lambda df: pd.qcut(df[indicator].rank(method='first'), self.q,
+                                   labels=[indicator + str(i) for i in range(1, self.q + 1)])  # trick: drop the duplicated bins
+            )
         return groupid
 
     @monitor
@@ -286,11 +292,17 @@ class OneFactor:
         all_indicators=[indicator,'weight','stockEretM']
         comb = DATA.by_indicators(all_indicators)
         comb = comb.dropna()
-        comb['g'] = comb.groupby('t', group_keys=False).apply(
-            lambda df: pd.qcut(df[indicator], self.q,
-                               labels=[indicator + str(i) for i in range(1, self.q + 1)],
-                               duplicates='drop')#trick: drop the duplicated bins
-        )
+        try:
+            comb['g'] = comb.groupby('t', group_keys=False).apply(
+                lambda df: pd.qcut(df[indicator], self.q,
+                                   labels=[indicator + str(i) for i in range(1, self.q + 1)],
+                                   duplicates='raise')
+            )
+        except ValueError:#trick:qcut with non unique values https://stackoverflow.com/questions/20158597/how-to-qcut-with-non-unique-bin-edges
+            comb['g'] = comb.groupby('t', group_keys=False).apply(
+                lambda df: pd.qcut(df[indicator].rank(method='first'), self.q,
+                                   labels=[indicator + str(i) for i in range(1, self.q + 1)])
+            )
 
         def _one_indicator_one_weight_type(group_ts, indicator):
             def _big_minus_small(s, ind):
